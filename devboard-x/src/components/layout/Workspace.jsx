@@ -1,6 +1,7 @@
+"use client";
 import { Cpu, Activity, Folder, Server } from "lucide-react";
 import WidgetCard from "@/components/widgets/WidgetCard";
-
+import NotesWidget from "@/components/widgets/NotesWidget";
 export default function Workspace() {
   return (
     <div className="flex-1 flex flex-col bg-zinc-950 text-white p-6">
@@ -31,7 +32,8 @@ export default function Workspace() {
         value="3"
         color="bg-yellow-500"
         />
-        </div>
+      </div>
+      <NotesWidget />
     </div>
   )
 }

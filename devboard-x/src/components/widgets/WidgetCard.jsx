@@ -1,7 +1,19 @@
-export default function WidgetCard({Icon, title, value, color}) {
+"use client"
+import { motion } from "framer-motion"
+export default function WidgetCard({ Icon, title, value, color }) {
   return (
     
-    <div className="flex items-center justify-between p-4 bg-zinc-900 rounded-xl border border-zinc-800">
+    <motion.div 
+      whileHover={{
+        y: -10,
+        scale: 1.04
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300
+      }}
+      className="flex items-center justify-between p-4 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 hover:shadow-xl transition">
+      
       {/* Left side: Icon + Text */}
       <div className="flex items-center gap-4">
         <div className={`p-3 rounded-lg ${color}`}>
@@ -19,6 +31,6 @@ export default function WidgetCard({Icon, title, value, color}) {
         <p className="text-zinc-500 text-sm">vs last month</p>
       </div>
       
-    </div>
+    </motion.div>
   )
 }
