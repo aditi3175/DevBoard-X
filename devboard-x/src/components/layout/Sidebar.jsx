@@ -2,17 +2,22 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTheme } from "@/context/ThemeContext"
+
 import {
   Layout,
   Terminal,
   FolderKanban,
   BarChart3,
-  Settings
+  Settings,
+  Code2
 } from "lucide-react"
 
 export default function Sidebar() {
 
-  // GET CURRENT ROUTE
+  const { theme } = useTheme()
+
+  // CURRENT ROUTE
   const pathname = usePathname()
 
   const navItems = [
@@ -37,15 +42,27 @@ export default function Sidebar() {
       path: "/analytics"
     },
     {
+      name: "Snippets",
+      icon: Code2,
+      path: "/snippets"
+    },
+    {
       name: "Settings",
       icon: Settings,
       path: "/settings"
     }
+
   ]
 
   return (
 
-    <div className="h-screen w-64 bg-zinc-900 text-white p-4 flex flex-col border-r border-zinc-800">
+    <div
+      className={`h-screen w-64 p-4 flex flex-col border-r transition ${
+        theme === "dark"
+          ? "bg-zinc-900 text-white border-zinc-800"
+          : "bg-zinc-100 text-black border-zinc-300"
+      }`}
+    >
 
       {/* LOGO */}
       <div className="mb-8 px-3">
@@ -63,7 +80,7 @@ export default function Sidebar() {
 
           const Icon = item.icon
 
-          // CHECK ACTIVE ROUTE
+          // ACTIVE ROUTE
           const isActive = pathname === item.path
 
           return (
@@ -73,8 +90,12 @@ export default function Sidebar() {
               href={item.path}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg transition ${
                 isActive
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800/50 hover:text-white"
+                  ? theme === "dark"
+                    ? "bg-zinc-800 text-white"
+                    : "bg-white text-black border border-zinc-300"
+                  : theme === "dark"
+                    ? "text-zinc-400 hover:bg-zinc-800/50 hover:text-white"
+                    : "text-zinc-600 hover:bg-zinc-200 hover:text-black"
               }`}
             >
 
