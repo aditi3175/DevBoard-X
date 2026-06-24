@@ -182,7 +182,7 @@ export default function TasksPage() {
         <p
           className={`mt-2 ${
             theme === "dark"
-              ? "text-zinc-500"
+              ? "text-zinc-400"
               : "text-zinc-600"
           }`}
         >
@@ -339,7 +339,7 @@ export default function TasksPage() {
             No Tasks Found
           </h3>
 
-          <p className="mt-2 text-zinc-500">
+          <p className="mt-2 text-zinc-400">
             Create your first task.
           </p>
 
@@ -411,7 +411,7 @@ export default function TasksPage() {
 
             </div>
 
-            <p className="text-xs mt-4 text-zinc-500">
+            <p className="text-xs mt-4 text-zinc-400">
               Created: {task.createdAt}
             </p>
 

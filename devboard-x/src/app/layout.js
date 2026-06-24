@@ -2,6 +2,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext"
 import { ProjectProvider } from "@/context/ProjectContext"
+import { ActivityProvider } from "@/context/ActivityContext"
+import CommandPalette from "@/components/layout/CommandPalette"
+import Sidebar from "@/components/layout/Sidebar"
+import Navbar from "@/components/layout/Navbar"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,9 +28,22 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col overflow-x-hidden">
         <ThemeProvider>
-          <ProjectProvider>{children}</ProjectProvider>
+          <ProjectProvider>
+            <ActivityProvider>
+              <CommandPalette />
+              <div className="flex h-screen overflow-hidden w-full">
+                <Sidebar />
+                <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                  <Navbar />
+                  <main className="flex-1 flex flex-col relative w-full">
+                    {children}
+                  </main>
+                </div>
+              </div>
+            </ActivityProvider>
+          </ProjectProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -76,7 +76,7 @@ export default function ProjectCard({
           <p
             className={`text-sm mt-1 ${
               theme === "dark"
-                ? "text-zinc-500"
+                ? "text-zinc-400"
                 : "text-zinc-600"
             }`}
           >
@@ -154,7 +154,7 @@ export default function ProjectCard({
         <p
           className={`text-sm mt-2 ${
             theme === "dark"
-              ? "text-zinc-500"
+              ? "text-zinc-400"
               : "text-zinc-600"
           }`}
         >
@@ -167,7 +167,7 @@ export default function ProjectCard({
       <div
         className={`flex items-center justify-between text-sm pt-4 border-t ${
           theme === "dark"
-            ? "text-zinc-500 border-zinc-800"
+            ? "text-zinc-400 border-zinc-800"
             : "text-zinc-600 border-zinc-300"
         }`}
       >

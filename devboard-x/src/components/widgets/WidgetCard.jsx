@@ -67,24 +67,7 @@ export default function WidgetCard({
 
       </div>
 
-      {/* RIGHT SIDE */}
-      <div className="text-right">
 
-        <span className="text-green-400 font-semibold">
-          +5.2%
-        </span>
-
-        <p
-          className={`text-sm ${
-            theme === "dark"
-              ? "text-zinc-500"
-              : "text-zinc-600"
-          }`}
-        >
-          vs last month
-        </p>
-
-      </div>
 
     </motion.div>
 

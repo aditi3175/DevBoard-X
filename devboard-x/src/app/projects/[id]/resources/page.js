@@ -1,0 +1,373 @@
+"use client"
+
+import { useRef, useState } from "react"
+import { useParams } from "next/navigation"
+import { Link2, Pin, Search } from "lucide-react"
+
+import { useTheme } from "@/context/ThemeContext"
+import { useProjects } from "@/context/ProjectContext"
+import ProjectHeader from "@/components/project/ProjectHeader"
+import ProjectSubNav from "@/components/project/ProjectSubNav"
+import ResourceForm from "@/components/resources/ResourceForm"
+import ResourceCard from "@/components/resources/ResourceCard"
+import WidgetCard from "@/components/widgets/WidgetCard"
+import {
+  ACTIVITY_TYPES,
+  appendProjectActivity,
+  buildActivityEntry
+} from "@/utils/projectActivity"
+import { useActivity } from "@/context/ActivityContext"
+
+function isValidUrl(string) {
+  try {
+    new URL(string)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export default function ProjectResourcesPage() {
+  const params = useParams()
+  const formRef = useRef(null)
+
+  const { theme } = useTheme()
+  const { projects, setProjects } = useProjects()
+  const { logActivity } = useActivity()
+
+  const projectIndex = Number(params.id)
+  const project = projects[projectIndex]
+
+  const [title, setTitle] = useState("")
+  const [url, setUrl] = useState("")
+  const [category, setCategory] = useState("GitHub")
+  const [description, setDescription] = useState("")
+  const [search, setSearch] = useState("")
+  const [editResourceId, setEditResourceId] = useState(null)
+  const [showForm, setShowForm] = useState(true)
+
+  if (!project) {
+    return (
+      <div
+        className={`min-h-screen p-6 ${theme === "dark"
+            ? "bg-zinc-950 text-white"
+            : "bg-white text-black"
+          }`}
+      >
+        <h1 className="text-3xl font-bold">Project Not Found</h1>
+      </div>
+    )
+  }
+
+  const resources = project.resources || []
+  const pinnedResources = resources.filter((r) => r.pinned)
+  const totalResources = resources.length
+  const pinnedCount = pinnedResources.length
+
+  const resetForm = () => {
+    setTitle("")
+    setUrl("")
+    setCategory("GitHub")
+    setDescription("")
+    setEditResourceId(null)
+  }
+
+  const updateResources = (nextResources) => {
+    const updatedProjects = [...projects]
+    updatedProjects[projectIndex] = {
+      ...updatedProjects[projectIndex],
+      resources: nextResources
+    }
+    setProjects(updatedProjects)
+  }
+
+  const handleSaveResource = () => {
+    if (!title.trim()) {
+      alert("Title is required")
+      return
+    }
+
+    if (!url.trim() || !isValidUrl(url.trim())) {
+      alert("A valid URL is required")
+      return
+    }
+
+    if (editResourceId) {
+      updateResources(
+        resources.map((r) =>
+          r.id === editResourceId
+            ? {
+              ...r,
+              title: title.trim(),
+              url: url.trim(),
+              category,
+              description: description.trim()
+            }
+            : r
+        )
+      )
+    } else {
+      const newResource = {
+        id: crypto.randomUUID(),
+        title: title.trim(),
+        url: url.trim(),
+        category,
+        description: description.trim(),
+        createdAt: new Date().toISOString(),
+        pinned: false
+      }
+
+      let updatedProjects = [...projects]
+      updatedProjects[projectIndex] = {
+        ...updatedProjects[projectIndex],
+        resources: [newResource, ...resources]
+      }
+
+      updatedProjects = appendProjectActivity(
+        updatedProjects,
+        projectIndex,
+        buildActivityEntry(
+          ACTIVITY_TYPES.RESOURCE_ADDED,
+          `Added resource: ${newResource.title}`,
+          { resourceId: newResource.id }
+        )
+      )
+
+      logActivity({
+        type: "resource_added",
+        message: `Added resource "${newResource.title}"`,
+        projectId: projectIndex,
+        projectTitle: updatedProjects[projectIndex].title
+      })
+
+      setProjects(updatedProjects)
+    }
+
+    resetForm()
+    setShowForm(true)
+  }
+
+  const handleEditResource = (resource) => {
+    setTitle(resource.title)
+    setUrl(resource.url)
+    setCategory(resource.category)
+    setDescription(resource.description || "")
+    setEditResourceId(resource.id)
+    setShowForm(true)
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
+
+  const handleDeleteResource = (id) => {
+    const resourceToDelete = resources.find(r => r.id === id)
+    updateResources(resources.filter((r) => r.id !== id))
+
+    if (resourceToDelete) {
+      logActivity({
+        type: "resource_deleted",
+        message: `Deleted resource "${resourceToDelete.title}"`,
+        projectId: projectIndex,
+        projectTitle: projects[projectIndex].title
+      })
+    }
+
+    if (editResourceId === id) {
+      resetForm()
+    }
+  }
+
+  const handleTogglePin = (id) => {
+    updateResources(
+      resources.map((r) =>
+        r.id === id ? { ...r, pinned: !r.pinned } : r
+      )
+    )
+  }
+
+  const handleOpenLink = (link) => {
+    window.open(link, "_blank", "noopener,noreferrer")
+  }
+
+  const searchQuery = search.toLowerCase().trim()
+
+  const filteredResources = resources
+    .filter((r) => {
+      if (!searchQuery) return true
+      return (
+        r.title.toLowerCase().includes(searchQuery) ||
+        r.category.toLowerCase().includes(searchQuery) ||
+        (r.description || "").toLowerCase().includes(searchQuery)
+      )
+    })
+    .sort((a, b) => {
+      if (a.pinned !== b.pinned) {
+        return b.pinned - a.pinned
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    })
+
+  const sectionClass = `border rounded-2xl p-5 ${theme === "dark"
+      ? "bg-zinc-900 border-zinc-800"
+      : "bg-zinc-100 border-zinc-300"
+    }`
+
+  return (
+    <div
+      className={`min-h-screen p-6 ${theme === "dark"
+          ? "bg-zinc-950 text-white"
+          : "bg-white text-black"
+        }`}
+    >
+      <ProjectHeader project={project} />
+      <ProjectSubNav projectIndex={projectIndex} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <WidgetCard
+          Icon={Link2}
+          title="Total Resources"
+          value={totalResources}
+          color="bg-blue-500/20 text-blue-400"
+        />
+        <WidgetCard
+          Icon={Pin}
+          title="Pinned Resources"
+          value={pinnedCount}
+          color="bg-yellow-500/20 text-yellow-400"
+        />
+      </div>
+
+      {pinnedResources.length > 0 && (
+        <div className={`${sectionClass} mb-8`}>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Pin size={20} className="text-yellow-400" />
+            Pinned Resources
+          </h2>
+
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {pinnedResources.map((resource) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                compact
+                onOpen={handleOpenLink}
+                onEdit={handleEditResource}
+                onDelete={handleDeleteResource}
+                onTogglePin={handleTogglePin}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className={`${sectionClass} mb-8`}>
+        <div className="relative mb-6">
+          <Search
+            size={18}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 ${theme === "dark" ? "text-zinc-400" : "text-zinc-400"
+              }`}
+          />
+          <input
+            type="text"
+            placeholder="Search by title, category, or description..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none ${theme === "dark"
+                ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
+                : "bg-white border-zinc-300 text-black placeholder-zinc-400"
+              }`}
+          />
+        </div>
+
+        <div ref={formRef}>
+          {(showForm || totalResources === 0) && (
+            <>
+              <h2 className="text-2xl font-semibold mb-4">
+                {editResourceId ? "Edit Resource" : "Add Resource"}
+              </h2>
+
+              <ResourceForm
+                title={title}
+                setTitle={setTitle}
+                url={url}
+                setUrl={setUrl}
+                category={category}
+                setCategory={setCategory}
+                description={description}
+                setDescription={setDescription}
+                editResourceId={editResourceId}
+                onSubmit={handleSaveResource}
+                onCancel={resetForm}
+              />
+            </>
+          )}
+
+          {totalResources > 0 && !showForm && !editResourceId && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-5 py-3 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition"
+            >
+              Add Resource
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className={sectionClass}>
+        <h2 className="text-2xl font-semibold mb-4">
+          All Resources
+          {searchQuery && (
+            <span
+              className={`ml-2 text-base font-normal ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
+                }`}
+            >
+              ({filteredResources.length} result
+              {filteredResources.length !== 1 ? "s" : ""})
+            </span>
+          )}
+        </h2>
+
+        {totalResources === 0 ? (
+          <div className="text-center py-12">
+            <p
+              className={`text-lg mb-4 ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
+                }`}
+            >
+              No project resources added yet.
+            </p>
+            <button
+              onClick={() => {
+                setShowForm(true)
+                formRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start"
+                })
+              }}
+              className="px-5 py-3 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition"
+            >
+              Add First Resource
+            </button>
+          </div>
+        ) : filteredResources.length === 0 ? (
+          <p
+            className={`text-center py-8 ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
+              }`}
+          >
+            No resources match your search.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredResources.map((resource) => (
+              <ResourceCard
+                key={resource.id}
+                resource={resource}
+                onOpen={handleOpenLink}
+                onEdit={handleEditResource}
+                onDelete={handleDeleteResource}
+                onTogglePin={handleTogglePin}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

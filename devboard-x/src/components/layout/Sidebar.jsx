@@ -27,11 +27,6 @@ export default function Sidebar() {
       path: "/"
     },
     {
-      name: "Terminal",
-      icon: Terminal,
-      path: "/terminal"
-    },
-    {
       name: "Projects",
       icon: FolderKanban,
       path: "/projects"
@@ -40,11 +35,6 @@ export default function Sidebar() {
       name: "Analytics",
       icon: BarChart3,
       path: "/analytics"
-    },
-    {
-      name: "Snippets",
-      icon: Code2,
-      path: "/snippets"
     },
     {
       name: "Settings",
@@ -56,12 +46,11 @@ export default function Sidebar() {
 
   return (
 
-    <div
-      className={`h-screen w-64 p-4 flex flex-col border-r transition ${
-        theme === "dark"
+    <aside
+      className={`hidden md:flex h-full w-64 p-4 flex-col border-r transition ${theme === "dark"
           ? "bg-zinc-900 text-white border-zinc-800"
           : "bg-zinc-100 text-black border-zinc-300"
-      }`}
+        }`}
     >
 
       {/* LOGO */}
@@ -73,30 +62,32 @@ export default function Sidebar() {
 
       </div>
 
-      {/* NAVIGATION */}
-      <div className="flex flex-col gap-3">
+      {/* NAV LINKS */}
+      <nav aria-label="Desktop Sidebar" className="flex flex-col gap-2 flex-1">
 
         {navItems.map((item) => {
 
           const Icon = item.icon
 
           // ACTIVE ROUTE
-          const isActive = pathname === item.path
+          const isActive = item.path === "/" 
+            ? pathname === "/" 
+            : pathname.startsWith(item.path)
 
           return (
 
             <Link
               key={item.name}
               href={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition ${
-                isActive
+              aria-current={isActive ? "page" : undefined}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${isActive
                   ? theme === "dark"
                     ? "bg-zinc-800 text-white"
-                    : "bg-white text-black border border-zinc-300"
+                    : "bg-white text-black border border-zinc-300 shadow-sm"
                   : theme === "dark"
                     ? "text-zinc-400 hover:bg-zinc-800/50 hover:text-white"
                     : "text-zinc-600 hover:bg-zinc-200 hover:text-black"
-              }`}
+                }`}
             >
 
               <Icon size={20} />
@@ -111,9 +102,9 @@ export default function Sidebar() {
 
         })}
 
-      </div>
+      </nav>
 
-    </div>
+    </aside>
 
   )
 
