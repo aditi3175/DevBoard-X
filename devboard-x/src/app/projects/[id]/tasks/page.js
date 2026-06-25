@@ -1,13 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Trash2 } from "lucide-react"
-
-import { useTheme } from "@/context/ThemeContext"
+import { Trash2, AlertTriangle, Search, ListTodo } from "lucide-react"
 import { useProjects } from "@/context/ProjectContext"
 import ProjectHeader from "@/components/project/ProjectHeader"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
+import EmptyState from "@/components/ui/EmptyState"
+import Card from "@/components/ui/Card"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import Field from "@/components/ui/Field"
 import {
   ACTIVITY_TYPES,
   appendProjectActivity,
@@ -34,12 +37,17 @@ export default function ProjectTasksPage() {
   const router = useRouter()
   const params = useParams()
 
-  const { theme } = useTheme()
-  const { projects, setProjects } = useProjects()
+  const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
 
   const projectIndex = Number(params.id)
   const project = projects[projectIndex]
+
+  const [now, setNow] = useState(0)
+  useEffect(() => {
+    const timer = setTimeout(() => setNow(Date.now()), 0)
+    return () => clearTimeout(timer)
+  }, [])
 
   const [taskTitle, setTaskTitle] = useState("")
   const [priority, setPriority] = useState("Medium")
@@ -48,15 +56,30 @@ export default function ProjectTasksPage() {
   const [filter, setFilter] = useState("All")
   const [sortBy, setSortBy] = useState("Newest")
   const [projectTemplate, setProjectTemplate] = useState("HTML")
+  const [errors, setErrors] = useState({})
+
+  if (!isLoaded) {
+    return (
+      <div className="h-full flex-1 p-6 transition bg-surface text-text-main">
+        <div className="mb-8 animate-pulse">
+          <div className="h-12 w-64 rounded-xl mb-3 bg-bg-active"></div>
+          <div className="h-6 w-96 rounded-lg bg-bg-active"></div>
+        </div>
+        <div className="h-14 w-full rounded-2xl mb-8 animate-pulse bg-bg-active"></div>
+        <div className="h-40 w-full rounded-2xl mb-8 animate-pulse bg-bg-active"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-24 rounded-2xl bg-bg-active"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   if (!project) {
     return (
       <div
-        className={`min-h-screen p-6 ${
-          theme === "dark"
-            ? "bg-zinc-950 text-white"
-            : "bg-white text-black"
-        }`}
+        className="h-full flex-1 p-6 bg-surface text-text-main"
       >
         <h1 className="text-3xl font-bold">Project Not Found</h1>
       </div>
@@ -64,7 +87,17 @@ export default function ProjectTasksPage() {
   }
 
   const handleAddTask = () => {
-    if (!taskTitle.trim()) return
+    const newErrors = {}
+    if (!taskTitle.trim()) newErrors.taskTitle = "Task Title is required."
+    if (!dueDate) newErrors.dueDate = "Due Date is required."
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      if (newErrors.taskTitle) document.getElementById("task-title")?.focus()
+      else if (newErrors.dueDate) document.getElementById("task-date")?.focus()
+      return
+    }
+    setErrors({})
 
     let updatedProjects = [...projects]
 
@@ -120,11 +153,11 @@ export default function ProjectTasksPage() {
       })
 
       setProjects(updatedProjects)
+      setTaskTitle("")
+      setPriority("Medium")
+      setDueDate("")
+      setErrors({})
     }
-
-    setTaskTitle("")
-    setPriority("Medium")
-    setDueDate("")
     setProjectTemplate("HTML")
   }
 
@@ -193,24 +226,14 @@ export default function ProjectTasksPage() {
       return 0
     })
 
-  const sectionClass = `border rounded-2xl p-5 ${
-    theme === "dark"
-      ? "bg-zinc-900 border-zinc-800"
-      : "bg-zinc-100 border-zinc-300"
-  }`
-
   return (
     <div
-      className={`min-h-screen p-6 ${
-        theme === "dark"
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-      }`}
+      className="h-full flex-1 p-6 bg-page text-text-main"
     >
       <ProjectHeader project={project} />
       <ProjectSubNav projectIndex={projectIndex} />
 
-      <div className={sectionClass}>
+      <Card className="mb-8 max-w-4xl">
         <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
 
         <form 
@@ -221,86 +244,75 @@ export default function ProjectTasksPage() {
           }}
         >
           <div className="flex-1 w-full">
-            <label htmlFor="task-title" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-              Task Title <span className="text-red-500" aria-hidden="true">*</span>
-            </label>
-            <input
-              id="task-title"
-              type="text"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              placeholder="Enter task..."
-              className={`w-full border px-4 py-3 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-                theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-                  : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-              }`}
-              required
-            aria-required="true"
-          />
+            <Field label="Task Title" htmlFor="task-title" required error={errors.taskTitle}>
+              <Input
+                id="task-title"
+                type="text"
+                value={taskTitle}
+                onChange={(e) => {
+                  setTaskTitle(e.target.value)
+                  if (errors.taskTitle) setErrors({ ...errors, taskTitle: null })
+                }}
+                placeholder="Enter task..."
+                error={errors.taskTitle}
+                required
+              />
+            </Field>
           </div>
 
           <div className="w-full xl:w-auto">
-            <label htmlFor="task-priority" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Priority</label>
-            <select
-              id="task-priority"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-              className={`w-full px-4 py-3 rounded-xl border focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-              theme === "dark"
-                ? "bg-zinc-950 border-zinc-800"
-                : "bg-white border-zinc-300"
-            }`}
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-          </select>
+            <Field label="Priority" htmlFor="task-priority">
+              <Select
+                id="task-priority"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </Select>
+            </Field>
           </div>
 
           <div className="w-full xl:w-auto">
-            <label htmlFor="task-date" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Due Date <span className="text-red-500" aria-hidden="true">*</span></label>
-            <input
-              id="task-date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className={`w-full px-4 py-3 rounded-xl border focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-              theme === "dark"
-                ? "bg-zinc-950 border-zinc-800 text-zinc-300"
-                : "bg-white border-zinc-300 text-zinc-700"
-            }`}
-            required
-            aria-required="true"
-          />
+            <Field label="Due Date" htmlFor="task-date" required error={errors.dueDate}>
+              <Input
+                id="task-date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => {
+                  setDueDate(e.target.value)
+                  if (errors.dueDate) setErrors({ ...errors, dueDate: null })
+                }}
+                error={errors.dueDate}
+                required
+              />
+            </Field>
           </div>
 
           {editTaskIndex === null && (
             <div className="w-full xl:w-auto">
-              <label htmlFor="task-template" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Template</label>
-              <select
-                id="task-template"
-                value={projectTemplate}
-                onChange={(e) => setProjectTemplate(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-                theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-zinc-300"
-                  : "bg-white border-zinc-300 text-zinc-700"
-              }`}
-            >
-              <option value="HTML">HTML/CSS/JS Starter</option>
-              <option value="React">React App Starter</option>
-              <option value="Next.js">Next.js Project Starter</option>
-              <option value="Node.js">Node.js Project Starter</option>
-              <option value="Express">Express Server Starter</option>
-            </select>
+              <Field label="Template" htmlFor="task-template">
+                <Select
+                  id="task-template"
+                  value={projectTemplate}
+                  onChange={(e) => setProjectTemplate(e.target.value)}
+                >
+                  <option value="HTML">HTML/CSS/JS Starter</option>
+                  <option value="React">React App Starter</option>
+                  <option value="Next.js">Next.js Project Starter</option>
+                  <option value="Node.js">Node.js Project Starter</option>
+                  <option value="Express">Express Server Starter</option>
+                  <option value="Blank">Blank Template</option>
+                </Select>
+              </Field>
             </div>
           )}
 
           <div className="flex gap-3 w-full xl:w-auto">
             <button
               type="submit"
-              className="px-5 py-3 rounded-xl bg-green-500 text-white whitespace-nowrap font-medium hover:bg-green-600 transition focus-visible:ring-2 focus-visible:ring-green-500 outline-none"
+              className="px-5 py-3 rounded-xl bg-primary text-white whitespace-nowrap font-medium hover:bg-primary-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
             >
               {editTaskIndex !== null ? "Update Task" : "Add Task"}
             </button>
@@ -314,7 +326,7 @@ export default function ProjectTasksPage() {
                   setPriority("Medium")
                   setDueDate("")
                 }}
-                className="px-5 py-3 rounded-xl bg-zinc-700 text-white whitespace-nowrap font-medium hover:bg-zinc-600 transition focus-visible:ring-2 focus-visible:ring-zinc-500 outline-none"
+                className="px-5 py-3 rounded-xl bg-surface border border-border-subtle text-text-main whitespace-nowrap font-medium hover:bg-bg-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
               >
                 Cancel
               </button>
@@ -323,19 +335,19 @@ export default function ProjectTasksPage() {
         </form>
 
         <div className="mb-6">
-          <div className="flex justify-between mb-2">
+          <div className="flex justify-between mb-2 text-text-main">
             <span>Progress</span>
             <span>{progress}%</span>
           </div>
 
-          <div className="w-full h-3 bg-zinc-700 rounded-full overflow-hidden">
+          <div className="w-full h-3 bg-bg-active rounded-full overflow-hidden border border-border-subtle">
             <div
-              className="h-full bg-green-500"
+              className="h-full bg-success transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-text-muted">
             {completedTasks} / {totalTasks} Tasks Completed
           </p>
         </div>
@@ -345,16 +357,14 @@ export default function ProjectTasksPage() {
             <button
               key={label}
               onClick={() => setFilter(label)}
-              className={`px-4 py-2 rounded-xl transition ${
+              className={`px-4 py-2 rounded-xl transition font-medium ${
                 filter === label
                   ? label === "All"
-                    ? "bg-blue-500 text-white"
+                    ? "bg-primary text-white"
                     : label === "Pending"
-                      ? "bg-yellow-500 text-white"
-                      : "bg-green-500 text-white"
-                  : theme === "dark"
-                    ? "bg-zinc-800 text-white"
-                    : "bg-zinc-200 text-black"
+                      ? "bg-warning text-white"
+                      : "bg-success text-white"
+                  : "bg-surface border border-border-subtle text-text-main hover:bg-bg-hover"
               }`}
             >
               {label}
@@ -362,37 +372,59 @@ export default function ProjectTasksPage() {
           ))}
         </div>
 
-        <div className="mb-6">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className={`px-4 py-2 rounded-xl border ${
-              theme === "dark"
-                ? "bg-zinc-900 border-zinc-800"
-                : "bg-white border-zinc-300"
-            }`}
-          >
-            <option>Priority</option>
-            <option>Due Date</option>
-          </select>
+        <div className="flex items-center gap-4 text-sm font-medium mb-6">
+          <Input
+            type="text"
+            placeholder="Search tasks..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="hidden md:block w-48 lg:w-64"
+            leftIcon={Search}
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-text-muted">Sort:</span>
+            <Select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-32 py-2"
+            >
+              <option>Newest</option>
+              <option>Oldest</option>
+              <option>Priority</option>
+              <option>Due Date</option>
+            </Select>
+          </div>
         </div>
+      </Card>
 
+      <Card className="max-w-4xl">
         <div className="space-y-3">
-          {filteredTasks.map(({ task, taskIndex }) => (
-            <div
+          {project.tasks.length === 0 ? (
+            <EmptyState
+              icon={ListTodo}
+              title="This project has no tasks"
+              description="Use the form above to add your first task and start tracking progress."
+            />
+          ) : filteredTasks.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="No matching tasks"
+              description="No tasks match the current filter criteria."
+            />
+          ) : (
+            filteredTasks.map(({ task, taskIndex }) => (
+              <div
               key={taskIndex}
-              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl ${
-                theme === "dark" ? "bg-zinc-950" : "bg-white"
-              }`}
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-bg-active"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <span
                   className={`w-20 text-center px-2 py-1 text-xs rounded-full font-medium shrink-0 ${
                     task.priority === "High"
-                      ? "bg-red-500/20 text-red-400"
+                      ? "bg-danger-bg text-danger-text"
                       : task.priority === "Medium"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-green-500/20 text-green-400"
+                        ? "bg-warning-bg text-warning-text"
+                        : "bg-neutral-bg text-neutral-text"
                   }`}
                 >
                   {task.priority}
@@ -406,7 +438,7 @@ export default function ProjectTasksPage() {
                 />
 
                 <div
-                  className={`min-w-0 ${task.completed ? "line-through text-zinc-400" : ""}`}
+                  className={`min-w-0 ${task.completed ? "line-through text-text-muted" : "text-text-main"}`}
                 >
                   <p
                     onClick={() =>
@@ -414,24 +446,22 @@ export default function ProjectTasksPage() {
                         `/projects/${projectIndex}/tasks/${taskIndex}`
                       )
                     }
-                    className="cursor-pointer font-medium flex flex-wrap items-center gap-2"
+                    className="cursor-pointer font-medium flex flex-wrap items-center gap-2 hover:text-primary transition-colors"
                   >
                     <span>{task.title}</span>
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                    <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-surface border border-border-subtle text-text-secondary truncate">
                       {task.progress || 0}% Complete
                     </span>
                   </p>
 
                   <p
-                    className={`text-xs mt-1 ${
-                      theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-                    }`}
+                    className="text-xs mt-1 text-text-secondary"
                   >
                     {task.dueDate &&
                     new Date(task.dueDate).setHours(23, 59, 59, 999) <
-                      Date.now() &&
+                      now &&
                     !task.completed
-                      ? "🔴 Overdue"
+                      ? <span className="flex items-center gap-1 text-danger font-bold"><AlertTriangle size={14} /> Overdue</span>
                       : task.dueDate
                         ? `Due ${new Date(task.dueDate).toLocaleDateString("en-US", {
                             day: "numeric",
@@ -446,21 +476,22 @@ export default function ProjectTasksPage() {
               <div className="flex items-center gap-4 shrink-0">
                 <button
                   onClick={() => handleEditTask(taskIndex)}
-                  className="text-blue-400 hover:text-blue-300"
+                  className="text-primary hover:text-primary-hover transition"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDeleteTask(taskIndex)}
-                  className="text-red-400 hover:text-red-300"
+                  className="text-danger hover:brightness-110 transition"
                 >
                   <Trash2 size={18} />
                 </button>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

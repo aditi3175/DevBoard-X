@@ -1,63 +1,41 @@
 "use client"
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState
-} from "react"
+import { createContext, useContext, useEffect } from "react"
+import { usePersistentState } from "@/utils/storage"
 
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
+  const [theme, setTheme, isLoaded] = usePersistentState("devboard-theme", "dark")
 
-  const [theme, setTheme] = useState("dark")
-
-  // LOAD THEME
+  // Ensure valid theme
   useEffect(() => {
-
-    const savedTheme = localStorage.getItem("devboard-theme")
-
-    if (savedTheme) {
-      setTheme(savedTheme)
+    if (isLoaded && theme !== "dark" && theme !== "light") {
+      setTheme("dark")
     }
-
-  }, [])
+  }, [theme, isLoaded, setTheme])
 
   // APPLY THEME
   useEffect(() => {
-
-    localStorage.setItem("devboard-theme", theme)
-
+    if (!isLoaded) return
     if (theme === "dark") {
-
       document.documentElement.classList.add("dark")
-
-    }
-
-    else {
-
+    } else {
       document.documentElement.classList.remove("dark")
-
     }
-
-  }, [theme])
+  }, [theme, isLoaded])
 
   return (
-
     <ThemeContext.Provider
       value={{
         theme,
-        setTheme
+        setTheme,
+        isLoaded
       }}
     >
-
       {children}
-
     </ThemeContext.Provider>
-
   )
-
 }
 
 export function useTheme() {

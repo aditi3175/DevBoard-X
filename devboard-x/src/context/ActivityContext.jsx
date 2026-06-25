@@ -1,30 +1,14 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext } from "react"
+import { usePersistentState } from "@/utils/storage"
 
 const ActivityContext = createContext()
 
 const MAX_ACTIVITIES = 100
 
 export function ActivityProvider({ children }) {
-  const [globalActivities, setGlobalActivities] = useState([])
-  const [mounted, setMounted] = useState(false)
-
-  // LOAD FROM LOCAL STORAGE
-  useEffect(() => {
-    setMounted(true)
-    const saved = localStorage.getItem("devboard-global-activity")
-    if (saved) {
-      setGlobalActivities(JSON.parse(saved))
-    }
-  }, [])
-
-  // SAVE TO LOCAL STORAGE
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("devboard-global-activity", JSON.stringify(globalActivities))
-    }
-  }, [globalActivities, mounted])
+  const [globalActivities, setGlobalActivities, isLoaded] = usePersistentState("devboard-global-activity", [])
 
   // LOG ACTIVITY FUNCTION
   const logActivity = ({ type, message, projectId = null, projectTitle = null, taskId = null, metadata = {} }) => {
@@ -46,7 +30,7 @@ export function ActivityProvider({ children }) {
   }
 
   return (
-    <ActivityContext.Provider value={{ globalActivities, logActivity }}>
+    <ActivityContext.Provider value={{ globalActivities, logActivity, isLoaded }}>
       {children}
     </ActivityContext.Provider>
   )

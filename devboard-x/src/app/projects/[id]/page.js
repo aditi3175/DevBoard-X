@@ -10,7 +10,6 @@ import {
   TrendingUp
 } from "lucide-react"
 
-import { useTheme } from "@/context/ThemeContext"
 import { useProjects } from "@/context/ProjectContext"
 import ProjectHeader from "@/components/project/ProjectHeader"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
@@ -24,20 +23,32 @@ import { getProjectMetrics } from "@/utils/projectOverview"
 
 export default function ProjectOverviewPage() {
   const params = useParams()
-  const { theme } = useTheme()
-  const { projects } = useProjects()
+  const { projects, isLoaded } = useProjects()
 
   const projectIndex = Number(params.id)
   const project = projects[projectIndex]
 
+  if (!isLoaded) {
+    return (
+      <div className="h-full flex-1 p-6 transition bg-surface text-text-main">
+        <div className="mb-8 animate-pulse">
+          <div className="h-12 w-64 rounded-xl mb-3 bg-bg-active"></div>
+          <div className="h-6 w-96 rounded-lg bg-bg-active"></div>
+        </div>
+        <div className="h-14 w-full rounded-2xl mb-8 animate-pulse bg-bg-active"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 animate-pulse">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-24 rounded-2xl bg-bg-active"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (!project) {
     return (
       <div
-        className={`min-h-screen p-6 ${
-          theme === "dark"
-            ? "bg-zinc-950 text-white"
-            : "bg-white text-black"
-        }`}
+        className="h-full flex-1 p-6 bg-surface text-text-main"
       >
         <h1 className="text-3xl font-bold">Project Not Found</h1>
       </div>
@@ -49,11 +60,7 @@ export default function ProjectOverviewPage() {
 
   return (
     <div
-      className={`min-h-screen p-6 ${
-        theme === "dark"
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-      }`}
+      className="h-full flex-1 p-6 bg-surface text-text-main"
     >
       <ProjectHeader project={project} />
       <ProjectSubNav projectIndex={projectIndex} />
@@ -67,37 +74,37 @@ export default function ProjectOverviewPage() {
           Icon={ListTodo}
           title="Total Tasks"
           value={metrics.totalTasks}
-          color="bg-blue-500/20 text-blue-400"
+          color="bg-info-bg text-info-text"
         />
         <WidgetCard
           Icon={CheckCircle}
           title="Completed Tasks"
           value={metrics.completedTasks}
-          color="bg-green-500/20 text-green-400"
+          color="bg-success-bg text-success-text"
         />
         <WidgetCard
           Icon={Clock}
           title="Pending Tasks"
           value={metrics.pendingTasks}
-          color="bg-yellow-500/20 text-yellow-400"
+          color="bg-warning-bg text-warning-text"
         />
         <WidgetCard
           Icon={Code2}
           title="Total Snippets"
           value={metrics.totalSnippets}
-          color="bg-purple-500/20 text-purple-400"
+          color="bg-primary/10 text-primary"
         />
         <WidgetCard
           Icon={Link2}
           title="Total Resources"
           value={metrics.totalResources}
-          color="bg-cyan-500/20 text-cyan-400"
+          color="bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-500 dark:text-cyan-400"
         />
         <WidgetCard
           Icon={TrendingUp}
           title="Project Progress"
           value={`${metrics.progressPercent}%`}
-          color="bg-orange-500/20 text-orange-400"
+          color="bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 dark:text-orange-400"
         />
       </div>
 

@@ -4,7 +4,6 @@ import Editor from "@monaco-editor/react"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
-  ArrowLeft,
   FileCode,
   Plus,
   Trash2,
@@ -19,10 +18,13 @@ import {
   FolderPlus,
   Maximize2,
   Minimize2,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle,
+  BarChart2
 } from "lucide-react"
 
-import { useTheme } from "@/context/ThemeContext"
+import Card from "@/components/ui/Card"
+
 import { useProjects } from "@/context/ProjectContext"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
 import {
@@ -46,7 +48,7 @@ const getFileIcon = (filename, isSelected) => {
   switch (ext) {
     case "html":
       return (
-        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-[9px] font-black shrink-0 ${isSelected
+        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-xs font-black shrink-0 ${isSelected
           ? "bg-white text-orange-600"
           : "bg-orange-600 text-white"
           }`}>
@@ -56,9 +58,9 @@ const getFileIcon = (filename, isSelected) => {
     case "js":
     case "mjs":
       return (
-        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-[9px] font-black shrink-0 ${isSelected
-          ? "bg-white text-blue-600"
-          : "bg-yellow-500 text-black"
+        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-xs font-black shrink-0 ${isSelected
+          ? "bg-white text-primary"
+          : "bg-warning text-white"
           }`}>
           JS
         </span>
@@ -68,9 +70,9 @@ const getFileIcon = (filename, isSelected) => {
       return <Atom size={16} className={isSelected ? "text-cyan-100" : "text-cyan-400"} />
     case "css":
       return (
-        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-[9px] font-black shrink-0 ${isSelected
-          ? "bg-white text-blue-600"
-          : "bg-blue-500 text-white"
+        <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-xs font-black shrink-0 ${isSelected
+          ? "bg-white text-primary"
+          : "bg-primary text-white"
           }`}>
           CSS
         </span>
@@ -78,7 +80,7 @@ const getFileIcon = (filename, isSelected) => {
     case "json":
       return <Braces size={16} className={isSelected ? "text-orange-200" : "text-orange-400"} />
     case "md":
-      return <FileText size={16} className={isSelected ? "text-indigo-200" : "text-indigo-400"} />
+      return <FileText size={16} className={isSelected ? "text-primary-hover" : "text-primary"} />
     default:
       return <File size={16} className={isSelected ? "text-white" : "text-zinc-400"} />
   }
@@ -373,21 +375,21 @@ function ReactMockupPreview({ task }) {
       {/* Browser Bar */}
       <div className="bg-zinc-100 px-4 py-2 border-b border-zinc-200 flex items-center justify-between text-xs text-zinc-400 select-none">
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block"></span>
-          <span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-danger inline-block"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-warning inline-block"></span>
+          <span className="w-2.5 h-2.5 rounded-full bg-success inline-block"></span>
         </div>
-        <div className="bg-white px-3 py-1 rounded border border-zinc-200/80 w-64 text-center text-[10px] font-mono truncate">
+        <div className="bg-white px-3 py-1 rounded border border-zinc-200/80 w-64 text-center text-xs font-mono truncate">
           http://localhost:5173/
         </div>
-        <span className="text-[10px] bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded font-bold">Vite + React</span>
+        <span className="text-xs bg-info-bg text-info-text px-1.5 py-0.5 rounded font-bold">Vite + React</span>
       </div>
 
       {/* Simulator Content */}
       <div className="p-5 flex-1 overflow-y-auto flex flex-col justify-between">
         <div>
-          <h1 className="text-xl font-extrabold text-sky-600 flex items-center gap-2">
-            <span className="animate-spin inline-block text-sky-500">⚛️</span>
+          <h1 className="text-xl font-extrabold text-info flex items-center gap-2">
+            <Atom size={16} className="animate-spin text-info" aria-hidden="true" />
             {reactTitle}
           </h1>
           <p className="text-xs text-zinc-400 mt-2">
@@ -398,17 +400,17 @@ function ReactMockupPreview({ task }) {
         <div className="p-3 border border-zinc-100 bg-zinc-50 rounded-lg flex items-center justify-between mt-3">
           <div>
             <h4 className="font-bold text-xs text-zinc-700">Interactive Clicker Widget</h4>
-            <p className="text-[10px] text-zinc-400">Verifying live React state bindings</p>
+            <p className="text-xs text-zinc-400">Verifying live React state bindings</p>
           </div>
           <button 
             onClick={() => setClickCount(c => c + 1)}
-            className="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded text-xs font-bold shadow-sm transition"
+            className="px-3 py-1.5 bg-info hover:brightness-110 text-white rounded text-xs font-bold shadow-sm transition"
           >
             Clicks: {clickCount}
           </button>
         </div>
 
-        <div className="text-[9px] text-zinc-400 border-t border-zinc-100 pt-2.5 mt-2 flex justify-between select-none">
+        <div className="text-xs text-zinc-400 border-t border-zinc-100 pt-2.5 mt-2 flex justify-between select-none">
           <span>HMR: Active</span>
           <span>DevBoard X React Simulator</span>
         </div>
@@ -422,8 +424,8 @@ export default function TaskWorkspacePage() {
   const router = useRouter()
   const params = useParams()
 
-  const { theme } = useTheme()
-  const { projects, setProjects } = useProjects()
+
+  const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
 
   const projectIndex = Number(params.id)
@@ -442,10 +444,13 @@ export default function TaskWorkspacePage() {
 
   // Load global snippets
   useEffect(() => {
-    const saved = localStorage.getItem("devboard-snippets")
-    if (saved) {
-      setGlobalSnippets(JSON.parse(saved))
-    }
+    const timer = setTimeout(() => {
+      const saved = localStorage.getItem("devboard-snippets")
+      if (saved) {
+        setGlobalSnippets(JSON.parse(saved))
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [projects, selectedFilePath])
 
   const taskSnippets = globalSnippets.filter(s =>
@@ -518,15 +523,18 @@ export default function TaskWorkspacePage() {
 
   // Auto-switch tabs based on template type
   useEffect(() => {
-    if (task) {
-      const template = detectTaskTemplate(task)
-      if (template === "HTML" || template === "React") {
-        setTerminalTab("preview")
-      } else {
-        setTerminalTab("console")
+    const timer = setTimeout(() => {
+      if (task) {
+        const template = detectTaskTemplate(task)
+        if (template === "HTML" || template === "React") {
+          setTerminalTab("preview")
+        } else {
+          setTerminalTab("console")
+        }
       }
-    }
-  }, [projectIndex, taskIndex, task?.title])
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [projectIndex, taskIndex, task?.title, task])
 
   // Initialize task files if they don't exist
   useEffect(() => {
@@ -545,34 +553,43 @@ export default function TaskWorkspacePage() {
 
   // Reset selectedFilePath on task switches
   useEffect(() => {
-    setSelectedFilePath("")
+    const timer = setTimeout(() => {
+      setSelectedFilePath("")
+    }, 0)
+    return () => clearTimeout(timer)
   }, [projectIndex, taskIndex])
 
   // Resolve selection if empty or invalid
   useEffect(() => {
-    if (task?.files) {
-      const currentSelectedExists = selectedFilePath.startsWith("snippet:")
-        ? globalSnippets.some(s => `snippet:${s.id}` === selectedFilePath)
-        : findFileByPath(task.files, selectedFilePath)
+    const timer = setTimeout(() => {
+      if (task?.files) {
+        const currentSelectedExists = selectedFilePath.startsWith("snippet:")
+          ? globalSnippets.some(s => `snippet:${s.id}` === selectedFilePath)
+          : findFileByPath(task.files, selectedFilePath)
 
-      if (!selectedFilePath || !currentSelectedExists) {
-        const firstFile = getFirstFile(task.files)
-        setSelectedFilePath(firstFile || "")
+        if (!selectedFilePath || !currentSelectedExists) {
+          const firstFile = getFirstFile(task.files)
+          setSelectedFilePath(firstFile || "")
+        }
+      } else {
+        setSelectedFilePath("")
       }
-    } else {
-      setSelectedFilePath("")
-    }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [task?.files, selectedFilePath, globalSnippets])
 
   // Sync editor values
   useEffect(() => {
-    if (selectedFile) {
-      setCode(selectedFile.code || "")
-      setOutput(selectedFile.output || "")
-    } else {
-      setCode("")
-      setOutput("")
-    }
+    const timer = setTimeout(() => {
+      if (selectedFile) {
+        setCode(selectedFile.code || "")
+        setOutput(selectedFile.output || "")
+      } else {
+        setCode("")
+        setOutput("")
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [selectedFile])
 
   // Listening to iframe console messages
@@ -602,16 +619,28 @@ export default function TaskWorkspacePage() {
       }
     }
     window.addEventListener('message', handleConsoleMessage)
-    return () => window.removeEventListener('message', handleConsoleMessage)
-  }, [projectIndex, taskIndex])
+    return () => window.removeEventListener("message", handleConsoleMessage)
+  }, [projectIndex, taskIndex, task, setProjects, logActivity])
+
+  if (!isLoaded) {
+    return (
+      <div className="h-full flex-1 p-4 flex flex-col transition bg-surface text-text-main">
+        <div className="mb-4 animate-pulse">
+          <div className="h-8 w-64 rounded mb-2 bg-bg-active"></div>
+          <div className="h-4 w-96 rounded bg-bg-active"></div>
+        </div>
+        <div className="flex-1 grid grid-cols-12 gap-4">
+          <div className="col-span-3 rounded-2xl animate-pulse bg-bg-active"></div>
+          <div className="col-span-9 rounded-2xl animate-pulse bg-bg-active"></div>
+        </div>
+      </div>
+    )
+  }
 
   if (!project || !task) {
     return (
       <div
-        className={`min-h-screen p-6 ${theme === "dark"
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-          }`}
+        className="h-full flex-1 p-6 bg-surface text-text-main"
       >
         <h1 className="text-3xl font-bold">
           Task Not Found
@@ -729,7 +758,7 @@ export default function TaskWorkspacePage() {
           result += args.join(" ") + "\n"
         }
 
-        eval(code)
+        new Function(code)()
 
         console.log = originalLog
 
@@ -1142,7 +1171,7 @@ export default function TaskWorkspacePage() {
     else if (ext === "json") lang = "json"
     else if (ext === "py") lang = "python"
 
-    const newSnippetId = Date.now().toString()
+    const newSnippetId = crypto.randomUUID()
     const newSnippet = {
       id: newSnippetId,
       title: snippetTitle,
@@ -1218,23 +1247,22 @@ export default function TaskWorkspacePage() {
         return (
           <div key={currentPath} className="flex flex-col">
             {/* Folder Row */}
-            <button
-              onClick={() => toggleDir(currentPath)}
-              aria-expanded={isExpanded}
-              aria-label={`Toggle folder ${node.name}`}
-              className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 outline-none w-full text-left ${theme === "dark"
-                ? "hover:bg-zinc-800 text-zinc-300 hover:text-white"
-                : "hover:bg-zinc-200 text-zinc-700 hover:text-black"
-                }`}
+            <div
+              className="group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer transition-colors w-full text-left hover:bg-bg-hover text-text-secondary hover:text-text-main"
             >
-              <div className="flex items-center gap-2 overflow-hidden mr-2">
-                <span className="text-sm shrink-0 select-none">
-                  {isExpanded ? "📂" : "📁"}
+              <button
+                onClick={() => toggleDir(currentPath)}
+                aria-expanded={isExpanded}
+                aria-label={`Toggle folder ${node.name}`}
+                className="flex items-center gap-2 overflow-hidden mr-2 bg-transparent border-none p-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary outline-none text-inherit"
+              >
+                <span className="shrink-0 select-none flex items-center justify-center">
+                  {isExpanded ? <FolderOpen size={16} className="text-zinc-400" aria-hidden="true" /> : <Folder size={16} className="text-zinc-400" aria-hidden="true" />}
                 </span>
                 <span className="truncate text-sm font-medium select-none">
                   {node.name}
                 </span>
-              </div>
+              </button>
 
               {/* Actions for Folder */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
@@ -1278,12 +1306,12 @@ export default function TaskWorkspacePage() {
                     e.stopPropagation()
                     handleDeleteFolder(currentPath)
                   }}
-                  className="p-1 rounded text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                  className="p-1 rounded text-zinc-400 hover:text-danger hover:bg-danger/10"
                 >
                   <Trash2 size={12} />
                 </button>
               </div>
-            </button>
+            </div>
 
             {/* Folder Children (Indented) */}
             {isExpanded && (
@@ -1302,24 +1330,24 @@ export default function TaskWorkspacePage() {
         const isSelected = selectedFilePath === currentPath
 
         return (
-          <button
+          <div
             key={currentPath}
-            onClick={() => setSelectedFilePath(currentPath)}
-            aria-selected={isSelected}
-            aria-label={`Select file ${node.name}`}
-            className={`group flex items-center justify-between px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none w-full text-left ${isSelected
-              ? "bg-blue-600 text-white font-medium shadow-sm"
-              : theme === "dark"
-                ? "hover:bg-zinc-800 text-zinc-300 hover:text-white"
-                : "hover:bg-zinc-200 text-zinc-700 hover:text-black"
+            className={`group flex items-center justify-between px-3 py-1.5 rounded-lg transition-all duration-200 w-full text-left ${isSelected
+              ? "bg-primary text-white shadow-sm"
+              : "hover:bg-bg-hover text-text-secondary hover:text-text-main"
               }`}
           >
-            <div className="flex items-center gap-2 overflow-hidden mr-2">
+            <button
+              onClick={() => setSelectedFilePath(currentPath)}
+              aria-pressed={isSelected}
+              aria-label={`Select file ${node.name}`}
+              className="flex items-center gap-2 overflow-hidden mr-2 bg-transparent border-none p-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary outline-none text-inherit flex-1 text-left"
+            >
               {getFileIcon(node.name, isSelected)}
-              <span className="truncate text-sm select-none">
+              <span className={`truncate text-sm select-none ${isSelected ? "font-medium text-white" : ""}`}>
                 {node.name}
               </span>
-            </div>
+            </button>
 
             {/* Actions for File */}
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
@@ -1345,14 +1373,14 @@ export default function TaskWorkspacePage() {
                   handleDeleteFile(currentPath)
                 }}
                 className={`p-1 rounded transition-colors ${isSelected
-                  ? "text-white hover:bg-red-500/30"
-                  : "text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                  ? "text-white hover:bg-danger/30"
+                  : "text-zinc-400 hover:text-danger hover:bg-danger/10"
                   }`}
               >
                 <Trash2 size={12} />
               </button>
             </div>
-          </button>
+          </div>
         )
       }
     })
@@ -1377,23 +1405,8 @@ export default function TaskWorkspacePage() {
 
   return (
     <div
-      className={`min-h-screen p-6 ${theme === "dark"
-        ? "bg-zinc-950 text-white"
-        : "bg-white text-black"
-        }`}
+      className="h-full flex-1 p-6 bg-surface text-text-main"
     >
-      {/* BACK BUTTON */}
-      <button
-        onClick={() => router.push(`/projects/${projectIndex}`)}
-        className={`mb-6 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${theme === "dark"
-          ? "bg-zinc-900 hover:bg-zinc-800 text-zinc-300"
-          : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
-          }`}
-      >
-        <ArrowLeft size={16} />
-        Back
-      </button>
-
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
@@ -1401,12 +1414,9 @@ export default function TaskWorkspacePage() {
             {task.title}
           </h1>
           <p
-            className={`mt-2 text-sm ${theme === "dark"
-              ? "text-zinc-400"
-              : "text-zinc-600"
-              }`}
+            className="mt-2 text-sm text-text-secondary"
           >
-            Workspace Environment • <span className="font-semibold text-blue-500">{taskTemplate} Mode</span>
+            Workspace Environment • <span className="font-semibold text-primary">{taskTemplate} Mode</span>
           </p>
         </div>
       </div>
@@ -1417,16 +1427,13 @@ export default function TaskWorkspacePage() {
       <div className="flex flex-col lg:flex-row gap-6 mt-8">
 
         {/* EXPLORER SIDEBAR */}
-        <div
-          className={`w-full lg:w-[260px] shrink-0 border rounded-2xl p-5 flex flex-col justify-between min-h-[580px] ${theme === "dark"
-            ? "bg-zinc-900 border-zinc-800 text-zinc-300"
-            : "bg-zinc-100 border-zinc-300 text-black"
-            }`}
+        <Card
+          className="w-full lg:w-[260px] shrink-0 flex flex-col justify-between min-h-[580px]"
         >
           <div className="flex flex-col flex-1">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-800/20">
               <h3 className="font-semibold text-lg flex items-center gap-2">
-                📂 Explorer
+                <FolderOpen size={20} className="text-zinc-400" aria-hidden="true" /> Explorer
               </h3>
               <div className="flex items-center gap-1.5">
                 <button
@@ -1451,16 +1458,17 @@ export default function TaskWorkspacePage() {
               {task.files && task.files.length > 0 ? (
                 renderTree(task.files)
               ) : (
-                <span className="text-sm text-zinc-400 italic p-4 text-center">
-                  No files in task
-                </span>
+                <div className="flex-1 flex flex-col items-center justify-center p-4 text-center text-zinc-400">
+                  <span className="text-sm">No files created yet</span>
+                  <span className="text-xs opacity-70 mt-1">Use the + buttons to add files</span>
+                </div>
               )}
             </div>
 
             {/* Snippets Section */}
             <div className="flex flex-col mt-4 pt-3 border-t border-zinc-800/25">
               <h3 className="font-semibold text-sm flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400">
-                <span>📝 Task Snippets</span>
+                <span className="flex items-center gap-2"><FileText size={16} className="text-zinc-400" aria-hidden="true" /> Task Snippets</span>
               </h3>
 
               <div className="flex flex-col gap-1 overflow-y-auto max-h-[100px] pr-1">
@@ -1468,27 +1476,27 @@ export default function TaskWorkspacePage() {
                   taskSnippets.map((snippet) => {
                     const isSelected = selectedFilePath === `snippet:${snippet.id}`
                     return (
-                      <button
+                      <div
                         key={snippet.id}
-                        onClick={() => setSelectedFilePath(`snippet:${snippet.id}`)}
-                        aria-selected={isSelected}
-                        aria-label={`Select snippet ${snippet.title}`}
-                        className={`group flex items-center justify-between px-3 py-1 rounded-lg cursor-pointer transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none w-full text-left ${isSelected
-                          ? "bg-blue-600 text-white font-medium shadow-sm"
-                          : theme === "dark"
-                            ? "hover:bg-zinc-800 text-zinc-300 hover:text-white"
-                            : "hover:bg-zinc-200 text-zinc-700 hover:text-black"
+                        className={`group flex items-center justify-between px-3 py-1 rounded-lg transition-all duration-200 w-full text-left ${isSelected
+                          ? "bg-primary text-white shadow-sm"
+                          : "hover:bg-bg-hover text-text-secondary hover:text-text-main"
                           }`}
                       >
-                        <div className="flex items-center gap-2 overflow-hidden mr-2">
+                        <button
+                          onClick={() => setSelectedFilePath(`snippet:${snippet.id}`)}
+                          aria-pressed={isSelected}
+                          aria-label={`Select snippet ${snippet.title}`}
+                          className="flex items-center gap-2 overflow-hidden mr-2 bg-transparent border-none p-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary outline-none text-inherit flex-1 text-left"
+                        >
                           <FileText size={14} className={isSelected ? "text-white" : "text-zinc-400"} />
-                          <span className="truncate text-sm">
+                          <span className={`truncate text-sm ${isSelected ? "font-medium text-white" : ""}`}>
                             {snippet.title}
                           </span>
-                        </div>
+                        </button>
 
                         {/* Unlink Action */}
-                        <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
                           <button
                             title="Unlink"
                             onClick={(e) => {
@@ -1497,46 +1505,46 @@ export default function TaskWorkspacePage() {
                             }}
                             className={`p-0.5 rounded transition-colors ${isSelected
                               ? "text-white hover:bg-white/20"
-                              : "text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                              : "text-zinc-400 hover:text-danger hover:bg-danger/10"
                               }`}
                           >
                             <Trash2 size={12} />
                           </button>
                         </div>
-                      </button>
+                      </div>
                     )
                   })
                 ) : (
-                  <span className="text-xs text-zinc-400 italic p-2 text-center">
-                    No linked snippets
-                  </span>
+                  <div className="flex-1 flex flex-col items-center justify-center p-3 text-center text-zinc-400">
+                    <span className="text-xs">No linked snippets</span>
+                    <span className="text-xs opacity-70 mt-1">Save code to link snippets</span>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Task Progress & Statistics Section */}
             <div className="flex flex-col mt-4 pt-3 border-t border-zinc-800/25">
-              <h3 className="font-semibold text-sm mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400">
-                📊 Workspace Statistics
+              <h3 className="font-semibold text-sm mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400 flex items-center gap-2">
+                <BarChart2 size={16} className="text-zinc-400" aria-hidden="true" /> Workspace Statistics
               </h3>
 
               <div className="flex flex-col gap-2.5">
                 {/* Progress bar */}
                 <div>
-                  <div className="flex justify-between text-[11px] mb-1 font-medium text-zinc-400">
+                  <div className="flex justify-between text-xs mb-1 font-medium text-zinc-400">
                     <span>Task Progress</span>
                     <span>{progressPercent}%</span>
                   </div>
                   <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-green-500 transition-all duration-300"
+                      className="h-full bg-success transition-all duration-300"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
                 </div>
 
                 {/* Statistics checklist */}
-                <div className="text-[11px] space-y-1 text-zinc-400 font-medium bg-zinc-950/45 p-2.5 rounded-lg border border-zinc-800/40">
+                <div className="text-xs space-y-1 text-zinc-400 font-medium bg-zinc-950/45 p-2.5 rounded-lg border border-zinc-800/40">
                   <div className="flex justify-between items-center">
                     <span>Files Created:</span>
                     <span className="text-zinc-200">{totalFilesCount}</span>
@@ -1547,7 +1555,7 @@ export default function TaskWorkspacePage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Code Executed:</span>
-                    <span className={codeExecuted ? "text-green-400 font-bold" : "text-zinc-400"}>
+                    <span className={codeExecuted ? "text-success font-bold" : "text-zinc-400"}>
                       {codeExecuted ? "Yes" : "No"}
                     </span>
                   </div>
@@ -1558,7 +1566,7 @@ export default function TaskWorkspacePage() {
                 </div>
 
                 {/* Mark as finished toggle */}
-                <label htmlFor="mark-finished" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[10px] font-semibold text-blue-400 cursor-pointer hover:bg-blue-500/20 transition-all select-none focus-within:ring-2 focus-within:ring-blue-500">
+                <label htmlFor="mark-finished" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary cursor-pointer hover:bg-primary/20 transition-all select-none focus-within:ring-2 focus-within:ring-primary">
                   <input
                     id="mark-finished"
                     type="checkbox"
@@ -1595,24 +1603,19 @@ export default function TaskWorkspacePage() {
                 </label>
               </div>
             </div>
+            </div>
 
-          </div>
-        </div>
+          </Card>
 
         {/* RIGHT PANE: EDITOR & OUTPUT */}
         <div className="flex-1 flex flex-col gap-6">
 
           {/* CODE EDITOR */}
-          <div
-            className={`border rounded-2xl p-5 ${theme === "dark"
-              ? "bg-zinc-900 border-zinc-800"
-              : "bg-zinc-100 border-zinc-300"
-              }`}
-          >
+          <Card>
             <h2 className="text-xl font-semibold mb-4 flex items-center justify-between">
               <span>Code Editor</span>
               {selectedFilePath && (
-                <span className={`text-xs px-2 py-1 rounded font-mono ${theme === "dark" ? "bg-zinc-800 text-zinc-400" : "bg-zinc-200 text-zinc-600"}`}>
+                <span className="text-xs px-2 py-1 rounded font-mono bg-bg-active text-text-muted">
                   {selectedFilePath}
                 </span>
               )}
@@ -1675,7 +1678,7 @@ export default function TaskWorkspacePage() {
                 disabled={!selectedFilePath}
                 className={`px-5 py-2.5 rounded-xl text-white font-medium shadow-sm transition-colors text-sm ${
                   selectedFilePath
-                    ? "bg-green-600 hover:bg-green-500 cursor-pointer"
+                    ? "bg-success hover:brightness-110 cursor-pointer"
                     : "bg-zinc-600 cursor-not-allowed opacity-50"
                 }`}
               >
@@ -1685,23 +1688,20 @@ export default function TaskWorkspacePage() {
               <button
                 onClick={handleSaveAsSnippet}
                 disabled={!selectedFilePath || selectedFile?.isSnippet}
-                className={`px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
                   selectedFilePath && !selectedFile?.isSnippet
-                    ? "bg-blue-600 hover:bg-blue-500 text-white cursor-pointer"
+                    ? "bg-primary hover:bg-primary-hover text-white cursor-pointer"
                     : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 cursor-not-allowed opacity-50"
                 }`}
               >
-                📝 Save as Snippet
+                <FileText size={16} aria-hidden="true" /> Save as Snippet
               </button>
             </div>
-          </div>
+          </Card>
 
           {/* TERMINAL & PREVIEW SPLIT VIEW */}
-          <div
-            className={`border rounded-2xl overflow-hidden ${previewFullscreen ? "fixed inset-0 z-50 rounded-none" : ""} ${theme === "dark"
-              ? "bg-zinc-900 border-zinc-800 text-zinc-300"
-              : "bg-zinc-100 border-zinc-300 text-black"
-              }`}
+          <Card
+            className={`!p-0 overflow-hidden flex flex-col ${previewFullscreen ? "fixed inset-0 z-50 !rounded-none" : ""}`}
           >
             {/* Toolbar */}
             <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800/40 bg-zinc-950/20 select-none">
@@ -1712,9 +1712,9 @@ export default function TaskWorkspacePage() {
                     role="tab"
                     aria-selected={terminalTab === "preview"}
                     onClick={() => setTerminalTab("preview")}
-                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
+                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-primary outline-none ${
                       terminalTab === "preview"
-                        ? "border-blue-500 text-white"
+                        ? "border-primary text-white"
                         : "border-transparent text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
@@ -1727,9 +1727,9 @@ export default function TaskWorkspacePage() {
                   role="tab"
                   aria-selected={terminalTab === "console"}
                   onClick={() => setTerminalTab("console")}
-                  className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
+                  className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-primary outline-none ${
                     terminalTab === "console"
-                      ? "border-blue-500 text-white"
+                      ? "border-primary text-white"
                       : "border-transparent text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
@@ -1742,9 +1742,9 @@ export default function TaskWorkspacePage() {
                     role="tab"
                     aria-selected={terminalTab === "terminal"}
                     onClick={() => setTerminalTab("terminal")}
-                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
+                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-primary outline-none ${
                       terminalTab === "terminal"
-                        ? "border-blue-500 text-white"
+                        ? "border-primary text-white"
                         : "border-transparent text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
@@ -1758,9 +1758,9 @@ export default function TaskWorkspacePage() {
                     role="tab"
                     aria-selected={terminalTab === "history"}
                     onClick={() => setTerminalTab("history")}
-                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
+                    className={`pb-1.5 pt-1 transition-all border-b-2 focus-visible:ring-2 focus-visible:ring-primary outline-none ${
                       terminalTab === "history"
-                        ? "border-blue-500 text-white"
+                        ? "border-primary text-white"
                         : "border-transparent text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
@@ -1794,7 +1794,7 @@ export default function TaskWorkspacePage() {
                         win.document.close()
                       }
                     }}
-                    className="p-1 rounded hover:bg-black/10 text-zinc-400 hover:text-white transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+                    className="p-1 rounded hover:bg-black/10 text-zinc-400 hover:text-white transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
                   >
                     <ExternalLink size={14} />
                   </button>
@@ -1804,7 +1804,7 @@ export default function TaskWorkspacePage() {
                     title={previewFullscreen ? "Exit Fullscreen" : "Fullscreen Preview"}
                     aria-label={previewFullscreen ? "Exit Fullscreen" : "Fullscreen Preview"}
                     onClick={() => setPreviewFullscreen(f => !f)}
-                    className="p-1 rounded hover:bg-black/10 text-zinc-400 hover:text-white transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+                    className="p-1 rounded hover:bg-black/10 text-zinc-400 hover:text-white transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
                   >
                     {previewFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                   </button>
@@ -1824,33 +1824,37 @@ export default function TaskWorkspacePage() {
                         sandbox="allow-scripts"
                       />
                     ) : (
-                      <div className="text-zinc-400 italic p-6 text-center select-none">
-                        No HTML build generated yet. Click "Run Task" to render the live webpage preview.
+                      <div className="flex flex-col items-center justify-center h-full text-zinc-400 p-6 text-center select-none">
+                        <span className="font-semibold text-zinc-300">Nothing generated yet</span>
+                        <span className="text-xs mt-1">Click &quot;Run Task&quot; to render the live webpage preview.</span>
                       </div>
                     )
                   ) : taskTemplate === "React" ? (
                     <ReactMockupPreview task={task} />
                   ) : taskTemplate === "Next.js" ? (
                     <div className="p-4 bg-zinc-950 text-zinc-400 rounded-lg flex flex-col gap-2 select-none border border-zinc-800">
-                      <p className="text-sky-400 font-bold flex items-center gap-1.5">
+                      <p className="text-info font-bold flex items-center gap-1.5">
                         <span className="text-xs">▲</span> Next.js Starter Simulator
                       </p>
                       <p className="text-xs">This starter represents a Next.js App Router project structure.</p>
-                      <p className="text-yellow-400 text-[11px]">⚠️ Runtime execution is not supported inside DevBoard X yet.</p>
-                      <p className="text-zinc-400 text-[10px] border-t border-zinc-800/60 pt-2 mt-1">
+                      <p className="text-warning text-xs flex items-center gap-1.5"><AlertTriangle size={14} className="shrink-0" /> Runtime execution is not supported inside DevBoard X yet.</p>
+                      <p className="text-zinc-400 text-xs border-t border-zinc-800/60 pt-2 mt-1">
                         Files like page.js and layout.js are safely persisted in task workspace context.
                       </p>
                     </div>
                   ) : (
                     <div className="p-4 bg-zinc-950 text-zinc-400 rounded-lg flex flex-col gap-2 select-none border border-zinc-800">
-                      <p className="text-green-400 font-bold flex items-center gap-1.5">
-                        <span className="text-xs">🟢</span> {taskTemplate} Execution Environment
+                      <p className="text-success font-bold flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-success shrink-0" /> {taskTemplate} Execution Environment
                       </p>
                       <p className="text-xs">Entry file: {taskTemplate === "Express" ? "server.js" : "index.js"}</p>
-                      <p className="text-red-400 text-[11px]">
-                        ⚠️ {taskTemplate === "Express" 
+                      <p className="text-danger text-xs flex items-start gap-1.5">
+                        <AlertTriangle size={14} className="shrink-0 mt-0.5" /> 
+                        <span>
+                        {taskTemplate === "Express" 
                           ? "Server execution is not available inside browser environment." 
                           : "Node runtime required. Backend execution environment not available."}
+                        </span>
                       </p>
                     </div>
                   )}
@@ -1865,20 +1869,16 @@ export default function TaskWorkspacePage() {
                         <span className="text-zinc-400 shrink-0 select-none">
                           [{log.timestamp}]
                         </span>
-                        <span className={log.type === "error" ? "text-red-400" : "text-emerald-400"}>
+                        <span className={log.type === "error" ? "text-danger" : "text-success"}>
                           {log.text}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <>
-                      <p className="text-zinc-400 mb-1">
-                        $ devboard run
-                      </p>
-                      <pre className="whitespace-pre-wrap text-zinc-400 italic select-none">
-                        Console output empty. Run task to execute code scripts...
-                      </pre>
-                    </>
+                    <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-zinc-500 select-none">
+                      <span className="text-sm">Console output empty</span>
+                      <span className="text-xs mt-1">Run task to execute code scripts</span>
+                    </div>
                   )}
                 </div>
               )}
@@ -1886,7 +1886,7 @@ export default function TaskWorkspacePage() {
               {terminalTab === "terminal" && (
                 <div className="flex flex-col gap-1.5">
                   <div className="text-zinc-400 flex items-center gap-2 mb-2 select-none">
-                    <span className="text-emerald-500 font-bold">devboard</span>
+                    <span className="text-success font-bold">devboard</span>
                     <span className="text-zinc-600">~/{task?.title || "workspace"}</span>
                     <span className="text-zinc-700">$</span>
                   </div>
@@ -1896,15 +1896,16 @@ export default function TaskWorkspacePage() {
                         <span className="text-zinc-400 shrink-0 select-none">
                           [{log.timestamp}]
                         </span>
-                        <span className={log.type === "error" ? "text-red-400" : "text-emerald-400"}>
+                        <span className={log.type === "error" ? "text-danger" : "text-success"}>
                           {log.text}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <pre className="whitespace-pre-wrap text-zinc-400 italic select-none">
-                      Terminal ready. Run task to see output...
-                    </pre>
+                    <div className="flex flex-col items-center justify-center h-full min-h-[160px] text-zinc-500 select-none">
+                      <span className="text-sm">Terminal ready</span>
+                      <span className="text-xs mt-1">Run task to see output</span>
+                    </div>
                   )}
                 </div>
               )}
@@ -1918,7 +1919,7 @@ export default function TaskWorkspacePage() {
                         className="flex items-center justify-between p-2 rounded bg-zinc-950 border border-zinc-800/40 gap-3 hover:border-zinc-700 transition"
                       >
                         <div className="flex flex-col gap-1 overflow-hidden">
-                          <span className="text-[10px] text-zinc-400 select-none">
+                          <span className="text-xs text-zinc-400 select-none">
                             Run at {cmd.timestamp}
                           </span>
                           <span className="truncate text-zinc-300 font-mono">
@@ -1928,7 +1929,7 @@ export default function TaskWorkspacePage() {
                         <button
                           title="Restore in editor"
                           onClick={() => handleLoadCommand(cmd.command)}
-                          className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-[10px] font-semibold text-white shrink-0 transition"
+                          className="px-2 py-1 rounded bg-primary hover:bg-primary-hover text-xs font-semibold text-white shrink-0 transition"
                         >
                           Restore
                         </button>
@@ -1942,7 +1943,7 @@ export default function TaskWorkspacePage() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
         </div>
 

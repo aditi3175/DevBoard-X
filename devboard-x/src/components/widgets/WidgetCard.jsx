@@ -1,8 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { useTheme } from "@/context/ThemeContext"
-
 export default function WidgetCard({
   Icon,
   title,
@@ -10,24 +7,10 @@ export default function WidgetCard({
   color
 }) {
 
-  const { theme } = useTheme()
-
   return (
 
-    <motion.div
-      whileHover={{
-        y: -10,
-        scale: 1.04
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 300
-      }}
-      className={`flex items-center justify-between p-4 rounded-xl border transition hover:shadow-xl ${
-        theme === "dark"
-          ? "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
-          : "bg-zinc-100 border-zinc-300 hover:border-zinc-400"
-      }`}
+    <div
+      className="flex items-center justify-between p-4 rounded-xl border transition hover:shadow-md bg-surface border-border-subtle hover:border-border-strong"
     >
 
       {/* LEFT SIDE */}
@@ -44,21 +27,13 @@ export default function WidgetCard({
         <div>
 
           <p
-            className={`font-medium ${
-              theme === "dark"
-                ? "text-zinc-400"
-                : "text-zinc-600"
-            }`}
+            className="font-medium text-text-muted"
           >
             {title}
           </p>
 
           <h3
-            className={`text-2xl font-bold ${
-              theme === "dark"
-                ? "text-white"
-                : "text-black"
-            }`}
+            className="text-2xl font-bold text-text-main"
           >
             {value}
           </h3>
@@ -69,7 +44,7 @@ export default function WidgetCard({
 
 
 
-    </motion.div>
+    </div>
 
   )
 

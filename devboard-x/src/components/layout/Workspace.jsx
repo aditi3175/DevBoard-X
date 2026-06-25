@@ -11,16 +11,26 @@ import {
   FileText,
   Play,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Wind,
+  FileJson,
+  File,
+  FolderOpen,
+  ClipboardList,
+  Heart,
+  AlertTriangle
 } from "lucide-react"
 
 import WidgetCard from "@/components/widgets/WidgetCard"
 import NotesWidget from "@/components/widgets/NotesWidget"
-import { useTheme } from "@/context/ThemeContext"
+import EmptyState from "@/components/ui/EmptyState"
+import Link from "next/link"
+import Card from "@/components/ui/Card"
 import { useProjects } from "@/context/ProjectContext"
 import { useActivity } from "@/context/ActivityContext"
 import { getActivityIcon } from "@/utils/projectActivity"
 import { formatProjectDate } from "@/utils/projectOverview"
+import { usePersistentState } from "@/utils/storage"
 
 // Recursion helper to traverse file tree nodes
 const getAllFilesWithMeta = (nodes, pIdx, tIdx, taskTitle, parentPath = "") => {
@@ -48,42 +58,31 @@ const getFileIconMini = (filename) => {
   const name = filename.toLowerCase()
   const ext = name.split(".").pop()
   if (name === "tailwind.config.js" || name === "tailwind.config.ts") {
-    return <span className="text-[10px] text-cyan-400 shrink-0 select-none">💨</span>
+    return <Wind size={14} className="text-cyan-400 shrink-0" aria-hidden="true" />
   }
   switch (ext) {
     case "js":
     case "mjs":
-      return <span className="bg-yellow-500 text-black text-[8px] px-1 py-0.5 rounded font-black shrink-0 select-none">JS</span>
     case "jsx":
     case "tsx":
-      return <span className="text-cyan-400 text-xs shrink-0 select-none">⚛️</span>
+      return <FileCode size={14} className="text-yellow-500 shrink-0" aria-hidden="true" />
     case "css":
-      return <span className="bg-blue-500 text-white text-[8px] px-1 py-0.5 rounded font-black shrink-0 select-none">CSS</span>
+      return <FileCode size={14} className="text-blue-500 shrink-0" aria-hidden="true" />
     case "json":
-      return <span className="text-orange-400 text-xs shrink-0 select-none">{ }</span>
+      return <FileJson size={14} className="text-orange-400 shrink-0" aria-hidden="true" />
     case "md":
-      return <span className="text-indigo-400 text-xs shrink-0 select-none">📝</span>
+      return <FileText size={14} className="text-indigo-400 shrink-0" aria-hidden="true" />
     default:
-      return <span className="text-zinc-400 text-xs shrink-0 select-none">📄</span>
+      return <File size={14} className="text-text-muted shrink-0" aria-hidden="true" />
   }
 }
 
 export default function Workspace() {
-
   const router = useRouter()
-  const { theme } = useTheme()
   const { projects } = useProjects()
   const { globalActivities } = useActivity()
 
-  const [globalSnippets, setGlobalSnippets] = useState([])
-
-  // Load global snippets
-  useEffect(() => {
-    const saved = localStorage.getItem("devboard-snippets")
-    if (saved) {
-      setGlobalSnippets(JSON.parse(saved))
-    }
-  }, [])
+  const [globalSnippets] = usePersistentState("devboard-snippets", [])
 
   // Flattened tasks across all projects
   const allTasks = projects.flatMap((p, pIdx) =>
@@ -119,59 +118,42 @@ export default function Workspace() {
   ).sort((a, b) => b.timestamp.localeCompare(a.timestamp))
 
   return (
-
-    <div
-      className={`flex-1 flex flex-col p-6 overflow-y-auto h-screen transition ${theme === "dark"
-        ? "bg-zinc-950 text-white"
-        : "bg-white text-black"
-        }`}
-    >
-
+    <div className="flex-1 flex flex-col p-6 overflow-y-auto h-screen transition bg-page text-text-main">
       {/* HEADER */}
       <h1 className="text-4xl font-bold tracking-tight">
         Developer OS
       </h1>
 
-      <p
-        className={`mt-2 text-sm ${theme === "dark"
-          ? "text-zinc-400"
-          : "text-zinc-600"
-          }`}
-      >
+      <p className="mt-2 text-sm text-text-secondary">
         Integrated developer environment controls and workspace metrics dashboard.
       </p>
 
       {/* TOP METRIC CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
-
         <WidgetCard
           Icon={Activity}
           title="Active Tasks"
           value={activeTasks.length}
           color="bg-blue-500"
         />
-
         <WidgetCard
           Icon={FileCode}
           title="Created Files"
           value={allFiles.length}
           color="bg-cyan-500"
         />
-
         <WidgetCard
           Icon={FileText}
           title="Recent Snippets"
           value={globalSnippets.length}
           color="bg-purple-500"
         />
-
         <WidgetCard
           Icon={Play}
           title="Total Executions"
           value={allExecutions.length}
           color="bg-green-500"
         />
-
       </div>
 
       {/* WIDGET PANELS ROW */}
@@ -184,120 +166,134 @@ export default function Workspace() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {/* Recent Files */}
-            <div className={`border rounded-2xl p-5 flex flex-col ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
+            <Card className="flex flex-col">
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                📂 Recent Files
+                <FolderOpen size={20} className="text-zinc-400" aria-hidden="true" /> Recent Files
               </h3>
               <div className="flex flex-col gap-2">
                 {allFiles.length > 0 ? (
                   allFiles.slice(-5).reverse().map((file, i) => (
-                    <button
+                    <Link
                       key={i}
-                      onClick={() => router.push(`/projects/${file.projectId}/tasks/${file.taskId}`)}
+                      href={`/projects/${file.projectId}/tasks/${file.taskId}`}
                       aria-label={`Open file ${file.name} in task ${file.taskTitle}`}
-                      className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full ${theme === "dark" ? "bg-zinc-950 hover:bg-zinc-800" : "bg-white hover:bg-zinc-200"
-                        }`}
+                      className="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover"
                     >
                       <div className="flex items-center gap-2.5 overflow-hidden mr-2">
                         {getFileIconMini(file.name)}
                         <span className="text-sm font-medium truncate">{file.name}</span>
-                        <span className="text-[10px] text-zinc-400 truncate">({file.path})</span>
+                        <span className="text-xs text-text-muted truncate">({file.path})</span>
                       </div>
-                      <span className="text-[10px] font-semibold bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded truncate shrink-0 max-w-[80px]">
+                      <span className="text-xs font-semibold bg-bg-active text-text-secondary px-2 py-0.5 rounded truncate shrink-0 max-w-[80px]">
                         {file.taskTitle}
                       </span>
-                    </button>
+                    </Link>
                   ))
                 ) : (
-                  <span className="text-sm text-zinc-400 italic p-4 text-center">No files created yet.</span>
+                  <EmptyState 
+                    variant="compact"
+                    icon={FileCode}
+                    title="No tracked files"
+                    description="Execute code or create files within tasks to see them here."
+                    primaryAction={{ label: "Go to Projects", onClick: () => router.push("/projects") }}
+                  />
                 )}
               </div>
-            </div>
+            </Card>
 
             {/* Recent Snippets */}
-            <div className={`border rounded-2xl p-5 flex flex-col ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
+            <Card className="flex flex-col">
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                📝 Recent Snippets
+                <FileText size={20} className="text-zinc-400" aria-hidden="true" /> Recent Snippets
               </h3>
               <div className="flex flex-col gap-2">
                 {globalSnippets.length > 0 ? (
                   globalSnippets.slice(0, 5).map((snippet, i) => (
                     <div
                       key={i}
-                      className={`flex items-center justify-between p-2.5 rounded-xl transition ${theme === "dark" ? "bg-zinc-950 hover:bg-zinc-800" : "bg-white hover:bg-zinc-200"
-                        }`}
+                      className="flex items-center justify-between p-2.5 rounded-xl transition hover:bg-bg-hover"
                     >
                       <div className="flex flex-col overflow-hidden mr-2">
-                        <span className="text-sm font-medium truncate text-zinc-200">{snippet.title}</span>
-                        <span className="text-[10px] text-zinc-400">Saved: {snippet.createdAt}</span>
+                        <span className="text-sm font-medium truncate text-text-main">{snippet.title}</span>
+                        <span className="text-xs text-text-muted">Saved: {snippet.createdAt}</span>
                       </div>
-                      <span className="text-[10px] font-semibold bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-semibold bg-purple-500/20 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded shrink-0">
                         {snippet.language}
                       </span>
                     </div>
                   ))
                 ) : (
-                  <span className="text-sm text-zinc-400 italic p-4 text-center">No snippets saved yet.</span>
+                  <EmptyState 
+                    variant="compact"
+                    icon={FileText}
+                    title="Your library is empty"
+                    description="Save useful code snippets from the editor to reuse them."
+                  />
                 )}
               </div>
-            </div>
+            </Card>
 
           </div>
 
           {/* Recent Tasks */}
-          <div className={`border rounded-2xl p-5 ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
+          <Card>
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              📋 Recent Tasks
+              <ClipboardList size={20} className="text-zinc-400" aria-hidden="true" /> Recent Tasks
             </h3>
             <div className="flex flex-col gap-3">
               {allTasks.length > 0 ? (
                 allTasks.slice(-4).reverse().map((t, i) => (
-                  <button
+                  <Link
                     key={i}
-                    onClick={() => router.push(`/projects/${t.projectId}/tasks/${t.taskId}`)}
+                    href={`/projects/${t.projectId}/tasks/${t.taskId}`}
                     aria-label={`Open task ${t.title} in project ${t.projectTitle}`}
-                    className={`flex flex-col md:flex-row md:items-center justify-between p-3 rounded-xl cursor-pointer gap-3 transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full ${theme === "dark" ? "bg-zinc-950 hover:bg-zinc-800" : "bg-white hover:bg-zinc-200"
-                      }`}
+                    className="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-xl cursor-pointer gap-3 transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-center shrink-0 w-16 ${t.priority === "High"
-                        ? "bg-red-500/20 text-red-400"
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold text-center shrink-0 w-16 ${t.priority === "High"
+                        ? "bg-danger-bg text-danger-text"
                         : t.priority === "Medium"
-                          ? "bg-yellow-500/20 text-yellow-400"
-                          : "bg-green-500/20 text-green-400"
+                          ? "bg-warning-bg text-warning-text"
+                          : "bg-neutral-bg text-neutral-text"
                         }`}>
                         {t.priority}
                       </span>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium truncate text-zinc-200">{t.title}</span>
-                        <span className="text-[10px] text-zinc-400">{t.projectTitle}</span>
+                        <span className="text-sm font-medium truncate text-text-main">{t.title}</span>
+                        <span className="text-xs text-text-muted">{t.projectTitle}</span>
                       </div>
                     </div>
 
                     {/* Task Progress Bar */}
                     <div className="flex items-center gap-3 w-full md:w-48 shrink-0">
-                      <div className="flex-grow h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="flex-grow h-1.5 bg-bg-active rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-green-500"
+                          className="h-full bg-success"
                           style={{ width: `${t.progress || 0}%` }}
                         />
                       </div>
-                      <span className="text-xs font-semibold text-zinc-400 w-8 shrink-0">
+                      <span className="text-xs font-semibold text-text-muted w-8 shrink-0">
                         {t.progress || 0}%
                       </span>
                     </div>
-                  </button>
+                  </Link>
                 ))
               ) : (
-                <span className="text-sm text-zinc-400 italic p-4 text-center">No tasks created yet.</span>
+                <EmptyState 
+                  variant="compact"
+                  icon={CheckCircle}
+                  title="No active tasks"
+                  description="Start tracking your work by creating a project task."
+                  primaryAction={{ label: "View Projects", onClick: () => router.push("/projects") }}
+                />
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Project Health Widget */}
-          <div className={`border rounded-2xl p-5 ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
+          <Card>
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              ❤️ Project Health
+              <Heart size={20} className="text-zinc-400" aria-hidden="true" /> Project Health
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.length > 0 ? (
@@ -311,56 +307,61 @@ export default function Workspace() {
                   const rate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
                   let healthText = "Healthy"
-                  let healthColor = "bg-teal-500/10 text-teal-400 border border-teal-500/20"
+                  let healthColor = "bg-info-bg text-info-text border border-info/20"
                   if (total === 0) {
                     healthText = "No Tasks"
-                    healthColor = "bg-zinc-850 text-zinc-400 border border-zinc-800/40"
+                    healthColor = "bg-neutral-bg text-neutral-text border border-border-subtle"
                   } else if (overdue > 0) {
                     healthText = "Needs Attention"
-                    healthColor = "bg-red-500/15 text-red-400 border border-red-500/25"
+                    healthColor = "bg-danger-bg text-danger-text border border-danger/25"
                   } else if (completed === total) {
                     healthText = "Completed"
-                    healthColor = "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+                    healthColor = "bg-success-bg text-success-text border border-success/25"
                   }
 
                   return (
-                    <button
+                    <Link
                       key={i}
-                      onClick={() => router.push(`/projects/${i}`)}
+                      href={`/projects/${i}`}
                       aria-label={`Open project ${p.title}`}
-                      className={`p-3 rounded-xl cursor-pointer border transition flex flex-col gap-2.5 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full ${theme === "dark"
-                        ? "bg-zinc-950 hover:bg-zinc-800 border-zinc-800/50"
-                        : "bg-white hover:bg-zinc-200 border-zinc-300"
-                        }`}
+                      className="block p-3 rounded-xl cursor-pointer transition flex flex-col gap-2.5 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover border border-border-subtle hover:border-border-strong bg-transparent"
                     >
                       <div className="flex justify-between items-start">
-                        <span className="text-sm font-semibold truncate text-zinc-200">{p.title}</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${healthColor}`}>
+                        <span className="text-sm font-semibold truncate text-text-main">{p.title}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${healthColor}`}>
                           {healthText}
                         </span>
                       </div>
 
                       {/* Project stats */}
-                      <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                      <div className="flex items-center justify-between text-xs text-text-muted">
                         <span>Tasks: {completed}/{total}</span>
-                        {overdue > 0 && <span className="text-red-400 font-bold">⚠️ {overdue} Overdue</span>}
+                        {overdue > 0 && <span className="flex items-center gap-1 text-danger font-bold"><AlertTriangle size={14} /> {overdue} Overdue</span>}
                       </div>
 
                       {/* Bar indicator */}
-                      <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
+                      <div className="w-full h-1 bg-bg-active rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${overdue > 0 ? "bg-yellow-500" : "bg-blue-500"}`}
+                          className={`h-full ${completed === total && total > 0 ? "bg-success" : overdue > 0 ? "bg-warning" : "bg-primary"}`}
                           style={{ width: `${rate}%` }}
                         />
                       </div>
-                    </button>
+                    </Link>
                   )
                 })
               ) : (
-                <span className="text-sm text-zinc-400 italic p-4 text-center md:col-span-2">No projects created yet.</span>
+                <div className="md:col-span-2">
+                  <EmptyState 
+                    variant="compact"
+                    icon={Folder}
+                    title="No project data"
+                    description="Initialize a project to monitor its health and progress."
+                    primaryAction={{ label: "Create Project", onClick: () => router.push("/projects") }}
+                  />
+                </div>
               )}
             </div>
-          </div>
+          </Card>
 
         </div>
 
@@ -368,9 +369,9 @@ export default function Workspace() {
         <div className="flex flex-col gap-6">
 
           {/* Workspace Activity Feed */}
-          <div className={`border rounded-2xl p-5 flex flex-col ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
+          <Card>
             <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              ⚡ Workspace Activity
+              <Activity size={20} className="text-zinc-400" aria-hidden="true" /> Workspace Activity
             </h3>
 
             <div className="flex flex-col gap-4">
@@ -392,26 +393,24 @@ export default function Workspace() {
                       }
                     }}
                     aria-label={isClickable ? `View activity: ${log.message}` : undefined}
-                    className={`flex gap-3 p-3 rounded-xl border transition text-xs w-full text-left outline-none ${isClickable ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500" : ""
-                      } ${theme === "dark"
-                        ? `bg-zinc-950 border-zinc-800 ${isClickable ? "hover:bg-zinc-800" : ""}`
-                        : `bg-white border-zinc-200 ${isClickable ? "hover:bg-zinc-200" : ""}`
-                      }`}
+                    className={`flex gap-3 p-3 rounded-xl border border-border-subtle transition text-xs w-full text-left outline-none ${
+                      isClickable ? "cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-500 hover:bg-bg-hover" : ""
+                    }`}
                   >
                     <span className="shrink-0 select-none flex items-center justify-center">
                       {(() => {
                         const Icon = getActivityIcon(log.type)
-                        return <Icon size={16} className={theme === "dark" ? "text-zinc-400" : "text-zinc-400"} />
+                        return <Icon size={16} className="text-text-muted" />
                       })()}
                     </span>
                     <div className="flex flex-col gap-1 overflow-hidden w-full">
-                      <div className="flex justify-between items-center text-[10px] text-zinc-400 gap-2">
-                        <span className="font-semibold truncate text-zinc-300">
+                      <div className="flex justify-between items-center text-xs text-text-muted gap-2">
+                        <span className="font-semibold truncate text-text-secondary">
                           {log.projectTitle || "Global"}
                         </span>
                         <span className="shrink-0">{formatProjectDate(log.timestamp)}</span>
                       </div>
-                      <span className={`truncate text-zinc-200`}>
+                      <span className="truncate text-text-main">
                         {log.message}
                       </span>
                     </div>
@@ -419,10 +418,15 @@ export default function Workspace() {
                 );
               })
               ) : (
-                <span className="text-sm text-zinc-400 italic p-4 text-center">No recent activity.</span>
+                <EmptyState 
+                  variant="compact"
+                  icon={Activity}
+                  title="Quiet workspace"
+                  description="Activity will automatically log as you manage projects and run code."
+                />
               )}
             </div>
-          </div>
+          </Card>
 
           {/* Notes Widget */}
           <NotesWidget />
@@ -432,7 +436,5 @@ export default function Workspace() {
       </div>
 
     </div>
-
   )
-
 }

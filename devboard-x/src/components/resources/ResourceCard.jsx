@@ -7,8 +7,8 @@ import {
   Pin,
   PinOff
 } from "lucide-react"
-import { useTheme } from "@/context/ThemeContext"
 import { getCategoryBadgeStyle } from "@/constants/resourceCategories"
+import Button from "@/components/ui/Button"
 
 export default function ResourceCard({
   resource,
@@ -18,23 +18,16 @@ export default function ResourceCard({
   onDelete,
   onTogglePin
 }) {
-  const { theme } = useTheme()
   const badgeStyle = getCategoryBadgeStyle(resource.category)
 
   return (
     <div
-      className={`border rounded-2xl p-5 transition hover:shadow-lg ${
-        theme === "dark"
-          ? "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
-          : "bg-white border-zinc-300 hover:border-zinc-400"
-      } ${compact ? "min-w-[280px] max-w-[320px] shrink-0" : ""}`}
+      className={`border rounded-2xl p-5 transition hover:shadow-lg bg-surface border-border-subtle hover:border-border-strong ${compact ? "min-w-[280px] max-w-[320px] shrink-0" : ""}`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">
           <h3
-            className={`font-semibold truncate ${
-              theme === "dark" ? "text-white" : "text-black"
-            }`}
+            className="font-semibold truncate text-text-main"
           >
             {resource.title}
           </h3>
@@ -49,7 +42,7 @@ export default function ResourceCard({
         {resource.pinned && (
           <Pin
             size={16}
-            className="text-yellow-400 shrink-0 mt-1"
+            className="text-yellow-500 dark:text-yellow-400 shrink-0 mt-1"
             fill="currentColor"
           />
         )}
@@ -57,9 +50,7 @@ export default function ResourceCard({
 
       {resource.description && (
         <p
-          className={`text-sm mb-3 line-clamp-2 ${
-            theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-          }`}
+          className="text-sm mb-3 line-clamp-2 text-text-secondary"
         >
           {resource.description}
         </p>
@@ -70,49 +61,51 @@ export default function ResourceCard({
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
-        className="text-sm text-blue-400 hover:text-blue-300 truncate block mb-4"
+        className="text-sm text-primary hover:text-primary-hover truncate block mb-4"
       >
         {resource.url}
       </a>
 
-      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-zinc-800/30">
-        <button
+      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border-subtle">
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={ExternalLink}
           onClick={() => onOpen(resource.url)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition"
+          className="text-primary bg-primary/10 hover:bg-primary/20"
         >
-          <ExternalLink size={14} />
           Open
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={resource.pinned ? PinOff : Pin}
           onClick={() => onTogglePin(resource.id)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition ${
-            resource.pinned
-              ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
-              : theme === "dark"
-                ? "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300"
-          }`}
+          className={resource.pinned ? "text-warning hover:bg-warning/20 bg-warning/10" : "text-text-muted hover:bg-bg-hover bg-bg-active"}
         >
-          {resource.pinned ? <PinOff size={14} /> : <Pin size={14} />}
           {resource.pinned ? "Unpin" : "Pin"}
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={Pencil}
           onClick={() => onEdit(resource)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-blue-400 hover:bg-blue-500/10 transition"
+          className="text-primary hover:bg-primary/10"
         >
-          <Pencil size={14} />
           Edit
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={Trash2}
           onClick={() => onDelete(resource.id)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition"
+          className="text-danger-text hover:bg-danger/10"
         >
-          <Trash2 size={14} />
           Delete
-        </button>
+        </Button>
       </div>
     </div>
   )

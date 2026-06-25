@@ -6,13 +6,11 @@ import {
   useState
 } from "react"
 
-import { useTheme } from "@/context/ThemeContext"
 import { useProjects } from "@/context/ProjectContext"
 
 export default function Terminal() {
 
 
-  const { theme } = useTheme()
   const { projects } = useProjects()
 
   // INPUT STATE
@@ -182,20 +180,12 @@ export default function Terminal() {
   return (
 
     <div
-      className={`mt-6 w-full border rounded-2xl overflow-hidden shadow-xl transition ${
-        theme === "dark"
-          ? "bg-zinc-900 border-zinc-800"
-          : "bg-zinc-100 border-zinc-300"
-      }`}
+      className="mt-6 w-full border rounded-2xl overflow-hidden shadow-xl transition bg-surface border-border-subtle"
     >
 
       {/* HEADER */}
       <div
-        className={`flex items-center justify-between px-4 py-3 border-b ${
-          theme === "dark"
-            ? "border-zinc-800 bg-zinc-950"
-            : "border-zinc-300 bg-white"
-        }`}
+        className="flex items-center justify-between px-4 py-3 border-b border-border-subtle bg-bg-active"
       >
 
         {/* DOTS */}
@@ -211,11 +201,7 @@ export default function Terminal() {
 
         {/* TITLE */}
         <p
-          className={`text-sm font-mono ${
-            theme === "dark"
-              ? "text-zinc-400"
-              : "text-zinc-600"
-          }`}
+          className="text-sm font-mono text-text-secondary"
         >
           terminal
         </p>
@@ -225,11 +211,7 @@ export default function Terminal() {
       {/* OUTPUT */}
       <div
         ref={terminalRef}
-        className={`p-4 font-mono text-sm space-y-2 h-[400px] overflow-y-auto ${
-          theme === "dark"
-            ? "bg-zinc-900"
-            : "bg-zinc-100"
-        }`}
+        className="p-4 font-mono text-sm space-y-2 h-[400px] overflow-y-auto bg-surface text-text-main"
       >
 
         {history.map((entry, index) => {
@@ -242,15 +224,8 @@ export default function Terminal() {
             <p
               key={index}
               className={`
-                ${isCommand ? "text-green-400" : ""}
-                ${isError ? "text-red-400" : ""}
-                ${
-                  !isCommand && !isError
-                    ? theme === "dark"
-                      ? "text-zinc-300"
-                      : "text-zinc-700"
-                    : ""
-                }
+                ${isCommand ? "text-green-500 dark:text-green-400" : ""}
+                ${isError ? "text-red-500 dark:text-red-400" : ""}
               `}
             >
               {entry}
@@ -264,25 +239,17 @@ export default function Terminal() {
 
       {/* INPUT */}
       <div
-        className={`border-t px-4 py-3 flex items-center gap-2 font-mono ${
-          theme === "dark"
-            ? "border-zinc-800"
-            : "border-zinc-300"
-        }`}
+        className="border-t px-4 py-3 flex items-center gap-2 font-mono border-border-subtle bg-surface"
       >
 
-        <span className="text-green-400">
+        <span className="text-green-500 dark:text-green-400">
           {">"}
         </span>
 
         <input
           type="text"
           placeholder="Type command..."
-          className={`flex-1 bg-transparent outline-none ${
-            theme === "dark"
-              ? "text-white placeholder-zinc-500"
-              : "text-black placeholder-zinc-400"
-          }`}
+          className="flex-1 bg-transparent outline-none text-text-main placeholder-text-muted"
           value={input}
           onChange={handleChange}
           onKeyDown={handleSubmit}

@@ -1,38 +1,29 @@
 "use client"
 
-import { useTheme } from "@/context/ThemeContext"
 import { getProjectPhase } from "@/utils/projectOverview"
+import Card from "@/components/ui/Card"
 
 export default function ProjectHealthSection({ progressPercent, completedTasks, totalTasks }) {
-  const { theme } = useTheme()
   const phase = getProjectPhase(progressPercent)
 
   return (
-    <div
-      className={`border rounded-2xl p-5 ${
-        theme === "dark"
-          ? "bg-zinc-900 border-zinc-800"
-          : "bg-zinc-100 border-zinc-300"
-      }`}
-    >
+    <Card>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 className="text-xl font-semibold">Project Health</h2>
-        <span className={`text-sm font-semibold px-3 py-1 rounded-full bg-zinc-800/50 ${phase.color}`}>
+        <h2 className="text-xl font-semibold text-text-main">Project Health</h2>
+        <span className={`text-sm font-semibold px-3 py-1 rounded-full bg-bg-active ${phase.color}`}>
           {phase.label}
         </span>
       </div>
 
-      <div className="flex justify-between mb-2 text-sm">
-        <span className={theme === "dark" ? "text-zinc-400" : "text-zinc-600"}>
+      <div className="flex justify-between mb-2 text-sm text-text-main">
+        <span className="text-text-secondary">
           Completion Progress
         </span>
         <span className="font-semibold">{progressPercent}%</span>
       </div>
 
       <div
-        className={`w-full h-4 rounded-full overflow-hidden ${
-          theme === "dark" ? "bg-zinc-800" : "bg-zinc-300"
-        }`}
+        className="w-full h-4 rounded-full overflow-hidden bg-bg-active"
       >
         <div
           className={`h-full transition-all duration-500 ${phase.barColor}`}
@@ -41,12 +32,10 @@ export default function ProjectHealthSection({ progressPercent, completedTasks, 
       </div>
 
       <p
-        className={`mt-3 text-sm ${
-          theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-        }`}
+        className="mt-3 text-sm text-text-secondary"
       >
         {completedTasks} of {totalTasks} tasks completed
       </p>
-    </div>
+    </Card>
   )
 }

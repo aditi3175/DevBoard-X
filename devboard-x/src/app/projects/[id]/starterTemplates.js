@@ -93,7 +93,7 @@ export default function App() {
   return (
     <div style={{ padding: '30px', fontFamily: 'system-ui, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
       <div style={{ background: '#61dafb', padding: '20px', borderRadius: '12px', color: '#20232a' }}>
-        <h1 style={{ margin: 0 }}>⚛️ Hello, React!</h1>
+        <h1 style={{ margin: 0 }}>Hello, React!</h1>
         <p style={{ fontSize: '1.2rem', marginTop: '10px' }}>Welcome to your live React simulation.</p>
       </div>
       <div style={{ marginTop: '20px', border: '1px solid #ddd', padding: '20px', borderRadius: '8px' }}>

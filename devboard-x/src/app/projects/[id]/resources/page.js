@@ -4,13 +4,14 @@ import { useRef, useState } from "react"
 import { useParams } from "next/navigation"
 import { Link2, Pin, Search } from "lucide-react"
 
-import { useTheme } from "@/context/ThemeContext"
 import { useProjects } from "@/context/ProjectContext"
 import ProjectHeader from "@/components/project/ProjectHeader"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
 import ResourceForm from "@/components/resources/ResourceForm"
 import ResourceCard from "@/components/resources/ResourceCard"
 import WidgetCard from "@/components/widgets/WidgetCard"
+import EmptyState from "@/components/ui/EmptyState"
+import Input from "@/components/ui/Input"
 import {
   ACTIVITY_TYPES,
   appendProjectActivity,
@@ -31,8 +32,7 @@ export default function ProjectResourcesPage() {
   const params = useParams()
   const formRef = useRef(null)
 
-  const { theme } = useTheme()
-  const { projects, setProjects } = useProjects()
+  const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
 
   const projectIndex = Number(params.id)
@@ -46,13 +46,27 @@ export default function ProjectResourcesPage() {
   const [editResourceId, setEditResourceId] = useState(null)
   const [showForm, setShowForm] = useState(true)
 
+  if (!isLoaded) {
+    return (
+      <div className="h-full flex-1 p-6 transition bg-surface text-text-main">
+        <div className="mb-8 animate-pulse">
+          <div className="h-12 w-64 rounded-xl mb-3 bg-bg-active"></div>
+          <div className="h-6 w-96 rounded-lg bg-bg-active"></div>
+        </div>
+        <div className="h-14 w-full rounded-2xl mb-8 animate-pulse bg-bg-active"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-40 rounded-2xl bg-bg-active"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (!project) {
     return (
       <div
-        className={`min-h-screen p-6 ${theme === "dark"
-            ? "bg-zinc-950 text-white"
-            : "bg-white text-black"
-          }`}
+        className="h-full flex-1 p-6 bg-surface text-text-main"
       >
         <h1 className="text-3xl font-bold">Project Not Found</h1>
       </div>
@@ -205,17 +219,11 @@ export default function ProjectResourcesPage() {
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
 
-  const sectionClass = `border rounded-2xl p-5 ${theme === "dark"
-      ? "bg-zinc-900 border-zinc-800"
-      : "bg-zinc-100 border-zinc-300"
-    }`
+  const sectionClass = "border rounded-2xl p-5 bg-surface border-border-subtle"
 
   return (
     <div
-      className={`min-h-screen p-6 ${theme === "dark"
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-        }`}
+      className="h-full flex-1 p-6 bg-surface text-text-main"
     >
       <ProjectHeader project={project} />
       <ProjectSubNav projectIndex={projectIndex} />
@@ -225,20 +233,20 @@ export default function ProjectResourcesPage() {
           Icon={Link2}
           title="Total Resources"
           value={totalResources}
-          color="bg-blue-500/20 text-blue-400"
+          color="bg-info-bg text-info-text"
         />
         <WidgetCard
           Icon={Pin}
           title="Pinned Resources"
           value={pinnedCount}
-          color="bg-yellow-500/20 text-yellow-400"
+          color="bg-warning-bg text-warning-text"
         />
       </div>
 
       {pinnedResources.length > 0 && (
         <div className={`${sectionClass} mb-8`}>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Pin size={20} className="text-yellow-400" />
+            <Pin size={20} className="text-warning" />
             Pinned Resources
           </h2>
 
@@ -260,20 +268,14 @@ export default function ProjectResourcesPage() {
 
       <div className={`${sectionClass} mb-8`}>
         <div className="relative mb-6">
-          <Search
-            size={18}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 ${theme === "dark" ? "text-zinc-400" : "text-zinc-400"
-              }`}
-          />
-          <input
+          <label htmlFor="search-resources" className="sr-only">Search resources</label>
+          <Input
+            id="search-resources"
             type="text"
             placeholder="Search by title, category, or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`w-full pl-11 pr-4 py-3 rounded-xl border outline-none ${theme === "dark"
-                ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-                : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-              }`}
+            leftIcon={Search}
           />
         </div>
 
@@ -303,7 +305,7 @@ export default function ProjectResourcesPage() {
           {totalResources > 0 && !showForm && !editResourceId && (
             <button
               onClick={() => setShowForm(true)}
-              className="px-5 py-3 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition"
+              className="px-5 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
             >
               Add Resource
             </button>
@@ -316,8 +318,7 @@ export default function ProjectResourcesPage() {
           All Resources
           {searchQuery && (
             <span
-              className={`ml-2 text-base font-normal ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-                }`}
+              className="ml-2 text-base font-normal text-text-secondary"
             >
               ({filteredResources.length} result
               {filteredResources.length !== 1 ? "s" : ""})
@@ -326,33 +327,18 @@ export default function ProjectResourcesPage() {
         </h2>
 
         {totalResources === 0 ? (
-          <div className="text-center py-12">
-            <p
-              className={`text-lg mb-4 ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-                }`}
-            >
-              No project resources added yet.
-            </p>
-            <button
-              onClick={() => {
-                setShowForm(true)
-                formRef.current?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start"
-                })
-              }}
-              className="px-5 py-3 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition"
-            >
-              Add First Resource
-            </button>
-          </div>
+          <EmptyState
+            icon={Link2}
+            title="No resources added"
+            description="Use the form above to add your first resource."
+          />
         ) : filteredResources.length === 0 ? (
-          <p
-            className={`text-center py-8 ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-              }`}
-          >
-            No resources match your search.
-          </p>
+          <EmptyState
+            icon={Search}
+            title="No matching resources"
+            description="No resources match your search."
+            primaryAction={{ label: "Clear Search", onClick: () => setSearch("") }}
+          />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredResources.map((resource) => (

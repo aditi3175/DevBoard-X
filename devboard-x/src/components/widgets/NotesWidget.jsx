@@ -1,64 +1,28 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useTheme } from "@/context/ThemeContext"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Plus, Trash2, Edit2, ChevronLeft, Eye, Clock, Type } from "lucide-react"
+import { usePersistentState } from "@/utils/storage"
+import EmptyState from "@/components/ui/EmptyState"
+import Button from "@/components/ui/Button"
 
 export default function NotesWidget() {
-  const { theme } = useTheme()
 
   // STATE
-  const [notes, setNotes] = useState([])
-  const [activeNoteId, setActiveNoteId] = useState(null)
+  const [notes, setNotes, isLoaded] = usePersistentState("devboard-notes", [
+    {
+      id: "default-note",
+      title: "Quick Note",
+      content: "",
+      lastEdited: "1970-01-01T00:00:00.000Z"
+    }
+  ])
+  const [selectedNoteId, setSelectedNoteId] = useState(null)
   const [isEditing, setIsEditing] = useState(true)
-  const [mounted, setMounted] = useState(false)
 
-  // FIX HYDRATION
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // LOAD SAVED NOTES (migrate old string notes to new array format if needed)
-  useEffect(() => {
-    const savedNotes = localStorage.getItem("devboard-notes")
-    if (savedNotes) {
-      try {
-        const parsed = JSON.parse(savedNotes)
-        if (Array.isArray(parsed)) {
-          setNotes(parsed)
-        } else {
-          // Migration from string
-          setNotes([
-            {
-              id: Date.now().toString(),
-              title: "Legacy Note",
-              content: savedNotes,
-              lastEdited: new Date().toISOString()
-            }
-          ])
-        }
-      } catch (e) {
-        // Migration from string
-        setNotes([
-          {
-            id: Date.now().toString(),
-            title: "Legacy Note",
-            content: savedNotes,
-            lastEdited: new Date().toISOString()
-          }
-        ])
-      }
-    }
-  }, [])
-
-  // AUTO SAVE
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem("devboard-notes", JSON.stringify(notes))
-    }
-  }, [notes, mounted])
+  const activeNoteId = selectedNoteId || (notes.length > 0 ? notes[0].id : null)
 
   const handleCreateNote = () => {
     const newNote = {
@@ -68,7 +32,7 @@ export default function NotesWidget() {
       lastEdited: new Date().toISOString()
     }
     setNotes([newNote, ...notes])
-    setActiveNoteId(newNote.id)
+    setSelectedNoteId(newNote.id)
     setIsEditing(true)
   }
 
@@ -77,7 +41,7 @@ export default function NotesWidget() {
     const updated = notes.filter((n) => n.id !== id)
     setNotes(updated)
     if (activeNoteId === id) {
-      setActiveNoteId(null)
+      setSelectedNoteId(null)
     }
   }
 
@@ -93,48 +57,45 @@ export default function NotesWidget() {
 
   const activeNote = notes.find((n) => n.id === activeNoteId)
 
-  if (!mounted) {
+  if (!isLoaded) {
     return (
-      <div className={`mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col min-h-[400px] animate-pulse ${theme === "dark" ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"}`}>
-        <div className={`px-5 py-4 border-b flex items-center justify-between ${theme === "dark" ? "border-zinc-800 bg-zinc-900" : "border-zinc-300 bg-zinc-100"}`}>
-          <div className={`h-6 w-32 rounded ${theme === "dark" ? "bg-zinc-800" : "bg-zinc-200"}`}></div>
-          <div className={`h-8 w-24 rounded-lg ${theme === "dark" ? "bg-zinc-800" : "bg-zinc-200"}`}></div>
+      <div className="mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col min-h-[400px] animate-pulse bg-surface border-border-subtle">
+        <div className="px-5 py-4 border-b flex items-center justify-between border-border-subtle bg-bg-hover">
+          <div className="h-6 w-32 rounded bg-bg-active"></div>
+          <div className="h-8 w-24 rounded-lg bg-bg-active"></div>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className={`h-40 rounded-xl ${theme === "dark" ? "bg-zinc-800" : "bg-zinc-200"}`}></div>
+            <div key={i} className="h-40 rounded-xl bg-bg-active"></div>
           ))}
         </div>
       </div>
     )
   }
 
-  const isDark = theme === "dark"
-  const cardClass = `mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col ${isDark ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"
-    }`
+  const cardClass = "mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col bg-surface border-border-subtle"
 
   return (
     <div className={cardClass} style={{ minHeight: "400px" }}>
       {/* HEADER */}
       <div
-        className={`px-5 py-4 border-b flex items-center justify-between ${isDark ? "border-zinc-800 bg-zinc-900" : "border-zinc-300 bg-zinc-100"
-          }`}
+        className="px-5 py-4 border-b flex items-center justify-between border-border-subtle bg-bg-hover"
       >
         <div className="flex items-center gap-3">
           {activeNoteId && (
-            <button
-              onClick={() => setActiveNoteId(null)}
-              className={`p-1.5 rounded-lg transition ${isDark ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-zinc-200 text-zinc-600"
-                }`}
+            <Button
+              variant="ghost"
+              size="iconSm"
+              onClick={() => setSelectedNoteId(null)}
             >
               <ChevronLeft size={20} />
-            </button>
+            </Button>
           )}
           <div>
-            <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-black"}`}>
+            <h2 className="text-xl font-bold text-text-main">
               {activeNoteId ? "Edit Note" : "Developer Notes"}
             </h2>
-            <p className={`text-xs mt-0.5 ${isDark ? "text-zinc-400" : "text-zinc-600"}`}>
+            <p className="text-xs mt-0.5 text-text-secondary">
               {activeNoteId
                 ? "Notion-style workspace"
                 : "Keep track of ideas, tasks and bugs."}
@@ -143,40 +104,35 @@ export default function NotesWidget() {
         </div>
 
         {!activeNoteId && (
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handleCreateNote}
             aria-label="Create new note"
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${isDark
-                ? "bg-zinc-800 hover:bg-zinc-700 text-white"
-                : "bg-white hover:bg-zinc-100 border border-zinc-200 text-black shadow-sm"
-              }`}
+            leftIcon={Plus}
           >
-            <Plus size={16} />
             <span className="hidden sm:inline">New Note</span>
-          </button>
+          </Button>
         )}
 
         {activeNoteId && (
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant={isEditing ? "primary" : "secondary"}
+              size="sm"
               onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition ${isEditing
-                  ? "bg-blue-500/20 text-blue-500 hover:bg-blue-500/30"
-                  : isDark
-                    ? "bg-zinc-800 hover:bg-zinc-700 text-white"
-                    : "bg-white hover:bg-zinc-200 text-black border border-zinc-300"
-                }`}
+              leftIcon={isEditing ? Eye : Edit2}
+              className={isEditing ? "bg-primary/20 text-primary hover:bg-primary/30" : ""}
             >
-              {isEditing ? <Eye size={16} /> : <Edit2 size={16} />}
               {isEditing ? "Preview" : "Edit"}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="destructive"
+              size="iconSm"
               onClick={(e) => handleDeleteNote(activeNoteId, e)}
-              className={`p-2 rounded-xl transition ${isDark ? "hover:bg-red-500/20 text-red-400" : "hover:bg-red-100 text-red-500"
-                }`}
             >
               <Trash2 size={16} />
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -186,51 +142,49 @@ export default function NotesWidget() {
         {!activeNoteId ? (
           /* NOTES GRID */
           notes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center flex-1 text-center opacity-60">
-              <Type size={48} className="mb-4 text-zinc-400" />
-              <p className={isDark ? "text-zinc-400" : "text-zinc-600"}>
-                No notes yet. Create one to get started!
-              </p>
+            <div className="flex-1">
+              <EmptyState
+                icon={Type}
+                title="No notes yet"
+                description="Create your first developer note to keep track of ideas, tasks, and bugs."
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className={`group relative p-4 rounded-xl border transition flex flex-col h-[160px] ${isDark
-                      ? "bg-zinc-950 border-zinc-800 hover:border-zinc-600"
-                      : "bg-white border-zinc-200 hover:border-zinc-400"
-                    }`}
+                  className="group relative p-4 rounded-xl border transition flex flex-col h-[160px] bg-surface border-border-subtle hover:border-border-strong"
                 >
                   <button
-                    onClick={() => setActiveNoteId(note.id)}
+                    onClick={() => setSelectedNoteId(note.id)}
                     aria-label={`Open note ${note.title || "Untitled"}`}
-                    className="absolute inset-0 z-0 w-full h-full rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+                    className="absolute inset-0 z-0 w-full h-full rounded-xl focus-visible:ring-2 focus-visible:ring-primary outline-none"
                   />
                   <div className="relative z-10 pointer-events-none flex-1 flex flex-col">
-                    <h3 className={`font-bold text-lg mb-2 truncate ${isDark ? "text-white" : "text-black"}`}>
+                    <h3 className="font-bold text-lg mb-2 truncate text-text-main">
                       {note.title || "Untitled Note"}
                     </h3>
                     <p
-                      className={`text-sm line-clamp-3 mb-auto ${isDark ? "text-zinc-400" : "text-zinc-600"
-                        }`}
+                      className="text-sm line-clamp-3 mb-auto text-text-secondary"
                     >
                       {note.content || "Empty note..."}
                     </p>
                   </div>
-                  <div className={`relative z-10 mt-3 pt-3 border-t flex items-center justify-between text-[10px] uppercase font-bold ${isDark ? "border-zinc-800 text-zinc-600" : "border-zinc-100 text-zinc-400"
-                    }`}>
+                  <div className="relative z-10 mt-3 pt-3 border-t flex items-center justify-between text-xs uppercase font-bold border-border-subtle text-text-muted tracking-wider">
                     <span className="flex items-center gap-1">
                       <Clock size={12} />
                       {new Date(note.lastEdited).toLocaleDateString()}
                     </span>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={(e) => handleDeleteNote(note.id, e)}
                       aria-label={`Delete note ${note.title || "Untitled"}`}
-                      className="opacity-0 group-hover:opacity-100 hover:text-red-500 transition focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500 outline-none rounded px-1"
+                      className="opacity-0 group-hover:opacity-100 hover:text-danger text-text-muted px-2 h-6 text-xs"
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -246,8 +200,7 @@ export default function NotesWidget() {
               value={activeNote?.title || ""}
               onChange={(e) => handleUpdateActiveNote({ title: e.target.value })}
               placeholder="Note Title"
-              className={`text-2xl font-black mb-4 outline-none bg-transparent rounded focus-visible:ring-2 focus-visible:ring-blue-500 ${isDark ? "text-white placeholder-zinc-700" : "text-black placeholder-zinc-400"
-                }`}
+              className="text-2xl font-black mb-4 outline-none bg-transparent rounded focus-visible:ring-2 focus-visible:ring-primary text-text-main placeholder-text-muted"
             />
 
             {isEditing ? (
@@ -258,29 +211,33 @@ export default function NotesWidget() {
                   value={activeNote?.content || ""}
                   onChange={(e) => handleUpdateActiveNote({ content: e.target.value })}
                   placeholder="Start typing your markdown notes here..."
-                  className={`flex-1 w-full min-h-[300px] outline-none resize-none bg-transparent rounded p-2 focus-visible:ring-2 focus-visible:ring-blue-500 ${isDark ? "text-zinc-300 placeholder-zinc-700" : "text-zinc-700 placeholder-zinc-400"
-                    }`}
+                  className="flex-1 w-full min-h-[300px] outline-none resize-none bg-transparent rounded p-2 focus-visible:ring-2 focus-visible:ring-primary text-text-main placeholder-text-muted"
                 />
               </>
             ) : (
               <div
-                className={`flex-1 w-full min-h-[300px] prose prose-sm max-w-none overflow-y-auto ${isDark ? "prose-invert text-zinc-300" : "text-zinc-700"
-                  }`}
+                className="flex-1 w-full min-h-[300px] prose prose-sm max-w-none overflow-y-auto dark:prose-invert text-text-main"
               >
                 {activeNote?.content ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {activeNote.content}
                   </ReactMarkdown>
                 ) : (
-                  <p className="opacity-50 italic">Nothing to preview.</p>
+                  <div className="mt-8">
+                    <EmptyState
+                      variant="compact"
+                      icon={Eye}
+                      title="Nothing to preview"
+                      description="Switch to edit mode to start writing your markdown note."
+                    />
+                  </div>
                 )}
               </div>
             )}
 
             {/* STATUS BAR */}
             <div
-              className={`mt-4 pt-3 border-t flex items-center justify-between text-xs font-medium ${isDark ? "border-zinc-800 text-zinc-400" : "border-zinc-300 text-zinc-400"
-                }`}
+              className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-medium border-border-subtle text-text-muted"
             >
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
@@ -292,8 +249,8 @@ export default function NotesWidget() {
                   {activeNote?.content.length || 0} characters
                 </span>
               </div>
-              <span className="text-green-500 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-success flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                 Auto-saved
               </span>
             </div>

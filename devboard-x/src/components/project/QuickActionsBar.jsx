@@ -9,7 +9,6 @@ import {
   Code2,
   Download
 } from "lucide-react"
-import { useTheme } from "@/context/ThemeContext"
 import { useProjects } from "@/context/ProjectContext"
 import { useActivity } from "@/context/ActivityContext"
 import {
@@ -18,10 +17,11 @@ import {
   slugify
 } from "@/utils/projectExportImport"
 import ToastNotification from "@/components/layout/ToastNotification"
+import Button from "@/components/ui/Button"
+import Card from "@/components/ui/Card"
 
 export default function QuickActionsBar({ projectIndex }) {
   const router = useRouter()
-  const { theme } = useTheme()
   const { projects } = useProjects()
   const { logActivity } = useActivity()
 
@@ -63,60 +63,54 @@ export default function QuickActionsBar({ projectIndex }) {
       label: "Create Task",
       icon: Plus,
       href: `/projects/${projectIndex}/tasks`,
-      color: "bg-green-500 hover:bg-green-600 text-white"
+      variant: "primary"
     },
     {
       label: "Open Workspace",
       icon: FolderCode,
       href: `/projects/${projectIndex}/workspace`,
-      color: "bg-blue-500 hover:bg-blue-600 text-white"
+      variant: "secondary"
     },
     {
       label: "Add Resource",
       icon: Link2,
       href: `/projects/${projectIndex}/resources`,
-      color: "bg-purple-500 hover:bg-purple-600 text-white"
+      variant: "secondary"
     }
   ]
 
   return (
     <>
-      <div
-        className={`border rounded-2xl p-5 ${
-          theme === "dark"
-            ? "bg-zinc-900 border-zinc-800"
-            : "bg-zinc-100 border-zinc-300"
-        }`}
-      >
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+      <Card>
+        <h2 className="text-lg font-semibold mb-4 text-text-main">Quick Actions</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {actions.map((action) => {
-            const Icon = action.icon
-
             return (
-              <button
+              <Button
                 key={action.label}
+                variant={action.variant}
                 onClick={() => router.push(action.href)}
-                className={`flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-medium transition ${action.color}`}
+                className="w-full h-auto py-3.5"
+                leftIcon={action.icon}
               >
-                <Icon size={18} />
                 {action.label}
-              </button>
+              </Button>
             )
           })}
 
           {/* Export Project Button */}
-          <button
+          <Button
+            variant="secondary"
             onClick={handleExportProject}
-            className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl font-medium transition bg-amber-500 hover:bg-amber-600 text-white"
+            className="w-full h-auto py-3.5"
             id="export-project-btn"
+            leftIcon={Download}
           >
-            <Download size={18} />
             Export Project
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       <ToastNotification
         message={toast.message}

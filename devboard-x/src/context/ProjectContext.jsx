@@ -1,56 +1,24 @@
 "use client"
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState
-} from "react"
+import { createContext, useContext } from "react"
+import { usePersistentState } from "@/utils/storage"
 
 const ProjectContext = createContext()
 
 export function ProjectProvider({ children }) {
-
-  const [projects, setProjects] = useState([])
-
-  // LOAD PROJECTS
-  useEffect(() => {
-
-    const savedProjects = localStorage.getItem(
-      "devboard-projects"
-    )
-
-    if (savedProjects) {
-      setProjects(JSON.parse(savedProjects))
-    }
-
-  }, [])
-
-  // SAVE PROJECTS
-  useEffect(() => {
-
-    localStorage.setItem(
-      "devboard-projects",
-      JSON.stringify(projects)
-    )
-
-  }, [projects])
+  const [projects, setProjects, isLoaded] = usePersistentState("devboard-projects", [])
 
   return (
-
     <ProjectContext.Provider
       value={{
         projects,
-        setProjects
+        setProjects,
+        isLoaded
       }}
     >
-
       {children}
-
     </ProjectContext.Provider>
-
   )
-
 }
 
 export function useProjects() {

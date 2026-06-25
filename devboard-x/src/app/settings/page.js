@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react"
 import { useTheme } from "@/context/ThemeContext"
+import { usePersistentState } from "@/utils/storage"
 import { useProjects } from "@/context/ProjectContext"
 import { useActivity } from "@/context/ActivityContext"
 import { useRouter } from "next/navigation"
 import {
-  ArrowLeft,
+
   DatabaseBackup,
   Download,
   Upload,
@@ -26,6 +27,12 @@ import {
   buildSafeTitle
 } from "@/utils/projectExportImport"
 
+import Button from "@/components/ui/Button"
+import Switch from "@/components/ui/Switch"
+import Card from "@/components/ui/Card"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import Field from "@/components/ui/Field"
 import ToastNotification from "@/components/layout/ToastNotification"
 import ImportConflictModal from "@/components/layout/ImportConflictModal"
 
@@ -33,16 +40,18 @@ export default function SettingsPage() {
   const router = useRouter()
 
   // SETTINGS STATE
-  const [username, setUsername] = useState("")
-  const [email, setEmail] = useState("")
-  const { theme, setTheme } = useTheme()
-  const { projects, setProjects } = useProjects()
-  const { logActivity } = useActivity()
-  const [notifications, setNotifications] = useState(true)
-  const [animations, setAnimations] = useState(true)
+  const { theme, setTheme, isLoaded: themeLoaded } = useTheme()
+  const { projects, setProjects, isLoaded: projectsLoaded } = useProjects()
+  const { logActivity, isLoaded: activitiesLoaded } = useActivity()
 
-  // MOUNTED STATE
-  const [mounted, setMounted] = useState(false)
+  const [settings, setSettings, settingsLoaded] = usePersistentState("devboard-settings", {
+    username: "",
+    email: "",
+    notifications: true,
+    animations: true
+  })
+
+  const isLoaded = themeLoaded && projectsLoaded && activitiesLoaded && settingsLoaded
 
   // BACKUP & RESTORE STATE
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" })
@@ -57,25 +66,6 @@ export default function SettingsPage() {
   const importInputRef = useRef(null)
   const dropdownRef = useRef(null)
 
-  // FIX HYDRATION
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // LOAD SETTINGS
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("devboard-settings")
-
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings)
-      setUsername(parsedSettings.username || "")
-      setEmail(parsedSettings.email || "")
-      setTheme(parsedSettings.theme || "dark")
-      setNotifications(parsedSettings.notifications)
-      setAnimations(parsedSettings.animations)
-    }
-  }, [])
-
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -89,19 +79,8 @@ export default function SettingsPage() {
 
   // SAVE SETTINGS
   const handleSaveSettings = () => {
-    const settingsData = {
-      username,
-      email,
-      theme,
-      notifications,
-      animations
-    }
-
-    localStorage.setItem(
-      "devboard-settings",
-      JSON.stringify(settingsData)
-    )
-
+    // With usePersistentState, the settings are already saved on change.
+    // The explicit save button just shows the success toast.
     setToast({ visible: true, message: "Settings saved successfully!", type: "success" })
   }
 
@@ -204,7 +183,7 @@ export default function SettingsPage() {
         type: "success"
       })
     }
-  }, [projects, setProjects])
+  }, [projects, setProjects, logActivity])
 
   // ─── CONFLICT RESOLUTION ───────────────────────────────────────
   const handleKeepBoth = () => {
@@ -273,29 +252,22 @@ export default function SettingsPage() {
   }
 
   // ─── THEME TOKENS ──────────────────────────────────────────────
-  const isDark = theme === "dark"
-  const cardClass = `border rounded-2xl p-6 ${isDark ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-300"
-    }`
-  const subtitleClass = isDark ? "text-zinc-400" : "text-zinc-600"
-  const inputClass = `w-full rounded-xl px-4 py-3 outline-none border ${isDark
-      ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-      : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-    }`
+  const subtitleClass = "text-text-muted"
 
-  if (!mounted) {
+  if (!isLoaded) {
     return (
-      <div className={`min-h-screen p-6 transition ${theme === "dark" ? "bg-zinc-950 text-white" : "bg-white text-black"}`}>
+      <div className="h-full flex-1 p-6 transition bg-page text-text-main">
         <div className="mb-8 animate-pulse">
-          <div className={`h-10 w-48 rounded-lg mb-2 ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
-          <div className={`h-5 w-64 rounded-lg ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+          <div className="h-10 w-48 rounded-lg mb-2 bg-bg-active"></div>
+          <div className="h-5 w-64 rounded-lg bg-bg-active"></div>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 animate-pulse">
           <div className="w-full lg:w-1/4">
-            <div className={`h-64 rounded-2xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+            <div className="h-64 rounded-2xl bg-bg-active"></div>
           </div>
           <div className="w-full lg:w-3/4 flex flex-col gap-6">
-            <div className={`h-64 rounded-2xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
-            <div className={`h-64 rounded-2xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+            <div className="h-64 rounded-2xl bg-bg-active"></div>
+            <div className="h-64 rounded-2xl bg-bg-active"></div>
           </div>
         </div>
       </div>
@@ -303,183 +275,114 @@ export default function SettingsPage() {
   }
 
   return (
-
-    <div
-      className={`min-h-screen p-6 transition ${isDark
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-        }`}
-    >
-
-
-
+    <div className="h-full flex-1 p-6 transition bg-page text-text-main">
       {/* PAGE HEADER */}
       <div className="mb-8">
-
         <h1 className="text-4xl font-bold">
           Settings
         </h1>
-
-        <p
-          className={`mt-2 ${subtitleClass}`}
-        >
+        <p className={`mt-2 ${subtitleClass}`}>
           Manage your dashboard preferences.
         </p>
-
       </div>
 
       {/* SETTINGS CONTAINER */}
       <div className="space-y-6 max-w-3xl">
 
         {/* PROFILE SECTION */}
-        <div className={cardClass}>
-
+        <Card>
           <h2 className="text-2xl font-semibold mb-5">
             Profile Settings
           </h2>
-
           <div className="space-y-4">
-
-            <div>
-              <label htmlFor="profile-username" className={`block mb-1.5 text-sm font-semibold ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>Username</label>
-              <input
+            <Field label="Username" htmlFor="profile-username">
+              <Input
                 id="profile-username"
                 type="text"
                 placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className={`${inputClass} focus-visible:ring-2 focus-visible:ring-blue-500 outline-none`}
+                value={settings.username}
+                onChange={(e) => setSettings({ ...settings, username: e.target.value })}
               />
-            </div>
-
-            <div>
-              <label htmlFor="profile-email" className={`block mb-1.5 text-sm font-semibold ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>Email</label>
-              <input
+            </Field>
+            <Field label="Email" htmlFor="profile-email">
+              <Input
                 id="profile-email"
                 type="email"
                 placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`${inputClass} focus-visible:ring-2 focus-visible:ring-blue-500 outline-none`}
+                value={settings.email}
+                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
               />
-            </div>
-
+            </Field>
           </div>
-
-        </div>
+        </Card>
 
         {/* THEME SECTION */}
-        <div className={cardClass}>
-
+        <Card>
           <h2 className="text-2xl font-semibold mb-5">
             Appearance
           </h2>
-
-          <label htmlFor="appearance-theme" className={`block mb-1.5 text-sm font-semibold ${isDark ? "text-zinc-300" : "text-zinc-700"}`}>Theme</label>
-          <select
-            id="appearance-theme"
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            className={`w-full rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none border ${isDark
-                ? "bg-zinc-950 border-zinc-800 text-white"
-                : "bg-white border-zinc-300 text-black"
-              }`}
-          >
-
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-
-          </select>
-
-        </div>
+          <Field label="Theme" htmlFor="appearance-theme">
+            <Select
+              id="appearance-theme"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+            >
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </Select>
+          </Field>
+        </Card>
 
         {/* PREFERENCES */}
-        <div className={cardClass}>
-
+        <Card>
           <h2 className="text-2xl font-semibold mb-5">
             Preferences
           </h2>
-
           <div className="space-y-5">
-
             {/* NOTIFICATIONS */}
             <div className="flex items-center justify-between">
-
               <div>
-
                 <h3 className="font-medium" id="label-notifications">
                   Notifications
                 </h3>
-
                 <p className={`text-sm ${subtitleClass}`}>
                   Receive dashboard notifications.
                 </p>
-
               </div>
-
-              <button
-                role="switch"
-                aria-checked={notifications}
-                aria-labelledby="label-notifications"
-                onClick={() => setNotifications(!notifications)}
-                className={`w-14 h-8 rounded-full transition flex items-center px-1 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${notifications
-                    ? "bg-green-500 justify-end"
-                    : "bg-zinc-500 justify-start"
-                  }`}
-              >
-
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-
-              </button>
-
+              <Switch
+                checked={settings.notifications}
+                onChange={(checked) => setSettings({ ...settings, notifications: checked })}
+                aria-label="Toggle notifications"
+              />
             </div>
 
             {/* ANIMATIONS */}
             <div className="flex items-center justify-between">
-
               <div>
-
                 <h3 className="font-medium" id="label-animations">
                   Animations
                 </h3>
-
                 <p className={`text-sm ${subtitleClass}`}>
                   Enable UI animations.
                 </p>
-
               </div>
-
-              <button
-                role="switch"
-                aria-checked={animations}
-                aria-labelledby="label-animations"
-                onClick={() => setAnimations(!animations)}
-                className={`w-14 h-8 rounded-full transition flex items-center px-1 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${animations
-                    ? "bg-green-500 justify-end"
-                    : "bg-zinc-500 justify-start"
-                  }`}
-              >
-
-                <div className="w-6 h-6 bg-white rounded-full"></div>
-
-              </button>
-
+              <Switch
+                checked={settings.animations}
+                onChange={(checked) => setSettings({ ...settings, animations: checked })}
+                aria-label="Toggle animations"
+              />
             </div>
-
           </div>
-
-        </div>
+        </Card>
 
         {/* SAVE BUTTON */}
-        <button
+        <Button
+          variant="primary"
           onClick={handleSaveSettings}
-          className={`px-6 py-3 rounded-xl font-medium transition ${isDark
-              ? "bg-white text-black"
-              : "bg-black text-white"
-            }`}
+          className="w-full sm:w-auto px-8"
         >
           Save Settings
-        </button>
+        </Button>
 
         {/* ─── BACKUP & RESTORE SECTION ──────────────────────────── */}
         <div className="pt-4">
@@ -493,9 +396,8 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
           {/* EXPORT ALL PROJECTS */}
-          <div className={cardClass}>
+          <Card>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
                 <DatabaseBackup size={20} className="text-blue-400" />
@@ -510,22 +412,20 @@ export default function SettingsPage() {
               Export all {projects.length} project{projects.length !== 1 ? "s" : ""} into a single backup file.
             </p>
 
-            <button
+            <Button
+              variant="secondary"
               onClick={handleExportAll}
               disabled={projects.length === 0}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${projects.length === 0
-                  ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
-                }`}
+              className="w-full py-3 h-auto"
               id="export-all-btn"
+              leftIcon={HardDriveDownload}
             >
-              <HardDriveDownload size={16} />
               Export All
-            </button>
-          </div>
+            </Button>
+          </Card>
 
           {/* EXPORT SINGLE PROJECT */}
-          <div className={cardClass}>
+          <Card>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
                 <Download size={20} className="text-amber-400" />
@@ -541,36 +441,28 @@ export default function SettingsPage() {
             </p>
 
             <div className="relative" ref={dropdownRef}>
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setExportDropdown(!exportDropdown)}
                 disabled={projects.length === 0}
-                className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition ${projects.length === 0
-                    ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                    : "bg-amber-500 hover:bg-amber-600 text-white"
-                  }`}
+                className="w-full py-3 h-auto"
                 id="export-single-btn"
+                leftIcon={FolderKanban}
               >
-                <FolderKanban size={16} />
                 Select Project
-                <ChevronDown size={14} className={`transition ${exportDropdown ? "rotate-180" : ""}`} />
-              </button>
+                <ChevronDown size={14} className={`ml-2 transition ${exportDropdown ? "rotate-180" : ""}`} />
+              </Button>
 
               {/* Dropdown */}
               {exportDropdown && projects.length > 0 && (
                 <div
-                  className={`absolute left-0 right-0 mt-2 rounded-xl border overflow-hidden z-50 max-h-[240px] overflow-y-auto shadow-lg ${isDark
-                      ? "bg-zinc-900 border-zinc-700"
-                      : "bg-white border-zinc-300"
-                    }`}
+                  className="absolute left-0 right-0 mt-2 rounded-xl border overflow-hidden z-50 max-h-[240px] overflow-y-auto shadow-lg bg-surface border-border-subtle"
                 >
                   {projects.map((project, index) => (
                     <button
                       key={index}
                       onClick={() => handleExportSingle(index)}
-                      className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition ${isDark
-                          ? "hover:bg-zinc-800 text-zinc-200"
-                          : "hover:bg-zinc-100 text-zinc-800"
-                        }`}
+                      className="w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition hover:bg-bg-hover text-text-main"
                     >
                       <FolderKanban size={14} className="text-amber-400 shrink-0" />
                       <span className="truncate">{project.title}</span>
@@ -579,10 +471,10 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
 
           {/* IMPORT PROJECT */}
-          <div className={cardClass}>
+          <Card>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                 <Upload size={20} className="text-emerald-400" />
@@ -606,15 +498,16 @@ export default function SettingsPage() {
               id="import-file-input"
             />
 
-            <button
+            <Button
+              variant="secondary"
               onClick={() => importInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="w-full py-3 h-auto"
               id="import-project-btn"
+              leftIcon={Upload}
             >
-              <Upload size={16} />
               Choose File
-            </button>
-          </div>
+            </Button>
+          </Card>
 
         </div>
 

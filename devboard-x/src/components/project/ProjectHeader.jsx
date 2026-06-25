@@ -1,8 +1,6 @@
 "use client"
 
-import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useTheme } from "@/context/ThemeContext"
 import {
   formatProjectDate,
   getProjectCreatedAt,
@@ -12,35 +10,20 @@ import {
 
 export default function ProjectHeader({ project, showBack = true }) {
   const router = useRouter()
-  const { theme } = useTheme()
 
   const createdAt = getProjectCreatedAt(project)
   const lastUpdated = getProjectLastUpdated(project)
 
   return (
     <>
-      {showBack && (
-        <button
-          onClick={() => router.push("/projects")}
-          className={`mb-8 flex items-center gap-2 px-4 py-2 rounded-xl ${
-            theme === "dark"
-              ? "bg-zinc-900 hover:bg-zinc-800"
-              : "bg-zinc-100 hover:bg-zinc-200"
-          }`}
-        >
-          <ArrowLeft size={18} />
-          Back
-        </button>
-      )}
+
 
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div className="flex-1">
-          <h1 className="text-4xl font-bold">{project.title}</h1>
+          <h1 className="text-4xl font-bold text-text-main">{project.title}</h1>
 
           <p
-            className={`mt-3 ${
-              theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-            }`}
+            className="mt-3 text-text-secondary"
           >
             {project.description}
           </p>
@@ -57,9 +40,7 @@ export default function ProjectHeader({ project, showBack = true }) {
         {(project.techStack || []).map((tech, index) => (
           <span
             key={index}
-            className={`px-3 py-1 rounded-lg text-sm ${
-              theme === "dark" ? "bg-zinc-800" : "bg-zinc-200"
-            }`}
+            className="px-3 py-1 rounded-lg text-sm bg-bg-active text-text-main"
           >
             {tech}
           </span>
@@ -67,18 +48,16 @@ export default function ProjectHeader({ project, showBack = true }) {
       </div>
 
       <div
-        className={`flex flex-wrap gap-6 mt-4 text-sm ${
-          theme === "dark" ? "text-zinc-400" : "text-zinc-600"
-        }`}
+        className="flex flex-wrap gap-6 mt-4 text-sm text-text-muted"
       >
         <p>
-          <strong className={theme === "dark" ? "text-zinc-300" : "text-zinc-800"}>
+          <strong className="text-text-main">
             Created:
           </strong>{" "}
           {formatProjectDate(createdAt)}
         </p>
         <p>
-          <strong className={theme === "dark" ? "text-zinc-300" : "text-zinc-800"}>
+          <strong className="text-text-main">
             Last Updated:
           </strong>{" "}
           {formatProjectDate(lastUpdated)}

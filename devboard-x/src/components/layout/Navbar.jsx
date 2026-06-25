@@ -1,16 +1,19 @@
 "use client"
 
-import { Search, Bell, User, Menu, X, Layout, FolderKanban, BarChart3, Settings } from "lucide-react"
-import { useTheme } from "@/context/ThemeContext"
+import { Search, Bell, User, Menu, X, Layout, FolderKanban, BarChart3, Settings, ChevronRight } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useProjects } from "@/context/ProjectContext"
+import Button from "@/components/ui/Button"
+import Input from "@/components/ui/Input"
 
 export default function Navbar() {
-  const { theme } = useTheme()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const drawerRef = useRef(null)
+
+  const { projects, isLoaded } = useProjects()
 
   const navItems = [
     { name: "Dashboard", icon: Layout, path: "/" },
@@ -18,6 +21,55 @@ export default function Navbar() {
     { name: "Analytics", icon: BarChart3, path: "/analytics" },
     { name: "Settings", icon: Settings, path: "/settings" }
   ]
+
+  const buildBreadcrumbs = () => {
+    if (pathname === "/") return [{ name: "Dashboard" }]
+    if (pathname === "/projects") return [{ name: "Projects" }]
+    if (pathname === "/analytics") return [{ name: "Analytics" }]
+    if (pathname === "/settings") return [{ name: "Settings" }]
+
+    if (pathname.startsWith("/projects/")) {
+      const parts = pathname.split("/").filter(Boolean)
+      const projectId = parts[1]
+
+      const breadcrumbs = [{ name: "Projects", path: "/projects" }]
+
+      if (!isLoaded) {
+        breadcrumbs.push({ name: "Loading..." })
+        return breadcrumbs
+      }
+
+      const project = projects[parseInt(projectId, 10)]
+      if (!project) {
+        breadcrumbs.push({ name: "Project Not Found" })
+        return breadcrumbs
+      }
+
+      breadcrumbs.push({ name: project.title, path: `/projects/${projectId}` })
+
+      if (parts[2] === "tasks" && parts[3]) {
+        const taskId = parts[3]
+        const task = project.tasks[parseInt(taskId, 10)]
+        if (!task) {
+          breadcrumbs.push({ name: "Task Not Found" })
+        } else {
+          breadcrumbs.push({ name: task.title })
+        }
+      } else if (parts[2] === "tasks") {
+        breadcrumbs.push({ name: "Tasks" })
+      } else if (parts[2] === "workspace") {
+        breadcrumbs.push({ name: "Workspace" })
+      } else if (parts[2] === "resources") {
+        breadcrumbs.push({ name: "Resources" })
+      }
+
+      return breadcrumbs
+    }
+
+    return [{ name: "Workspace" }]
+  }
+
+  const breadcrumbs = buildBreadcrumbs()
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -39,29 +91,38 @@ export default function Navbar() {
   }, [mobileMenuOpen])
 
   return (
-
-    <header
-      className={`h-16 w-full px-4 sm:px-6 flex items-center justify-between border-b transition ${theme === "dark"
-          ? "bg-zinc-900 text-white border-zinc-800"
-          : "bg-white text-black border-zinc-300"
-        }`}
-    >
-
+    <header className="h-16 w-full px-4 sm:px-6 flex items-center justify-between border-b transition bg-surface text-text-main border-border-subtle">
       {/* LEFT SIDE: Brand / Menu Toggle */}
-      <div className="flex items-center gap-3">
-        <button
+      <div className="flex items-center gap-3 overflow-hidden">
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => setMobileMenuOpen(true)}
           aria-label="Open mobile menu"
           aria-expanded={mobileMenuOpen}
-          className={`md:hidden flex items-center justify-center p-2 rounded-lg transition ${
-            theme === "dark" ? "hover:bg-zinc-800 text-white" : "hover:bg-zinc-100 text-black"
-          }`}
+          className="md:hidden"
         >
           <Menu size={20} />
-        </button>
-        <h2 className="text-lg font-semibold hidden sm:block">
-          Workspace
-        </h2>
+        </Button>
+        <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 overflow-hidden whitespace-nowrap">
+          {breadcrumbs.map((crumb, index) => {
+            const isLast = index === breadcrumbs.length - 1
+            return (
+              <div key={index} className="flex items-center gap-1.5 overflow-hidden">
+                {crumb.path && !isLast ? (
+                  <Link href={crumb.path} className="text-sm font-medium text-text-secondary hover:text-text-main truncate max-w-[120px] md:max-w-[200px]">
+                    {crumb.name}
+                  </Link>
+                ) : (
+                  <span className={`text-sm font-semibold truncate max-w-[120px] md:max-w-[200px] ${isLast ? "text-text-main" : "text-text-secondary"}`}>
+                    {crumb.name}
+                  </span>
+                )}
+                {!isLast && <ChevronRight size={14} className="text-text-muted shrink-0" />}
+              </div>
+            )
+          })}
+        </nav>
       </div>
 
       {/* RIGHT SIDE */}
@@ -69,47 +130,34 @@ export default function Navbar() {
 
         {/* SEARCH */}
         <label htmlFor="global-search" className="sr-only">Search Workspace</label>
-        <div
-          className={`flex items-center gap-2 w-full max-w-xs border px-3 sm:px-4 py-2 rounded-lg transition focus-within:ring-2 focus-within:ring-blue-500 ${theme === "dark"
-              ? "border-zinc-700 focus-within:border-zinc-500"
-              : "border-zinc-300 focus-within:border-zinc-500"
-            }`}
-        >
-          <Search size={18} className={theme === "dark" ? "text-zinc-400" : "text-zinc-400"} aria-hidden="true" />
-          <input
+        <div className="w-full max-w-xs">
+          <Input
             id="global-search"
             type="text"
             placeholder="Search..."
-            className={`w-full outline-none bg-transparent text-sm ${theme === "dark"
-                ? "text-white placeholder-zinc-500"
-                : "text-black placeholder-zinc-400"
-              }`}
+            leftIcon={Search}
           />
         </div>
 
         {/* NOTIFICATIONS */}
-        <button
+        <Button
+          variant="ghost"
           aria-label="Notifications"
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition ${theme === "dark"
-              ? "hover:bg-zinc-800"
-              : "hover:bg-zinc-100"
-            }`}
+          leftIcon={Bell}
+          className="hidden sm:flex"
         >
-          <Bell size={18} />
           <span className="hidden lg:inline">Notifications</span>
-        </button>
+        </Button>
 
         {/* PROFILE */}
-        <button
+        <Button
+          variant="ghost"
           aria-label="Profile"
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition ${theme === "dark"
-              ? "hover:bg-zinc-800"
-              : "hover:bg-zinc-100"
-            }`}
+          leftIcon={User}
+          className="hidden sm:flex"
         >
-          <User size={18} />
           <span className="hidden lg:inline">Profile</span>
-        </button>
+        </Button>
 
       </div>
 
@@ -124,19 +172,18 @@ export default function Navbar() {
           <nav 
             ref={drawerRef}
             aria-label="Mobile Sidebar"
-            className={`relative w-64 h-full shadow-xl flex flex-col p-4 transition-transform ${
-              theme === "dark" ? "bg-[#09090b] text-white" : "bg-zinc-50 text-black"
-            }`}
+            className="relative w-64 h-full shadow-xl flex flex-col p-4 transition-transform bg-page text-text-main"
           >
             <div className="flex items-center justify-between mb-8 px-3">
               <h1 className="text-2xl font-bold tracking-tight">DevBoard X</h1>
-              <button 
+              <Button 
+                variant="ghost"
+                size="icon"
                 onClick={() => setMobileMenuOpen(false)} 
                 aria-label="Close mobile menu"
-                className="p-1 rounded-lg hover:bg-zinc-800/50 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
               >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
             <div className="flex flex-col gap-2">
               {navItems.map((item) => {
@@ -147,10 +194,11 @@ export default function Navbar() {
                     key={item.name}
                     href={item.path}
                     onClick={() => setMobileMenuOpen(false)}
+                    aria-current={isActive ? "page" : undefined}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
                       isActive
-                        ? theme === "dark" ? "bg-zinc-800 text-white" : "bg-white text-black shadow-sm border border-zinc-200"
-                        : theme === "dark" ? "text-zinc-400 hover:bg-zinc-800/50 hover:text-white" : "text-zinc-600 hover:bg-zinc-200/50 hover:text-black"
+                        ? "bg-bg-active text-text-main shadow-sm"
+                        : "text-text-secondary hover:bg-bg-hover hover:text-text-main"
                     }`}
                   >
                     <Icon size={20} />

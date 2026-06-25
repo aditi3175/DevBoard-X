@@ -16,7 +16,7 @@ import {
   CornerDownLeft
 } from "lucide-react"
 
-import { useTheme } from "@/context/ThemeContext"
+
 import { useProjects } from "@/context/ProjectContext"
 
 // Category definitions for icons and styling
@@ -58,7 +58,6 @@ const CATEGORY_ORDER = ["action", "project", "task", "snippet", "resource"]
 
 export default function CommandPalette() {
   const router = useRouter()
-  const { theme } = useTheme()
   const { projects } = useProjects()
 
   const [open, setOpen] = useState(false)
@@ -245,11 +244,7 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", handleKey)
   }, [open, groupedResults, activeIndex, handleSelect])
 
-  // Reset active index when query changes
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [query])
-
+  // Removed effect that resets activeIndex
   // Autofocus input when palette opens
   useEffect(() => {
     if (open) {
@@ -266,28 +261,20 @@ export default function CommandPalette() {
   }, [activeIndex])
 
   // ─── THEME TOKENS ──────────────────────────────────────────────
-  const isDark = theme === "dark"
-
   const tokens = {
-    backdrop: "bg-black/60 backdrop-blur-sm",
-    panel: isDark
-      ? "bg-zinc-900/95 border-zinc-700/50 shadow-2xl shadow-black/40"
-      : "bg-white/95 border-zinc-300/80 shadow-2xl shadow-zinc-400/20",
-    input: isDark
-      ? "text-white placeholder-zinc-500"
-      : "text-zinc-900 placeholder-zinc-400",
-    inputBorder: isDark ? "border-zinc-800" : "border-zinc-200",
-    sectionLabel: isDark ? "text-zinc-400" : "text-zinc-400",
-    itemBg: isDark ? "hover:bg-zinc-800/70" : "hover:bg-zinc-100",
-    itemActiveBg: isDark ? "bg-zinc-800" : "bg-zinc-100",
-    itemTitle: isDark ? "text-zinc-100" : "text-zinc-900",
-    itemSubtitle: isDark ? "text-zinc-400" : "text-zinc-400",
-    emptyText: isDark ? "text-zinc-600" : "text-zinc-400",
-    footerBg: isDark ? "bg-zinc-900 border-zinc-800" : "bg-zinc-50 border-zinc-200",
-    footerText: isDark ? "text-zinc-600" : "text-zinc-400",
-    kbd: isDark
-      ? "bg-zinc-800 text-zinc-400 border-zinc-700"
-      : "bg-zinc-200 text-zinc-400 border-zinc-300"
+    backdrop: "bg-black/60 backdrop-blur-sm dark:bg-black/80",
+    panel: "bg-surface border-border-subtle shadow-2xl shadow-black/20",
+    input: "text-text-main placeholder-text-muted",
+    inputBorder: "border-border-subtle",
+    sectionLabel: "text-text-muted",
+    itemBg: "hover:bg-bg-hover",
+    itemActiveBg: "bg-bg-active",
+    itemTitle: "text-text-main",
+    itemSubtitle: "text-text-secondary",
+    emptyText: "text-text-muted",
+    footerBg: "bg-bg-hover border-border-subtle",
+    footerText: "text-text-muted",
+    kbd: "bg-surface text-text-muted border-border-strong"
   }
 
   // ─── RENDER ────────────────────────────────────────────────────
@@ -325,12 +312,15 @@ export default function CommandPalette() {
             {/* Search Input */}
             <label htmlFor="command-palette-search" className="sr-only">Search Command Palette</label>
             <div className={`flex items-center gap-3 px-5 py-4 border-b ${tokens.inputBorder}`}>
-              <Search size={20} className={isDark ? "text-zinc-400" : "text-zinc-400"} />
+              <Search size={20} className="text-text-muted" />
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  setActiveIndex(0)
+                }}
                 placeholder="Search projects, tasks, snippets, resources..."
                 className={`flex-1 bg-transparent outline-none text-base ${tokens.input}`}
                 id="command-palette-search"
@@ -365,7 +355,7 @@ export default function CommandPalette() {
                       <div className="flex items-center gap-2 px-5 py-2">
                         <CatIcon size={13} className={catDef.color} />
                         <span
-                          className={`text-[11px] font-semibold uppercase tracking-wider ${tokens.sectionLabel}`}
+                          className={`text-xs font-semibold uppercase tracking-wider truncate ${tokens.sectionLabel}`}
                         >
                           {catDef.label}
                         </span>
@@ -420,7 +410,7 @@ export default function CommandPalette() {
                             {/* Meta badge */}
                             {!isActive && item.meta && (
                               <span
-                                className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${catDef.bg} ${catDef.color}`}
+                                className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${catDef.bg} ${catDef.color}`}
                               >
                                 {item.meta}
                               </span>
@@ -434,25 +424,24 @@ export default function CommandPalette() {
               )}
             </div>
 
-            {/* Footer */}
             <div
-              className={`flex items-center justify-between px-5 py-2.5 border-t text-[11px] ${tokens.footerBg} ${tokens.footerText}`}
+              className={`flex items-center justify-between px-5 py-2.5 border-t text-xs ${tokens.footerBg} ${tokens.footerText}`}
             >
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${tokens.kbd}`}>
+                  <kbd className={`px-1.5 py-0.5 rounded border text-xs font-mono ${tokens.kbd}`}>
                     ↑↓
                   </kbd>
                   navigate
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${tokens.kbd}`}>
+                  <kbd className={`px-1.5 py-0.5 rounded border text-xs font-mono ${tokens.kbd}`}>
                     ↵
                   </kbd>
                   select
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${tokens.kbd}`}>
+                  <kbd className={`px-1.5 py-0.5 rounded border text-xs font-mono ${tokens.kbd}`}>
                     esc
                   </kbd>
                   close

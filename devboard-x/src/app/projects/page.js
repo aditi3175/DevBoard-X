@@ -2,16 +2,23 @@
 
 import { useEffect, useState } from "react"
 import ProjectCard from "@/components/widgets/ProjectCard"
-import { useTheme } from "@/context/ThemeContext"
 import { useProjects } from "@/context/ProjectContext"
 import {
   ACTIVITY_TYPES,
   appendProjectActivity,
   buildActivityEntry
 } from "@/utils/projectActivity"
-import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { Trash2, Edit2, Play, Search, XCircle } from "lucide-react"
 import { useActivity } from "@/context/ActivityContext"
+import EmptyState from "@/components/ui/EmptyState"
+import Button from "@/components/ui/Button"
+import Card from "@/components/ui/Card"
+import { FolderKanban } from "lucide-react"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import Textarea from "@/components/ui/Textarea"
+import Field from "@/components/ui/Field"
 
 export default function ProjectsPage() {
 
@@ -25,20 +32,22 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState("")
   const [editIndex, setEditIndex] = useState(null)
   const [mounted, setMounted] = useState(false)
+  const [errors, setErrors] = useState({})
 
-  const { theme } = useTheme()
-  const { projects, setProjects } = useProjects()
+  const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
-
-  // FIX HYDRATION
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // ADD / EDIT PROJECT
   const handleAddProject = () => {
-
-    if (!title || !description) return
+    const newErrors = {}
+    if (!title.trim()) newErrors.title = "Project Title is required."
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      document.getElementById("project-title")?.focus()
+      return
+    }
+    setErrors({})
 
     const now = new Date().toISOString()
 
@@ -114,6 +123,7 @@ export default function ProjectsPage() {
     setDescription("")
     setStatus("Active")
     setTechStack("")
+    setErrors({})
 
   }
 
@@ -156,20 +166,20 @@ export default function ProjectsPage() {
       .includes(search.toLowerCase())
   )
 
-  if (!mounted) {
+  if (!isLoaded) {
     return (
-      <div className={`min-h-screen p-6 transition ${theme === "dark" ? "bg-zinc-950 text-white" : "bg-white text-black"}`}>
+      <div className="h-full flex-1 p-6 transition bg-surface text-text-main">
         <div className="mb-8 animate-pulse">
-          <div className={`h-10 w-48 rounded-lg mb-2 ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
-          <div className={`h-5 w-64 rounded-lg ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+          <div className="h-10 w-48 rounded-lg mb-2 bg-bg-active"></div>
+          <div className="h-5 w-64 rounded-lg bg-bg-active"></div>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 animate-pulse">
           <div className="w-full lg:w-1/3">
-            <div className={`h-[500px] rounded-3xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+            <div className="h-[500px] rounded-3xl bg-bg-active"></div>
           </div>
           <div className="w-full lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className={`h-48 rounded-3xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
-            <div className={`h-48 rounded-3xl ${theme === "dark" ? "bg-zinc-900" : "bg-zinc-200"}`}></div>
+            <div className="h-48 rounded-3xl bg-bg-active"></div>
+            <div className="h-48 rounded-3xl bg-bg-active"></div>
           </div>
         </div>
       </div>
@@ -179,10 +189,7 @@ export default function ProjectsPage() {
   return (
 
     <div
-      className={`min-h-screen p-6 transition ${theme === "dark"
-          ? "bg-zinc-950 text-white"
-          : "bg-white text-black"
-        }`}
+      className="h-full flex-1 p-6 transition bg-surface text-text-main"
     >
 
 
@@ -194,10 +201,7 @@ export default function ProjectsPage() {
         </h1>
 
         <p
-          className={`mt-2 ${theme === "dark"
-              ? "text-zinc-400"
-              : "text-zinc-600"
-            }`}
+          className="mt-2 text-text-secondary"
         >
           Create and manage your development projects.
         </p>
@@ -205,12 +209,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* PROJECT FORM */}
-      <div
-        className={`border rounded-2xl p-5 mb-8 ${theme === "dark"
-            ? "bg-zinc-900 border-zinc-800"
-            : "bg-zinc-100 border-zinc-300"
-          }`}
-      >
+      <Card className="mb-8 max-w-4xl">
 
         <h2 className="text-2xl font-semibold mb-5">
           {editIndex !== null
@@ -227,137 +226,116 @@ export default function ProjectsPage() {
         >
 
           {/* TITLE */}
-          <div>
-            <label htmlFor="project-title" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-              Project Title <span className="text-red-500" aria-hidden="true">*</span>
-            </label>
-            <input
+          <Field label="Project Title" htmlFor="project-title" required error={errors.title}>
+            <Input
               id="project-title"
               type="text"
               placeholder="e.g. My Awesome App"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={`w-full border rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-                  : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-                }`}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (errors.title) setErrors({ ...errors, title: null })
+              }}
+              error={errors.title}
               required
-              aria-required="true"
             />
-          </div>
+          </Field>
 
           {/* STATUS */}
-          <div>
-            <label htmlFor="project-status" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>Status</label>
-            <select
+          <Field label="Status" htmlFor="project-status">
+            <Select
               id="project-status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className={`w-full border rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-white"
-                  : "bg-white border-zinc-300 text-black"
-                }`}
             >
-
-            <option>Active</option>
-            <option>Completed</option>
-            <option>In Progress</option>
-
-            </select>
-          </div>
+              <option>Active</option>
+              <option>Completed</option>
+              <option>In Progress</option>
+            </Select>
+          </Field>
 
           {/* DESCRIPTION */}
-          <div className="col-span-1 md:col-span-2">
-            <label htmlFor="project-desc" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-              Description <span className="font-normal text-zinc-400">(optional)</span>
-            </label>
-            <textarea
+          <Field label="Description" htmlFor="project-desc" hint="optional" className="col-span-1 md:col-span-2">
+            <Textarea
               id="project-desc"
               placeholder="What is this project about?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={`w-full border rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none min-h-[120px] resize-none ${theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-                  : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-                }`}
             />
-          </div>
+          </Field>
 
           {/* TECH STACK */}
-          <div className="col-span-1 md:col-span-2">
-            <label htmlFor="project-tech" className={`block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`}>
-              Tech Stack <span className="font-normal text-zinc-400">(comma separated)</span>
-            </label>
-            <input
+          <Field label="Tech Stack" htmlFor="project-tech" hint="comma separated" className="col-span-1 md:col-span-2">
+            <Input
               id="project-tech"
               type="text"
               placeholder="React, Node.js, Tailwind"
               value={techStack}
               onChange={(e) => setTechStack(e.target.value)}
-              className={`w-full border rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${theme === "dark"
-                  ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-                  : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-                }`}
             />
-          </div>
+          </Field>
 
         </form>
 
         {/* BUTTON */}
-        <button
+        <Button
           type="submit"
+          variant="primary"
           onClick={handleAddProject}
-          className={`mt-5 px-5 py-2.5 rounded-xl font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${theme === "dark"
-              ? "bg-white text-black hover:bg-zinc-200"
-              : "bg-black text-white hover:bg-zinc-800"
-            }`}
+          className="mt-5"
         >
           {editIndex !== null
             ? "Update Project"
             : "Add Project"}
-        </button>
+        </Button>
 
-      </div>
+      </Card>
 
       {/* SEARCH */}
       <div className="mb-6">
         <label htmlFor="search-projects" className="sr-only">Search projects</label>
-        <input
+        <Input
           id="search-projects"
           type="text"
           placeholder="Search projects..."
-          aria-label="Search projects"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={`w-full max-w-md border rounded-xl px-4 py-3 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${theme === "dark"
-              ? "bg-zinc-900 border-zinc-800 text-white placeholder-zinc-500"
-              : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-            }`}
+          leftIcon={Search}
         />
-
       </div>
 
       {/* PROJECT GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-        {filteredProjects.map((project, index) => (
-
-          <ProjectCard
-            key={index}
-            title={project.title}
-            description={project.description}
-            status={project.status}
-            techStack={project.techStack}
-            updated={project.updated}
-            tasks={project.tasks}
-            onDelete={() => handleDeleteProject(index)}
-            onEdit={() => handleEditProject(project, index)}
-            onOpen={() => router.push(`/projects/${index}`)}
-          />
-
-        ))}
-
-      </div>
+      {projects.length === 0 ? (
+        <EmptyState
+          icon={FolderKanban}
+          title="Start Your First Project"
+          description="Use the form above to add a project and begin tracking tasks, resources, and executing code."
+        />
+      ) : filteredProjects.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="No matching projects"
+          description={`No results found for "${search}".`}
+          primaryAction={{ label: "Clear Search", onClick: () => setSearch("") }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredProjects.map((project, index) => (
+            <ProjectCard
+              key={index}
+              title={project.title}
+              description={project.description}
+              status={project.status}
+              techStack={project.techStack}
+              updated={project.updated}
+              tasks={project.tasks}
+              onDelete={() => handleDeleteProject(index)}
+              onEdit={() => handleEditProject(project, index)}
+              onOpen={() => router.push(`/projects/${index}`)}
+            />
+          ))}
+        </div>
+      )}
 
     </div>
 

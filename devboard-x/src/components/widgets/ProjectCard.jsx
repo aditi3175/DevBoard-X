@@ -1,6 +1,5 @@
 "use client"
-
-import { useTheme } from "@/context/ThemeContext"
+import Button from "@/components/ui/Button"
 
 export default function ProjectCard({
   title,
@@ -13,8 +12,6 @@ export default function ProjectCard({
   onEdit,
   onOpen
 }) {
-
-  const { theme } = useTheme()
 
   const totalTasks = tasks.length
 
@@ -51,11 +48,7 @@ export default function ProjectCard({
 
     <div
       onClick={onOpen}
-      className={`cursor-pointer border rounded-2xl p-5 transition ${
-        theme === "dark"
-          ? "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
-          : "bg-zinc-100 border-zinc-300 hover:border-zinc-400"
-      }`}
+      className="cursor-pointer border rounded-2xl p-5 transition bg-surface border-border-subtle hover:border-border-strong"
     >
 
       {/* TOP SECTION */}
@@ -64,21 +57,13 @@ export default function ProjectCard({
         <div>
 
           <h2
-            className={`text-xl font-semibold ${
-              theme === "dark"
-                ? "text-white"
-                : "text-black"
-            }`}
+            className="text-xl font-semibold text-text-main"
           >
             {title}
           </h2>
 
           <p
-            className={`text-sm mt-1 ${
-              theme === "dark"
-                ? "text-zinc-400"
-                : "text-zinc-600"
-            }`}
+            className="text-sm mt-1 text-text-secondary"
           >
             {description}
           </p>
@@ -101,11 +86,7 @@ export default function ProjectCard({
 
           <span
             key={index}
-            className={`px-3 py-1 text-sm rounded-lg ${
-              theme === "dark"
-                ? "bg-zinc-800 text-zinc-300"
-                : "bg-zinc-200 text-zinc-700"
-            }`}
+            className="px-3 py-1 text-sm rounded-lg bg-bg-active text-text-main"
           >
             {tech}
           </span>
@@ -116,7 +97,7 @@ export default function ProjectCard({
 
       <div className="mb-5">
 
-        <div className="flex justify-between text-sm mb-2">
+        <div className="flex justify-between text-sm mb-2 text-text-main">
 
           <span>
             Progress
@@ -129,20 +110,18 @@ export default function ProjectCard({
         </div>
 
         <div
-          className={`w-full h-2 rounded-full overflow-hidden ${
-            theme === "dark"
-              ? "bg-zinc-800"
-              : "bg-zinc-300"
-          }`}
+          className="w-full h-2 rounded-full overflow-hidden bg-bg-active"
         >
 
           <div
             className={`h-full ${
-              progress === 100
-                ? "bg-green-500"
+              totalTasks === 0
+                ? "bg-neutral"
+                : progress === 100
+                ? "bg-success"
                 : progress >= 50
-                ? "bg-yellow-500"
-                : "bg-red-500"
+                ? "bg-warning"
+                : "bg-primary"
             }`}
             style={{
               width: `${progress}%`
@@ -152,11 +131,7 @@ export default function ProjectCard({
         </div>
 
         <p
-          className={`text-sm mt-2 ${
-            theme === "dark"
-              ? "text-zinc-400"
-              : "text-zinc-600"
-          }`}
+          className="text-sm mt-2 text-text-secondary"
         >
           {completedTasks} / {totalTasks} Tasks Complete
         </p>
@@ -165,38 +140,36 @@ export default function ProjectCard({
 
       {/* FOOTER */}
       <div
-        className={`flex items-center justify-between text-sm pt-4 border-t ${
-          theme === "dark"
-            ? "text-zinc-400 border-zinc-800"
-            : "text-zinc-600 border-zinc-300"
-        }`}
+        className="flex items-center justify-between text-sm pt-4 border-t text-text-muted border-border-subtle"
       >
 
         <p>
           {updated}
         </p>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
 
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation()
               onEdit()
             }}
-            className="text-blue-400 hover:text-blue-300 transition"
           >
             Edit
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation()
               onDelete()
             }}
-            className="text-red-400 hover:text-red-300 transition"
           >
             Delete
-          </button>
+          </Button>
 
         </div>
 

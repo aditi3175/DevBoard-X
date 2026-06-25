@@ -1,7 +1,12 @@
 "use client"
 
-import { useTheme } from "@/context/ThemeContext"
 import { RESOURCE_CATEGORIES } from "@/constants/resourceCategories"
+import { useState } from "react"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import Textarea from "@/components/ui/Textarea"
+import Field from "@/components/ui/Field"
+import Button from "@/components/ui/Button"
 
 export default function ResourceForm({
   title,
@@ -16,96 +21,102 @@ export default function ResourceForm({
   onSubmit,
   onCancel
 }) {
-  const { theme } = useTheme()
 
-  const inputClass = `w-full px-4 py-3 rounded-xl border focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-    theme === "dark"
-      ? "bg-zinc-950 border-zinc-800 text-white placeholder-zinc-500"
-      : "bg-white border-zinc-300 text-black placeholder-zinc-400"
-  }`
-  
-  const labelClass = `block mb-1.5 text-sm font-semibold ${theme === "dark" ? "text-zinc-300" : "text-zinc-700"}`
+  const [errors, setErrors] = useState({})
+
+  const handleSubmit = () => {
+    const newErrors = {}
+    if (!title.trim()) newErrors.title = "Title is required."
+    if (!url.trim()) newErrors.url = "URL is required."
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      if (newErrors.title) document.getElementById("resource-title")?.focus()
+      else if (newErrors.url) document.getElementById("resource-url")?.focus()
+      return
+    }
+    setErrors({})
+    onSubmit()
+  }
 
   return (
     <form 
       className="grid grid-cols-1 md:grid-cols-2 gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit();
+        handleSubmit();
       }}
     >
-      <div>
-        <label htmlFor="resource-title" className={labelClass}>Title <span className="text-red-500" aria-hidden="true">*</span></label>
-        <input
+      <Field label="Title" htmlFor="resource-title" required error={errors.title}>
+        <Input
           id="resource-title"
           type="text"
           placeholder="e.g. Next.js Docs"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className={inputClass}
+          onChange={(e) => {
+            setTitle(e.target.value)
+            if (errors.title) setErrors({ ...errors, title: null })
+          }}
+          error={errors.title}
           required
-          aria-required="true"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="resource-url" className={labelClass}>URL <span className="text-red-500" aria-hidden="true">*</span></label>
-        <input
+      <Field label="URL" htmlFor="resource-url" required error={errors.url}>
+        <Input
           id="resource-url"
           type="url"
           placeholder="https://"
           value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          className={inputClass}
+          onChange={(e) => {
+            setUrl(e.target.value)
+            if (errors.url) setErrors({ ...errors, url: null })
+          }}
+          error={errors.url}
           required
-          aria-required="true"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="resource-category" className={labelClass}>Category</label>
-        <select
+      <Field label="Category" htmlFor="resource-category">
+        <Select
           id="resource-category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className={inputClass}
         >
           {RESOURCE_CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+      </Field>
 
-      <div className="md:col-span-2">
-        <label htmlFor="resource-description" className={labelClass}>Description <span className="text-zinc-400 font-normal">(optional)</span></label>
-        <textarea
+      <Field label="Description" htmlFor="resource-description" hint="optional" className="md:col-span-2">
+        <Textarea
           id="resource-description"
           placeholder="Add some notes about this resource..."
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className={`${inputClass} resize-none`}
         />
-      </div>
+      </Field>
 
       <div className="md:col-span-2 flex flex-wrap gap-3 mt-2">
-        <button
+        <Button
           type="submit"
-          className="px-5 py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 transition focus-visible:ring-2 focus-visible:ring-green-500 outline-none"
+          variant="success"
         >
           {editResourceId ? "Update Resource" : "Add Resource"}
-        </button>
+        </Button>
 
         {editResourceId && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={onCancel}
-            className="px-5 py-2.5 rounded-xl bg-zinc-700 text-white font-medium hover:bg-zinc-600 transition focus-visible:ring-2 focus-visible:ring-zinc-500 outline-none"
           >
             Cancel
-          </button>
+          </Button>
         )}
       </div>
     </form>

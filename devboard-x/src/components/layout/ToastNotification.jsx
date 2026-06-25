@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { CheckCircle, XCircle, X } from "lucide-react"
-import { useTheme } from "@/context/ThemeContext"
 
 /**
  * Lightweight toast notification component.
@@ -22,8 +21,6 @@ export default function ToastNotification({
   onClose,
   duration = 4000
 }) {
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
 
   // Auto-dismiss
   useEffect(() => {
@@ -38,16 +35,12 @@ export default function ToastNotification({
 
   const isSuccess = type === "success"
 
-  const bgClass = isDark
-    ? isSuccess
-      ? "bg-zinc-900 border-emerald-500/30"
-      : "bg-zinc-900 border-red-500/30"
-    : isSuccess
-      ? "bg-white border-emerald-500/40"
-      : "bg-white border-red-500/40"
+  const bgClass = isSuccess
+    ? "bg-surface border-success/30"
+    : "bg-surface border-danger/30"
 
-  const iconColor = isSuccess ? "text-emerald-400" : "text-red-400"
-  const accentBar = isSuccess ? "bg-emerald-500" : "bg-red-500"
+  const iconColor = isSuccess ? "text-success-text" : "text-danger-text"
+  const accentBar = isSuccess ? "bg-success" : "bg-danger"
 
   return (
     <AnimatePresence>
@@ -77,9 +70,7 @@ export default function ToastNotification({
 
             {/* Message */}
             <p
-              className={`flex-1 text-sm font-medium ${
-                isDark ? "text-zinc-200" : "text-zinc-800"
-              }`}
+              className="flex-1 text-sm font-medium text-text-main"
             >
               {message}
             </p>
@@ -88,11 +79,7 @@ export default function ToastNotification({
             <button
               onClick={onClose}
               aria-label="Close notification"
-              className={`p-1 rounded-lg transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${
-                isDark
-                  ? "hover:bg-zinc-800 text-zinc-400"
-                  : "hover:bg-zinc-100 text-zinc-400"
-              }`}
+              className="p-1 rounded-lg transition focus-visible:ring-2 focus-visible:ring-primary outline-none hover:bg-bg-hover text-text-muted hover:text-text-secondary"
               id="toast-close-btn"
             >
               <X size={16} aria-hidden="true" />
