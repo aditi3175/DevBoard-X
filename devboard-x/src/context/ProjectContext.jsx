@@ -11,29 +11,52 @@ export function ProjectProvider({ children }) {
   // Read local tasks, resources, and activity
   const [localProjects, setLocalProjects, isLoadedLocal] = usePersistentState("devboard-projects", [])
   
-  // Read Convex projects
+  // Read Convex projects and tasks
   const convexProjects = useQuery(api.projects.getProjects)
+  const convexTasks = useQuery(api.tasks.getAllTasks)
   
   const createProject = useMutation(api.projects.createProject)
   const updateProject = useMutation(api.projects.updateProject)
   const deleteProject = useMutation(api.projects.deleteProject)
 
-  const isLoaded = isLoadedLocal && convexProjects !== undefined
+  const createTask = useMutation(api.tasks.createTask)
+  const updateTask = useMutation(api.tasks.updateTask)
+  const deleteTask = useMutation(api.tasks.deleteTask)
+
+  const isLoaded = isLoadedLocal && convexProjects !== undefined && convexTasks !== undefined
 
   // Merge Convex metadata with LocalStorage nested data
   const projects = useMemo(() => {
-    if (!convexProjects) return []
+    if (!convexProjects || !convexTasks) return []
     return convexProjects.map((cp) => {
-      // Find matching local project to attach tasks, resources, activity
+      // Find matching local project to attach resources, activity
       const local = localProjects.find((lp) => lp._id === cp._id) || { tasks: [], resources: [], activity: [] }
+      
+      const projectTasks = convexTasks.filter(t => t.projectId === cp._id)
+      
+      const mergedTasks = projectTasks.map(ct => {
+        const localTaskWorkspace = local.tasks.find(lt => lt._id === ct._id) || {
+          files: [],
+          folders: [],
+          editorCode: "",
+          consoleOutput: [],
+          previewState: null,
+          terminalHistory: []
+        }
+        return {
+          ...ct,
+          ...localTaskWorkspace
+        }
+      })
+
       return {
         ...cp,
-        tasks: local.tasks || [],
+        tasks: mergedTasks,
         resources: local.resources || [],
         activity: local.activity || []
       }
     })
-  }, [convexProjects, localProjects])
+  }, [convexProjects, convexTasks, localProjects])
 
   // Shim `setProjects` to intercept legacy writes (e.g., adding a task)
   // and persist only the local storage part, so analytics and tasks don't break.
@@ -59,7 +82,10 @@ export function ProjectProvider({ children }) {
         isLoaded,
         createProject,
         updateProject,
-        deleteProject
+        deleteProject,
+        createTask,
+        updateTask,
+        deleteTask
       }}
     >
       {children}

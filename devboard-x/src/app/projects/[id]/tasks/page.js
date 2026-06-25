@@ -37,7 +37,7 @@ export default function ProjectTasksPage() {
   const router = useRouter()
   const params = useParams()
 
-  const { projects, setProjects, isLoaded } = useProjects()
+  const { projects, setProjects, isLoaded, createTask, updateTask, deleteTask } = useProjects()
   const { logActivity } = useActivity()
 
   const projectId = params.id === "undefined" ? null : params.id
@@ -54,9 +54,9 @@ export default function ProjectTasksPage() {
   const [taskTitle, setTaskTitle] = useState("")
   const [priority, setPriority] = useState("Medium")
   const [dueDate, setDueDate] = useState("")
-  const [editTaskIndex, setEditTaskIndex] = useState(null)
   const [filter, setFilter] = useState("All")
   const [sortBy, setSortBy] = useState("Newest")
+  const [editTaskId, setEditTaskId] = useState(null)
   const [projectTemplate, setProjectTemplate] = useState("HTML")
   const [errors, setErrors] = useState({})
 
@@ -88,7 +88,7 @@ export default function ProjectTasksPage() {
     )
   }
 
-  const handleAddTask = () => {
+  const handleAddTask = async () => {
     const newErrors = {}
     if (!taskTitle.trim()) newErrors.taskTitle = "Task Title is required."
     if (!dueDate) newErrors.dueDate = "Due Date is required."
@@ -107,33 +107,46 @@ export default function ProjectTasksPage() {
       updatedProjects[projectIndex].tasks = []
     }
 
-    if (editTaskIndex !== null) {
-      updatedProjects[projectIndex].tasks[editTaskIndex] = {
-        ...updatedProjects[projectIndex].tasks[editTaskIndex],
+    if (editTaskId !== null) {
+      await updateTask({
+        id: editTaskId,
         title: taskTitle,
         priority,
-        dueDate
-      }
-
-      setProjects(updatedProjects)
-      setEditTaskIndex(null)
+        dueDate: dueDate || undefined,
+        updatedAt: new Date().toISOString()
+      })
+      setEditTaskId(null)
+      
+      // Still need to clear form
+      setTaskTitle("")
+      setPriority("Medium")
+      setDueDate("")
+      setErrors({})
     } else {
       const files = getTemplateFiles(projectTemplate)
-      const reqFiles = getFilePaths(files)
+      const now = new Date().toISOString()
 
-      updatedProjects[projectIndex].tasks.push({
+      const newTaskId = await createTask({
+        projectId: project._id,
         title: taskTitle,
-        completed: false,
         priority,
-        dueDate,
-        files,
-        requiredFiles: reqFiles,
-        requiredSnippetsCount: 1,
+        dueDate: dueDate || undefined,
+        template: projectTemplate,
+        completed: false,
+        progress: 0,
         codeExecuted: false,
         userMarkedFinished: false,
-        progress: 0,
-        template: projectTemplate,
-        createdAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
+      })
+
+      updatedProjects[projectIndex].tasks.push({
+        _id: newTaskId,
+        files,
+        terminalHistory: [],
+        editorCode: "",
+        consoleOutput: [],
+        previewState: null
       })
 
       updatedProjects = appendProjectActivity(
@@ -142,7 +155,7 @@ export default function ProjectTasksPage() {
         buildActivityEntry(
           ACTIVITY_TYPES.TASK_CREATED,
           `Created task: ${taskTitle.trim()}`,
-          { taskIndex: updatedProjects[projectIndex].tasks.length - 1 }
+          { taskId: newTaskId }
         )
       )
 
@@ -151,7 +164,7 @@ export default function ProjectTasksPage() {
         message: `Created task "${taskTitle.trim()}"`,
         projectId: projectIndex,
         projectTitle: updatedProjects[projectIndex].title,
-        taskId: updatedProjects[projectIndex].tasks.length - 1
+        taskId: newTaskId
       })
 
       setProjects(updatedProjects)
@@ -163,22 +176,16 @@ export default function ProjectTasksPage() {
     setProjectTemplate("HTML")
   }
 
-  const handleEditTask = (index) => {
-    const task = project.tasks[index]
+  const handleEditTask = (task) => {
     setTaskTitle(task.title)
     setPriority(task.priority)
     setDueDate(task.dueDate || "")
-    setEditTaskIndex(index)
+    setEditTaskId(task._id)
   }
 
-  const handleDeleteTask = (taskIndex) => {
-    const task = project.tasks[taskIndex]
+  const handleDeleteTask = async (task) => {
+    await deleteTask({ id: task._id })
     let updatedProjects = [...projects]
-
-    updatedProjects[projectIndex].tasks =
-      updatedProjects[projectIndex].tasks.filter(
-        (_, index) => index !== taskIndex
-      )
 
     updatedProjects = appendProjectActivity(
       updatedProjects,
@@ -207,7 +214,7 @@ export default function ProjectTasksPage() {
       : Math.round((completedTasks / totalTasks) * 100)
 
   const filteredTasks = project.tasks
-    .map((task, taskIndex) => ({ task, taskIndex }))
+    .map((task) => ({ task }))
     .filter(({ task }) => {
       if (filter === "Pending") return !task.completed
       if (filter === "Completed") return task.completed
@@ -292,7 +299,7 @@ export default function ProjectTasksPage() {
             </Field>
           </div>
 
-          {editTaskIndex === null && (
+          {editTaskId === null && (
             <div className="w-full xl:w-auto">
               <Field label="Template" htmlFor="task-template">
                 <Select
@@ -316,14 +323,14 @@ export default function ProjectTasksPage() {
               type="submit"
               className="px-5 py-3 rounded-xl bg-primary text-white whitespace-nowrap font-medium hover:bg-primary-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
             >
-              {editTaskIndex !== null ? "Update Task" : "Add Task"}
+              {editTaskId !== null ? "Update Task" : "Add Task"}
             </button>
 
-            {editTaskIndex !== null && (
+            {editTaskId !== null && (
               <button
                 type="button"
                 onClick={() => {
-                  setEditTaskIndex(null)
+                  setEditTaskId(null)
                   setTaskTitle("")
                   setPriority("Medium")
                   setDueDate("")
@@ -414,9 +421,9 @@ export default function ProjectTasksPage() {
               description="No tasks match the current filter criteria."
             />
           ) : (
-            filteredTasks.map(({ task, taskIndex }) => (
+            filteredTasks.map(({ task }) => (
               <div
-              key={taskIndex}
+              key={task._id}
               className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-bg-active"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -445,7 +452,7 @@ export default function ProjectTasksPage() {
                   <p
                     onClick={() =>
                       router.push(
-                        `/projects/${projectIndex}/tasks/${taskIndex}`
+                        `/projects/${project._id}/tasks/${task._id}`
                       )
                     }
                     className="cursor-pointer font-medium flex flex-wrap items-center gap-2 hover:text-primary transition-colors"
@@ -477,13 +484,13 @@ export default function ProjectTasksPage() {
 
               <div className="flex items-center gap-4 shrink-0">
                 <button
-                  onClick={() => handleEditTask(taskIndex)}
+                  onClick={() => handleEditTask(task)}
                   className="text-primary hover:text-primary-hover transition"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteTask(taskIndex)}
+                  onClick={() => handleDeleteTask(task)}
                   className="text-danger hover:brightness-110 transition"
                 >
                   <Trash2 size={18} />

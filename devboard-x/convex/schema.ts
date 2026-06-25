@@ -24,18 +24,15 @@ export default defineSchema({
   tasks: defineTable({
     projectId: v.id("projects"),
     title: v.string(),
-    priority: v.string(), // "low", "medium", "high"
+    priority: v.string(), // "Low", "Medium", "High"
     dueDate: v.optional(v.string()),
     completed: v.boolean(),
     progress: v.number(),
     template: v.string(), // "Blank", "HTML", "React", "Node.js"
-    requiredFiles: v.array(v.string()),
-    requiredSnippetsCount: v.number(),
     codeExecuted: v.boolean(),
     userMarkedFinished: v.boolean(),
     createdAt: v.string(),
-    terminalHistory: v.optional(v.array(v.any())),
-    files: v.optional(v.array(v.any())), // Can be normalized into a separate table later if large
+    updatedAt: v.string(),
   }).index("by_project", ["projectId"]),
 
   // Resources table

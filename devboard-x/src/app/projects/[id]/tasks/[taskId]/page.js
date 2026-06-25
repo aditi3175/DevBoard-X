@@ -425,15 +425,18 @@ export default function TaskWorkspacePage() {
   const params = useParams()
 
 
-  const { projects, setProjects, isLoaded } = useProjects()
+  const { projects, setProjects, isLoaded, updateTask } = useProjects()
   const { logActivity } = useActivity()
 
+  const urlTaskId = params.taskId === "undefined" ? null : params.taskId
+  const isOldTask = !isNaN(Number(urlTaskId))
   const projectId = params.id === "undefined" ? null : params.id
   const isOldProject = !isNaN(Number(projectId))
+  
   const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
-  const taskIndex = Number(params.taskId)
-
   const project = projects[projectIndex]
+  
+  const taskIndex = isOldTask ? Number(urlTaskId) : project?.tasks?.findIndex(t => t._id === urlTaskId)
   const task = project?.tasks?.[taskIndex]
 
   const [selectedFilePath, setSelectedFilePath] = useState("")
@@ -504,6 +507,17 @@ export default function TaskWorkspacePage() {
       const calculatedCompleted = !!task.userMarkedFinished
 
       if (task.completed !== calculatedCompleted || task.progress !== calculatedProgress) {
+        
+        // Update Convex Metadata
+        if (!isOldTask && task._id) {
+          updateTask({
+            id: task._id,
+            completed: calculatedCompleted,
+            progress: calculatedProgress,
+            updatedAt: new Date().toISOString()
+          })
+        }
+
         const updatedProjects = [...projects]
         updatedProjects[projectIndex].tasks[taskIndex].completed = calculatedCompleted
         updatedProjects[projectIndex].tasks[taskIndex].progress = calculatedProgress
@@ -517,6 +531,8 @@ export default function TaskWorkspacePage() {
     taskIndex,
     projects,
     setProjects,
+    isOldTask,
+    updateTask,
     task?.fileEdited,
     task?.projectRan,
     task?.userMarkedFinished,
