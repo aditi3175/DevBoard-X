@@ -30,11 +30,11 @@ export default function ProjectsPage() {
   const [status, setStatus] = useState("Active")
   const [techStack, setTechStack] = useState("")
   const [search, setSearch] = useState("")
-  const [editIndex, setEditIndex] = useState(null)
+  const [editId, setEditId] = useState(null)
   const [mounted, setMounted] = useState(false)
   const [errors, setErrors] = useState({})
 
-  const { projects, setProjects, isLoaded } = useProjects()
+  const { projects, setProjects, isLoaded, createProject, updateProject, deleteProject } = useProjects()
   const { logActivity } = useActivity()
 
   // ADD / EDIT PROJECT
@@ -73,49 +73,36 @@ export default function ProjectsPage() {
     }
 
     // EDIT EXISTING PROJECT
-    if (editIndex !== null) {
-
-      const updatedProjects = [...projects]
-
-      const existingTasks =
-        updatedProjects[editIndex].tasks || []
-
-      const existingResources =
-        updatedProjects[editIndex].resources || []
-
-      const existingActivity =
-        updatedProjects[editIndex].activity || []
-
-      const existingCreatedAt =
-        updatedProjects[editIndex].createdAt || now
-
-      updatedProjects[editIndex] = {
-        ...newProject,
-        tasks: existingTasks,
-        resources: existingResources,
-        activity: existingActivity,
-        createdAt: existingCreatedAt,
+    if (editId !== null) {
+      updateProject({
+        id: editId,
+        title,
+        description,
+        status,
+        techStack: techStack.split(",").map((tech) => tech.trim()).filter(Boolean),
         lastUpdatedAt: now
-      }
+      });
 
-      setProjects(updatedProjects)
-
-      setEditIndex(null)
-
+      setEditId(null)
     }
 
     // ADD NEW PROJECT
     else {
-
-      setProjects([newProject, ...projects])
+      createProject({
+        title,
+        description,
+        status,
+        techStack: techStack.split(",").map((tech) => tech.trim()).filter(Boolean),
+        createdAt: now,
+        lastUpdatedAt: now
+      });
 
       logActivity({
         type: "project_created",
         message: `Created project: ${title.trim()}`,
-        projectId: 0,
+        projectId: 0, // Legacy fallback
         projectTitle: title.trim()
       })
-
     }
 
     // CLEAR FORM
@@ -124,39 +111,27 @@ export default function ProjectsPage() {
     setStatus("Active")
     setTechStack("")
     setErrors({})
-
   }
 
   // DELETE PROJECT
-  const handleDeleteProject = (indexToDelete) => {
-    const projectToDelete = projects[indexToDelete]
+  const handleDeleteProject = (id, title) => {
+    deleteProject({ id });
 
-    const updatedProjects = projects.filter(
-      (_, index) => index !== indexToDelete
-    )
-
-    setProjects(updatedProjects)
-
-    if (projectToDelete) {
-      logActivity({
-        type: "project_deleted",
-        message: `Deleted project "${projectToDelete.title}"`,
-        projectId: indexToDelete,
-        projectTitle: projectToDelete.title
-      })
-    }
+    logActivity({
+      type: "project_deleted",
+      message: `Deleted project "${title}"`,
+      projectId: 0, // Legacy fallback
+      projectTitle: title
+    })
   }
 
   // EDIT PROJECT
-  const handleEditProject = (project, index) => {
-
+  const handleEditProject = (project) => {
     setTitle(project.title)
     setDescription(project.description)
     setStatus(project.status)
     setTechStack(project.techStack.join(","))
-
-    setEditIndex(index)
-
+    setEditId(project._id)
   }
 
   // FILTER PROJECTS
@@ -212,7 +187,7 @@ export default function ProjectsPage() {
       <Card className="mb-8 max-w-4xl">
 
         <h2 className="text-2xl font-semibold mb-5">
-          {editIndex !== null
+          {editId !== null
             ? "Edit Project"
             : "Add New Project"}
         </h2>
@@ -284,7 +259,7 @@ export default function ProjectsPage() {
           onClick={handleAddProject}
           className="mt-5"
         >
-          {editIndex !== null
+          {editId !== null
             ? "Update Project"
             : "Add Project"}
         </Button>
@@ -322,16 +297,16 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredProjects.map((project, index) => (
             <ProjectCard
-              key={index}
+              key={project._id}
               title={project.title}
               description={project.description}
               status={project.status}
               techStack={project.techStack}
               updated={project.updated}
               tasks={project.tasks}
-              onDelete={() => handleDeleteProject(index)}
-              onEdit={() => handleEditProject(project, index)}
-              onOpen={() => router.push(`/projects/${index}`)}
+              onDelete={() => handleDeleteProject(project._id, project.title)}
+              onEdit={() => handleEditProject(project)}
+              onOpen={() => router.push(`/projects/${project._id}`)}
             />
           ))}
         </div>

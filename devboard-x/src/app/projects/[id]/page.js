@@ -25,7 +25,9 @@ export default function ProjectOverviewPage() {
   const params = useParams()
   const { projects, isLoaded } = useProjects()
 
-  const projectIndex = Number(params.id)
+  const projectId = params.id === "undefined" ? null : params.id
+  const isOldProject = !isNaN(Number(projectId))
+  const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
 
   if (!isLoaded) {

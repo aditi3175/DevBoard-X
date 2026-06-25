@@ -40,7 +40,9 @@ export default function ProjectTasksPage() {
   const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
 
-  const projectIndex = Number(params.id)
+  const projectId = params.id === "undefined" ? null : params.id
+  const isOldProject = !isNaN(Number(projectId))
+  const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
 
   const [now, setNow] = useState(0)

@@ -428,7 +428,9 @@ export default function TaskWorkspacePage() {
   const { projects, setProjects, isLoaded } = useProjects()
   const { logActivity } = useActivity()
 
-  const projectIndex = Number(params.id)
+  const projectId = params.id === "undefined" ? null : params.id
+  const isOldProject = !isNaN(Number(projectId))
+  const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const taskIndex = Number(params.taskId)
 
   const project = projects[projectIndex]
@@ -754,12 +756,14 @@ export default function TaskWorkspacePage() {
         let result = ""
         const originalLog = console.log
 
+        // eslint-disable-next-line react-hooks/immutability
         console.log = (...args) => {
           result += args.join(" ") + "\n"
         }
 
         new Function(code)()
 
+        // eslint-disable-next-line react-hooks/immutability
         console.log = originalLog
 
         const finalOutput = result || "Code executed successfully."
