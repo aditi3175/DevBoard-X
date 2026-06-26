@@ -46,6 +46,19 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("by_project", ["projectId"]),
 
+  // Virtual File System table
+  files: defineTable({
+    taskId: v.id("tasks"),
+    parentId: v.optional(v.id("files")), // nullable for root
+    name: v.string(),
+    type: v.union(v.literal("file"), v.literal("folder")),
+    language: v.optional(v.string()),
+    extension: v.optional(v.string()),
+    order: v.number(),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_task", ["taskId"]).index("by_parent", ["parentId"]),
+
   // Snippets table
   snippets: defineTable({
     title: v.string(),

@@ -40,9 +40,63 @@ export const createTask = mutation({
     updatedAt: v.string(),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("tasks", {
+    const newTaskId = await ctx.db.insert("tasks", {
       ...args,
     });
+
+    const now = new Date().toISOString();
+
+    const insertFile = async (name: string, type: "file" | "folder", parentId?: any) => {
+      return await ctx.db.insert("files", {
+        taskId: newTaskId,
+        parentId,
+        name,
+        type,
+        order: 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+    };
+
+    if (args.template === "HTML") {
+      await insertFile("index.html", "file");
+      await insertFile("style.css", "file");
+      await insertFile("script.js", "file");
+      await insertFile("assets", "folder");
+    } else if (args.template === "React") {
+      const srcId = await insertFile("src", "folder");
+      await insertFile("public", "folder");
+      await insertFile("package.json", "file");
+      await insertFile("vite.config.js", "file");
+      
+      await insertFile("main.jsx", "file", srcId);
+      await insertFile("App.jsx", "file", srcId);
+      await insertFile("index.css", "file", srcId);
+    } else if (args.template === "Next.js") {
+      const appId = await insertFile("app", "folder");
+      await insertFile("components", "folder");
+      await insertFile("public", "folder");
+      await insertFile("package.json", "file");
+      
+      await insertFile("layout.js", "file", appId);
+      await insertFile("page.js", "file", appId);
+      await insertFile("globals.css", "file", appId);
+    } else if (args.template === "Node.js") {
+      await insertFile("index.js", "file");
+      await insertFile("package.json", "file");
+      await insertFile(".env", "file");
+    } else if (args.template === "Express") {
+      await insertFile("server.js", "file");
+      await insertFile("routes", "folder");
+      await insertFile("controllers", "folder");
+      await insertFile("middlewares", "folder");
+      await insertFile("package.json", "file");
+      await insertFile(".env", "file");
+    } else if (args.template === "Blank") {
+      await insertFile("README.md", "file");
+    }
+
+    return newTaskId;
   },
 });
 

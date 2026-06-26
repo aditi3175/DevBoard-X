@@ -425,7 +425,7 @@ export default function TaskWorkspacePage() {
   const params = useParams()
 
 
-  const { projects, setProjects, isLoaded, updateTask } = useProjects()
+  const { projects, setProjects, isLoaded, updateTask, createFile, createFolder, renameFile, deleteFile } = useProjects()
   const { logActivity } = useActivity()
 
   const urlTaskId = params.taskId === "undefined" ? null : params.taskId
@@ -872,7 +872,7 @@ export default function TaskWorkspacePage() {
   }
 
   // CRUD Event Handlers
-  const handleCreateFile = (parentPath = "") => {
+  const handleCreateFile = async (parentPath = "") => {
     const fileName = prompt("Enter file name")
     if (!fileName) return
 
@@ -884,18 +884,14 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const updatedProjects = [...projects]
-    const newNode = {
+    await createFile({
+      taskId: task._id,
+      parentId: parentNode ? parentNode._id : undefined,
       name: fileName,
-      code: "",
-      output: ""
-    }
+      order: siblings.length
+    })
 
-    updatedProjects[projectIndex].tasks[taskIndex].files = addNodeToTree(
-      updatedProjects[projectIndex].tasks[taskIndex].files || [],
-      parentPath,
-      newNode
-    )
+    const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
     const withActivity = appendProjectActivity(
@@ -925,7 +921,7 @@ export default function TaskWorkspacePage() {
     }
   }
 
-  const handleCreateFolder = (parentPath = "") => {
+  const handleCreateFolder = async (parentPath = "") => {
     const folderName = prompt("Enter folder name")
     if (!folderName) return
 
@@ -937,18 +933,14 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const updatedProjects = [...projects]
-    const newNode = {
+    await createFolder({
+      taskId: task._id,
+      parentId: parentNode ? parentNode._id : undefined,
       name: folderName,
-      isFolder: true,
-      children: []
-    }
+      order: siblings.length
+    })
 
-    updatedProjects[projectIndex].tasks[taskIndex].files = addNodeToTree(
-      updatedProjects[projectIndex].tasks[taskIndex].files || [],
-      parentPath,
-      newNode
-    )
+    const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
     setProjects(updatedProjects)
@@ -961,7 +953,7 @@ export default function TaskWorkspacePage() {
     }))
   }
 
-  const handleRenameFile = (pathStr, currentName) => {
+  const handleRenameFile = async (pathStr, currentName) => {
     const newName = prompt("Rename file", currentName)
     if (!newName) return
 
@@ -976,13 +968,15 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const updatedProjects = [...projects]
+    const node = findFileByPath(currentFiles, pathStr)
+    if (!node) return
 
-    updatedProjects[projectIndex].tasks[taskIndex].files = renameNodeInTree(
-      updatedProjects[projectIndex].tasks[taskIndex].files,
-      pathStr,
-      newName
-    )
+    await renameFile({
+      id: node._id,
+      name: newName
+    })
+
+    const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
     const withActivity = appendProjectActivity(
@@ -1005,7 +999,7 @@ export default function TaskWorkspacePage() {
     }
   }
 
-  const handleRenameFolder = (pathStr, currentName) => {
+  const handleRenameFolder = async (pathStr, currentName) => {
     const newName = prompt("Rename folder", currentName)
     if (!newName) return
 
@@ -1020,13 +1014,15 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const updatedProjects = [...projects]
+    const node = findFileByPath(currentFiles, pathStr)
+    if (!node) return
 
-    updatedProjects[projectIndex].tasks[taskIndex].files = renameNodeInTree(
-      updatedProjects[projectIndex].tasks[taskIndex].files,
-      pathStr,
-      newName
-    )
+    await renameFile({
+      id: node._id,
+      name: newName
+    })
+
+    const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
     const withActivity = appendProjectActivity(
@@ -1064,7 +1060,7 @@ export default function TaskWorkspacePage() {
     })
   }
 
-  const handleDeleteFile = (pathStr) => {
+  const handleDeleteFile = async (pathStr) => {
     const updatedProjects = [...projects]
     const currentFiles = updatedProjects[projectIndex].tasks[taskIndex].files || []
 
@@ -1082,8 +1078,10 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const newTree = deleteNodeFromTree(currentFiles, pathStr)
-    updatedProjects[projectIndex].tasks[taskIndex].files = newTree
+    const node = findFileByPath(currentFiles, pathStr)
+    if (!node) return
+
+    await deleteFile({ id: node._id })
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
     const withActivity = appendProjectActivity(
@@ -1104,14 +1102,9 @@ export default function TaskWorkspacePage() {
     })
 
     setProjects(withActivity)
-
-    if (selectedFilePath === pathStr) {
-      const firstFile = getFirstFile(newTree)
-      setSelectedFilePath(firstFile || "")
-    }
   }
 
-  const handleDeleteFolder = (pathStr) => {
+  const handleDeleteFolder = async (pathStr) => {
     if (!confirm("Are you sure you want to delete this folder and all its contents?")) return
 
     const updatedProjects = [...projects]
@@ -1133,16 +1126,11 @@ export default function TaskWorkspacePage() {
       return
     }
 
-    const newTree = deleteNodeFromTree(currentFiles, pathStr)
-    updatedProjects[projectIndex].tasks[taskIndex].files = newTree
+    if (!folderNode) return
+    await deleteFile({ id: folderNode._id })
+
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-
     setProjects(updatedProjects)
-
-    if (selectedFilePath.startsWith(pathStr + "/") || selectedFilePath === pathStr) {
-      const firstFile = getFirstFile(newTree)
-      setSelectedFilePath(firstFile || "")
-    }
 
     setExpandedDirs(prev => {
       const newExpanded = {}
