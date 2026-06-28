@@ -7,9 +7,9 @@ import Card from "@/components/ui/Card"
 import { getRecentResources } from "@/utils/projectOverview"
 import { getCategoryBadgeStyle } from "@/constants/resourceCategories"
 
-export default function RecentResourcesList({ project, projectIndex }) {
+export default function RecentResourcesList({ project, projectIndex, resources = [] }) {
   const router = useRouter()
-  const recentResources = getRecentResources(project, 5)
+  const recentResources = getRecentResources(resources, 5)
 
   return (
     <Card>
@@ -27,7 +27,7 @@ export default function RecentResourcesList({ project, projectIndex }) {
         <div className="space-y-3">
           {recentResources.map((resource) => (
             <a
-              key={resource.id}
+              key={resource._id}
               href={resource.url}
               target="_blank"
               rel="noopener noreferrer"

@@ -68,7 +68,6 @@ export function ProjectProvider({ children }) {
             _id: cf._id,
             name: cf.name,
             isFolder: cf.type === "folder",
-            code: localNode.code || "",
             output: localNode.output || "",
             children: cf.type === "folder" ? [] : undefined
           }
@@ -110,7 +109,6 @@ export function ProjectProvider({ children }) {
       return {
         ...cp,
         tasks: mergedTasks,
-        resources: local.resources || [],
         activity: local.activity || []
       }
     })

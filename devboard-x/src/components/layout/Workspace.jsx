@@ -27,10 +27,11 @@ import EmptyState from "@/components/ui/EmptyState"
 import Link from "next/link"
 import Card from "@/components/ui/Card"
 import { useProjects } from "@/context/ProjectContext"
-import { useActivity } from "@/context/ActivityContext"
-import { getActivityIcon } from "@/utils/projectActivity"
+
+import { getActivityIcon, getActivityCategory, getCategoryEmoji } from "@/utils/projectActivity"
 import { formatProjectDate } from "@/utils/projectOverview"
-import { usePersistentState } from "@/utils/storage"
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
 
 // Recursion helper to traverse file tree nodes
 const getAllFilesWithMeta = (nodes, pIdx, tIdx, taskTitle, parentPath = "") => {
@@ -80,9 +81,10 @@ const getFileIconMini = (filename) => {
 export default function Workspace() {
   const router = useRouter()
   const { projects } = useProjects()
-  const { globalActivities } = useActivity()
+  const fetchedActivities = useQuery(api.activity.getActivity)
+  const globalActivities = fetchedActivities || []
 
-  const [globalSnippets] = usePersistentState("devboard-snippets", [])
+  const globalSnippets = useQuery(api.snippets.getSnippets) || []
 
   // Flattened tasks across all projects
   const allTasks = projects.flatMap((p, pIdx) =>
@@ -376,13 +378,13 @@ export default function Workspace() {
 
             <div className="flex flex-col gap-4">
               {globalActivities && globalActivities.length > 0 ? (
-                globalActivities.slice(0, 10).map((log) => {
+                globalActivities.slice(0, 10).map((log, i) => {
                   const isClickable = log.projectId !== null && log.projectId !== undefined;
                   const CardElement = isClickable ? "button" : "div";
                   
                   return (
                   <CardElement
-                    key={log.id}
+                    key={log._id || log.id || i}
                     onClick={() => {
                       if (isClickable) {
                         if (log.taskId !== null && log.taskId !== undefined) {
@@ -405,8 +407,24 @@ export default function Workspace() {
                     </span>
                     <div className="flex flex-col gap-1 overflow-hidden w-full">
                       <div className="flex justify-between items-center text-xs text-text-muted gap-2">
-                        <span className="font-semibold truncate text-text-secondary">
-                          {log.projectTitle || "Global"}
+                        <span className="font-semibold truncate text-text-secondary flex items-center gap-1.5">
+                          {(() => {
+                            const category = getActivityCategory(log.type);
+                            const emoji = getCategoryEmoji(category);
+                            const title = log.taskTitle || log.projectTitle;
+                            
+                            return (
+                              <>
+                                <span>{emoji} {category}</span>
+                                {title && (
+                                  <>
+                                    <span className="text-text-muted/50 text-[10px]">•</span>
+                                    <span className="truncate">{title}</span>
+                                  </>
+                                )}
+                              </>
+                            );
+                          })()}
                         </span>
                         <span className="shrink-0">{formatProjectDate(log.timestamp)}</span>
                       </div>

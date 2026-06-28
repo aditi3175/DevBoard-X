@@ -11,6 +11,7 @@
 import type * as activity from "../activity.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
+import type * as execution from "../execution.js";
 import type * as files from "../files.js";
 import type * as projects from "../projects.js";
 import type * as resources from "../resources.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   analytics: typeof analytics;
   auth: typeof auth;
+  execution: typeof execution;
   files: typeof files;
   projects: typeof projects;
   resources: typeof resources;

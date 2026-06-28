@@ -20,6 +20,8 @@ import RecentTasksList from "@/components/project/RecentTasksList"
 import RecentResourcesList from "@/components/project/RecentResourcesList"
 import WidgetCard from "@/components/widgets/WidgetCard"
 import { getProjectMetrics } from "@/utils/projectOverview"
+import { useQuery } from "convex/react"
+import { api } from "../../../../../convex/_generated/api"
 
 export default function ProjectOverviewPage() {
   const params = useParams()
@@ -29,6 +31,9 @@ export default function ProjectOverviewPage() {
   const isOldProject = !isNaN(Number(projectId))
   const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
+
+  const resources = useQuery(api.resources.getResources, project?._id ? { projectId: project._id } : "skip") || []
+  const fetchedActivity = useQuery(api.activity.getProjectActivity, project?._id ? { projectId: project._id } : "skip")
 
   if (!isLoaded) {
     return (
@@ -57,8 +62,8 @@ export default function ProjectOverviewPage() {
     )
   }
 
-  const metrics = getProjectMetrics(project)
-  const activity = project.activity || []
+  const metrics = getProjectMetrics(project, resources)
+  const activity = fetchedActivity || []
 
   return (
     <div
@@ -113,7 +118,6 @@ export default function ProjectOverviewPage() {
       <div className="mb-8">
         <ProjectHealthSection
           progressPercent={metrics.progressPercent}
-          completedTasks={metrics.completedTasks}
           totalTasks={metrics.totalTasks}
         />
       </div>
@@ -125,7 +129,7 @@ export default function ProjectOverviewPage() {
 
         <div className="space-y-6">
           <RecentTasksList project={project} projectIndex={projectIndex} />
-          <RecentResourcesList project={project} projectIndex={projectIndex} />
+          <RecentResourcesList project={project} projectIndex={projectIndex} resources={resources} />
         </div>
       </div>
     </div>

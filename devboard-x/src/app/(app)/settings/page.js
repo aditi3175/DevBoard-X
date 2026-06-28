@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { useTheme } from "@/context/ThemeContext"
 import { usePersistentState } from "@/utils/storage"
 import { useProjects } from "@/context/ProjectContext"
-import { useActivity } from "@/context/ActivityContext"
 import { useRouter } from "next/navigation"
 import {
 
@@ -42,7 +41,6 @@ export default function SettingsPage() {
   // SETTINGS STATE
   const { theme, setTheme, isLoaded: themeLoaded } = useTheme()
   const { projects, setProjects, isLoaded: projectsLoaded } = useProjects()
-  const { logActivity, isLoaded: activitiesLoaded } = useActivity()
 
   const [settings, setSettings, settingsLoaded] = usePersistentState("devboard-settings", {
     username: "",
@@ -51,7 +49,7 @@ export default function SettingsPage() {
     animations: true
   })
 
-  const isLoaded = themeLoaded && projectsLoaded && activitiesLoaded && settingsLoaded
+  const isLoaded = themeLoaded && projectsLoaded && settingsLoaded
 
   // BACKUP & RESTORE STATE
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" })
@@ -95,11 +93,6 @@ export default function SettingsPage() {
       const jsonString = exportAllProjects(projects)
       downloadJSON(jsonString, "devboardx-backup.json")
 
-      logActivity({
-        type: "project_exported",
-        message: `Exported all ${projects.length} projects`
-      })
-
       setToast({
         visible: true,
         message: `Exported all ${projects.length} project${projects.length > 1 ? "s" : ""} successfully!`,
@@ -119,13 +112,6 @@ export default function SettingsPage() {
       const jsonString = exportProject(project)
       const filename = `${slugify(project.title)}-export.json`
       downloadJSON(jsonString, filename)
-
-      logActivity({
-        type: "project_exported",
-        message: `Exported project "${project.title}"`,
-        projectId: projectIndex,
-        projectTitle: project.title
-      })
 
       setToast({
         visible: true,
@@ -172,18 +158,13 @@ export default function SettingsPage() {
       const updatedProjects = [...safe, ...projects]
       setProjects(updatedProjects)
 
-      logActivity({
-        type: "project_imported",
-        message: `Imported ${importedProjects.length} project${importedProjects.length > 1 ? "s" : ""}`
-      })
-
       setToast({
         visible: true,
         message: `Imported ${importedProjects.length} project${importedProjects.length > 1 ? "s" : ""} successfully!`,
         type: "success"
       })
     }
-  }, [projects, setProjects, logActivity])
+  }, [projects, setProjects])
 
   // ─── CONFLICT RESOLUTION ───────────────────────────────────────
   const handleKeepBoth = () => {
@@ -199,11 +180,6 @@ export default function SettingsPage() {
     setProjects(updatedProjects)
 
     const totalImported = pendingImport.projects.length
-
-    logActivity({
-      type: "project_imported",
-      message: `Imported ${totalImported} project${totalImported > 1 ? "s" : ""} (kept both)`
-    })
 
     setToast({
       visible: true,
@@ -230,11 +206,6 @@ export default function SettingsPage() {
     setProjects(updatedProjects)
 
     const totalImported = pendingImport.projects.length
-
-    logActivity({
-      type: "project_imported",
-      message: `Imported ${totalImported} project${totalImported > 1 ? "s" : ""} (replaced existing)`
-    })
 
     setToast({
       visible: true,

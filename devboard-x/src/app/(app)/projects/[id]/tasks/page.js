@@ -11,12 +11,7 @@ import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Select from "@/components/ui/Select"
 import Field from "@/components/ui/Field"
-import {
-  ACTIVITY_TYPES,
-  appendProjectActivity,
-  buildActivityEntry
-} from "@/utils/projectActivity"
-import { useActivity } from "@/context/ActivityContext"
+
 import { getTemplateFiles } from "../starterTemplates"
 
 const getFilePaths = (nodes, parentPath = "") => {
@@ -38,7 +33,6 @@ export default function ProjectTasksPage() {
   const params = useParams()
 
   const { projects, setProjects, isLoaded, createTask, updateTask, deleteTask } = useProjects()
-  const { logActivity } = useActivity()
 
   const projectId = params.id === "undefined" ? null : params.id
   const isOldProject = !isNaN(Number(projectId))
@@ -149,23 +143,7 @@ export default function ProjectTasksPage() {
         previewState: null
       })
 
-      updatedProjects = appendProjectActivity(
-        updatedProjects,
-        projectIndex,
-        buildActivityEntry(
-          ACTIVITY_TYPES.TASK_CREATED,
-          `Created task: ${taskTitle.trim()}`,
-          { taskId: newTaskId }
-        )
-      )
 
-      logActivity({
-        type: "task_created",
-        message: `Created task "${taskTitle.trim()}"`,
-        projectId: projectIndex,
-        projectTitle: updatedProjects[projectIndex].title,
-        taskId: newTaskId
-      })
 
       setProjects(updatedProjects)
       setTaskTitle("")
@@ -187,21 +165,7 @@ export default function ProjectTasksPage() {
     await deleteTask({ id: task._id })
     let updatedProjects = [...projects]
 
-    updatedProjects = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.TASK_DELETED,
-        `Deleted task: ${task.title}`
-      )
-    )
 
-    logActivity({
-      type: "task_deleted",
-      message: `Deleted task "${task.title}"`,
-      projectId: projectIndex,
-      projectTitle: updatedProjects[projectIndex].title
-    })
 
     setProjects(updatedProjects)
   }

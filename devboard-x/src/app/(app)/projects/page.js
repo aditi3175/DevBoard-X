@@ -5,12 +5,11 @@ import ProjectCard from "@/components/widgets/ProjectCard"
 import { useProjects } from "@/context/ProjectContext"
 import {
   ACTIVITY_TYPES,
-  appendProjectActivity,
   buildActivityEntry
 } from "@/utils/projectActivity"
 import { useRouter } from "next/navigation"
 import { Trash2, Edit2, Play, Search, XCircle } from "lucide-react"
-import { useActivity } from "@/context/ActivityContext"
+
 import EmptyState from "@/components/ui/EmptyState"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
@@ -35,7 +34,6 @@ export default function ProjectsPage() {
   const [errors, setErrors] = useState({})
 
   const { projects, setProjects, isLoaded, createProject, updateProject, deleteProject } = useProjects()
-  const { logActivity } = useActivity()
 
   // ADD / EDIT PROJECT
   const handleAddProject = () => {
@@ -96,13 +94,6 @@ export default function ProjectsPage() {
         createdAt: now,
         lastUpdatedAt: now
       });
-
-      logActivity({
-        type: "project_created",
-        message: `Created project: ${title.trim()}`,
-        projectId: 0, // Legacy fallback
-        projectTitle: title.trim()
-      })
     }
 
     // CLEAR FORM
@@ -116,13 +107,6 @@ export default function ProjectsPage() {
   // DELETE PROJECT
   const handleDeleteProject = (id, title) => {
     deleteProject({ id });
-
-    logActivity({
-      type: "project_deleted",
-      message: `Deleted project "${title}"`,
-      projectId: 0, // Legacy fallback
-      projectTitle: title
-    })
   }
 
   // EDIT PROJECT

@@ -27,9 +27,9 @@ export default function ProjectActivityFeed({ activity = [] }) {
         </div>
       ) : (
         <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-          {sorted.map((entry) => (
+          {sorted.map((entry, index) => (
             <div
-              key={entry.id}
+              key={entry._id || entry.id || index}
               className="flex gap-3 p-3 rounded-xl bg-bg-active"
             >
               <span className="shrink-0 flex items-center justify-center">

@@ -4,6 +4,7 @@ import { Search, Bell, User, Menu, X, Layout, FolderKanban, BarChart3, Settings,
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { UserButton } from "@clerk/nextjs"
 import { useProjects } from "@/context/ProjectContext"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
@@ -150,14 +151,9 @@ export default function Navbar() {
         </Button>
 
         {/* PROFILE */}
-        <Button
-          variant="ghost"
-          aria-label="Profile"
-          leftIcon={User}
-          className="hidden sm:flex"
-        >
-          <span className="hidden lg:inline">Profile</span>
-        </Button>
+        <div className="hidden sm:flex ml-2">
+          <UserButton afterSignOutUrl="/" />
+        </div>
 
       </div>
 

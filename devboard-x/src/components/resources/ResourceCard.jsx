@@ -81,7 +81,7 @@ export default function ResourceCard({
           variant="ghost"
           size="sm"
           leftIcon={resource.pinned ? PinOff : Pin}
-          onClick={() => onTogglePin(resource.id)}
+          onClick={() => onTogglePin(resource._id)}
           className={resource.pinned ? "text-warning hover:bg-warning/20 bg-warning/10" : "text-text-muted hover:bg-bg-hover bg-bg-active"}
         >
           {resource.pinned ? "Unpin" : "Pin"}
@@ -101,7 +101,7 @@ export default function ResourceCard({
           variant="ghost"
           size="sm"
           leftIcon={Trash2}
-          onClick={() => onDelete(resource.id)}
+          onClick={() => onDelete(resource._id)}
           className="text-danger-text hover:bg-danger/10"
         >
           Delete

@@ -12,12 +12,8 @@ import ResourceCard from "@/components/resources/ResourceCard"
 import WidgetCard from "@/components/widgets/WidgetCard"
 import EmptyState from "@/components/ui/EmptyState"
 import Input from "@/components/ui/Input"
-import {
-  ACTIVITY_TYPES,
-  appendProjectActivity,
-  buildActivityEntry
-} from "@/utils/projectActivity"
-import { useActivity } from "@/context/ActivityContext"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "../../../../../../convex/_generated/api"
 
 function isValidUrl(string) {
   try {
@@ -33,7 +29,6 @@ export default function ProjectResourcesPage() {
   const formRef = useRef(null)
 
   const { projects, setProjects, isLoaded } = useProjects()
-  const { logActivity } = useActivity()
 
   const projectId = params.id === "undefined" ? null : params.id
   const isOldProject = !isNaN(Number(projectId))
@@ -47,6 +42,12 @@ export default function ProjectResourcesPage() {
   const [search, setSearch] = useState("")
   const [editResourceId, setEditResourceId] = useState(null)
   const [showForm, setShowForm] = useState(true)
+
+  const resources = useQuery(api.resources.getResources, project?._id ? { projectId: project._id } : "skip") || []
+  const createResource = useMutation(api.resources.createResource)
+  const updateResource = useMutation(api.resources.updateResource)
+  const deleteResource = useMutation(api.resources.deleteResource)
+  const togglePinned = useMutation(api.resources.togglePinned)
 
   if (!isLoaded) {
     return (
@@ -75,7 +76,8 @@ export default function ProjectResourcesPage() {
     )
   }
 
-  const resources = project.resources || []
+
+
   const pinnedResources = resources.filter((r) => r.pinned)
   const totalResources = resources.length
   const pinnedCount = pinnedResources.length
@@ -88,16 +90,7 @@ export default function ProjectResourcesPage() {
     setEditResourceId(null)
   }
 
-  const updateResources = (nextResources) => {
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex] = {
-      ...updatedProjects[projectIndex],
-      resources: nextResources
-    }
-    setProjects(updatedProjects)
-  }
-
-  const handleSaveResource = () => {
+  const handleSaveResource = async () => {
     if (!title.trim()) {
       alert("Title is required")
       return
@@ -109,54 +102,24 @@ export default function ProjectResourcesPage() {
     }
 
     if (editResourceId) {
-      updateResources(
-        resources.map((r) =>
-          r.id === editResourceId
-            ? {
-              ...r,
-              title: title.trim(),
-              url: url.trim(),
-              category,
-              description: description.trim()
-            }
-            : r
-        )
-      )
+      await updateResource({
+        id: editResourceId,
+        title: title.trim(),
+        url: url.trim(),
+        category,
+        description: description.trim()
+      })
     } else {
-      const newResource = {
-        id: crypto.randomUUID(),
+      await createResource({
+        projectId: project._id,
         title: title.trim(),
         url: url.trim(),
         category,
         description: description.trim(),
-        createdAt: new Date().toISOString(),
         pinned: false
-      }
-
-      let updatedProjects = [...projects]
-      updatedProjects[projectIndex] = {
-        ...updatedProjects[projectIndex],
-        resources: [newResource, ...resources]
-      }
-
-      updatedProjects = appendProjectActivity(
-        updatedProjects,
-        projectIndex,
-        buildActivityEntry(
-          ACTIVITY_TYPES.RESOURCE_ADDED,
-          `Added resource: ${newResource.title}`,
-          { resourceId: newResource.id }
-        )
-      )
-
-      logActivity({
-        type: "resource_added",
-        message: `Added resource "${newResource.title}"`,
-        projectId: projectIndex,
-        projectTitle: updatedProjects[projectIndex].title
       })
 
-      setProjects(updatedProjects)
+      setProjects([...projects])
     }
 
     resetForm()
@@ -168,35 +131,24 @@ export default function ProjectResourcesPage() {
     setUrl(resource.url)
     setCategory(resource.category)
     setDescription(resource.description || "")
-    setEditResourceId(resource.id)
+    setEditResourceId(resource._id)
     setShowForm(true)
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
-  const handleDeleteResource = (id) => {
-    const resourceToDelete = resources.find(r => r.id === id)
-    updateResources(resources.filter((r) => r.id !== id))
-
-    if (resourceToDelete) {
-      logActivity({
-        type: "resource_deleted",
-        message: `Deleted resource "${resourceToDelete.title}"`,
-        projectId: projectIndex,
-        projectTitle: projects[projectIndex].title
-      })
-    }
+  const handleDeleteResource = async (id) => {
+    await deleteResource({ id })
 
     if (editResourceId === id) {
       resetForm()
     }
   }
 
-  const handleTogglePin = (id) => {
-    updateResources(
-      resources.map((r) =>
-        r.id === id ? { ...r, pinned: !r.pinned } : r
-      )
-    )
+  const handleTogglePin = async (id) => {
+    const resource = resources.find(r => r._id === id)
+    if (resource) {
+      await togglePinned({ id, pinned: !resource.pinned })
+    }
   }
 
   const handleOpenLink = (link) => {
@@ -255,7 +207,7 @@ export default function ProjectResourcesPage() {
           <div className="flex gap-4 overflow-x-auto pb-2">
             {pinnedResources.map((resource) => (
               <ResourceCard
-                key={resource.id}
+                key={resource._id}
                 resource={resource}
                 compact
                 onOpen={handleOpenLink}
@@ -345,7 +297,7 @@ export default function ProjectResourcesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {filteredResources.map((resource) => (
               <ResourceCard
-                key={resource.id}
+                key={resource._id}
                 resource={resource}
                 onOpen={handleOpenLink}
                 onEdit={handleEditResource}

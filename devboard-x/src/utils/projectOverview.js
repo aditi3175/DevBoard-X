@@ -1,4 +1,4 @@
-export function getProjectMetrics(project) {
+export function getProjectMetrics(project, resources = []) {
   const tasks = project.tasks || []
   const totalTasks = tasks.length
   const completedTasks = tasks.filter((t) => t.completed).length
@@ -7,7 +7,7 @@ export function getProjectMetrics(project) {
     (sum, t) => sum + (t.snippets?.length || 0),
     0
   )
-  const totalResources = (project.resources || []).length
+  const totalResources = resources.length
   const progressPercent =
     totalTasks === 0
       ? 0
@@ -72,8 +72,8 @@ export function getRecentTasks(project, limit = 5) {
     .slice(0, limit)
 }
 
-export function getRecentResources(project, limit = 5) {
-  return [...(project.resources || [])]
+export function getRecentResources(resources = [], limit = 5) {
+  return [...resources]
     .sort(
       (a, b) =>
         new Date(b.createdAt || 0).getTime() -

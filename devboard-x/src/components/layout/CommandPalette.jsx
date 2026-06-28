@@ -18,6 +18,8 @@ import {
 
 
 import { useProjects } from "@/context/ProjectContext"
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
 
 // Category definitions for icons and styling
 const CATEGORIES = {
@@ -59,6 +61,7 @@ const CATEGORY_ORDER = ["action", "project", "task", "snippet", "resource"]
 export default function CommandPalette() {
   const router = useRouter()
   const { projects } = useProjects()
+  const globalSnippets = useQuery(api.snippets.getSnippets)
 
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
@@ -137,8 +140,24 @@ export default function CommandPalette() {
       })
     })
 
+    // Snippets
+    ;(globalSnippets || []).forEach((snippet) => {
+      items.push({
+        id: `snippet-${snippet._id}`,
+        category: "snippet",
+        title: snippet.title,
+        subtitle: snippet.description || snippet.language,
+        meta: snippet.language,
+        // Since snippets don't have a dedicated page yet, they are usually viewed via tasks or a global page, 
+        // we'll route to home/workspace if selected. Or we can just leave route empty and handle it.
+        // Wait, where should a snippet route? Maybe we don't need a route, or maybe `/` for now?
+        // Actually, we can just give it a route like `/` to prevent crash.
+        route: `/`
+      })
+    })
+
     return items
-  }, [projects])
+  }, [projects, globalSnippets])
 
   // ─── FILTERED RESULTS ──────────────────────────────────────────
   const filteredItems = useMemo(() => {

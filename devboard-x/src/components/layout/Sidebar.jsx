@@ -20,7 +20,7 @@ export default function Sidebar() {
     {
       name: "Dashboard",
       icon: Layout,
-      path: "/"
+      path: "/dashboard"
     },
     {
       name: "Projects",

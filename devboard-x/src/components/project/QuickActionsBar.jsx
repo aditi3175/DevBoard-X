@@ -10,7 +10,6 @@ import {
   Download
 } from "lucide-react"
 import { useProjects } from "@/context/ProjectContext"
-import { useActivity } from "@/context/ActivityContext"
 import {
   exportProject,
   downloadJSON,
@@ -23,7 +22,6 @@ import Card from "@/components/ui/Card"
 export default function QuickActionsBar({ projectIndex }) {
   const router = useRouter()
   const { projects } = useProjects()
-  const { logActivity } = useActivity()
 
   const [toast, setToast] = useState({ visible: false, message: "", type: "success" })
 
@@ -36,13 +34,6 @@ export default function QuickActionsBar({ projectIndex }) {
       const jsonString = exportProject(project)
       const filename = `${slugify(project.title)}-export.json`
       downloadJSON(jsonString, filename)
-      
-      logActivity({
-        type: "project_exported",
-        message: `Exported project "${project.title}"`,
-        projectId: projectIndex,
-        projectTitle: project.title
-      })
 
       setToast({
         visible: true,

@@ -1,8 +1,10 @@
 "use client"
 
 import Editor from "@monaco-editor/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useQuery, useMutation, useConvex } from "convex/react"
+import { api } from "../../../../../../../convex/_generated/api"
 import {
   FileCode,
   Plus,
@@ -27,12 +29,7 @@ import Card from "@/components/ui/Card"
 
 import { useProjects } from "@/context/ProjectContext"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
-import {
-  ACTIVITY_TYPES,
-  appendProjectActivity,
-  buildActivityEntry
-} from "@/utils/projectActivity"
-import { useActivity } from "@/context/ActivityContext"
+
 
 // File type and icon mapping
 const getFileIcon = (filename, isSelected) => {
@@ -361,7 +358,7 @@ function ReactMockupPreview({ task }) {
 
   // Extract content from App.jsx
   const appJsxNode = findFileByPath(task?.files, "/src/App.jsx") || findFileByFilename(task?.files, "App.jsx")
-  const appCode = appJsxNode ? appJsxNode.code : ""
+  const appCode = useQuery(api.files.getFileContent, appJsxNode ? { id: appJsxNode._id } : "skip") || ""
 
   const getCleanMatch = (regex, defaultVal) => {
     const match = appCode.match(regex)
@@ -426,7 +423,6 @@ export default function TaskWorkspacePage() {
 
 
   const { projects, setProjects, isLoaded, updateTask, createFile, createFolder, renameFile, deleteFile } = useProjects()
-  const { logActivity } = useActivity()
 
   const urlTaskId = params.taskId === "undefined" ? null : params.taskId
   const isOldTask = !isNaN(Number(urlTaskId))
@@ -442,36 +438,62 @@ export default function TaskWorkspacePage() {
   const [selectedFilePath, setSelectedFilePath] = useState("")
   const [expandedDirs, setExpandedDirs] = useState({ "/src": true, "/app": true })
   const [editorRef, setEditorRef] = useState(null)
-  const [globalSnippets, setGlobalSnippets] = useState([])
   const [terminalTab, setTerminalTab] = useState("console")
   const [htmlSrcDoc, setHtmlSrcDoc] = useState("")
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
+  const [saveState, setSaveState] = useState("saved") // "saved", "saving", "error", "unsaved"
 
-  // Load global snippets
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const saved = localStorage.getItem("devboard-snippets")
-      if (saved) {
-        setGlobalSnippets(JSON.parse(saved))
-      }
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [projects, selectedFilePath])
+  const updateFileContent = useMutation(api.files.updateFileContent)
+  const runTaskMutation = useMutation(api.execution.runTask)
+  const appendConsoleOutput = useMutation(api.execution.appendConsoleOutput)
+  const clearExecutionHistory = useMutation(api.execution.clearExecutionHistory)
+  
+  const executionLogs = useQuery(api.execution.getExecutionHistory, task?._id ? { taskId: task._id } : "skip")
+  const commandHistory = useQuery(api.execution.getCommandHistory, task?._id ? { taskId: task._id } : "skip")
+  
+  const fetchedSnippets = useQuery(api.snippets.getSnippets)
+  const globalSnippets = useMemo(() => fetchedSnippets || [], [fetchedSnippets])
+  const createSnippet = useMutation(api.snippets.createSnippet)
+  const updateSnippet = useMutation(api.snippets.updateSnippet)
+  const deleteSnippet = useMutation(api.snippets.deleteSnippet)
+  const toggleFavorite = useMutation(api.snippets.toggleFavorite)
+  const incrementUsage = useMutation(api.snippets.incrementUsage)
+
+  const convex = useConvex()
+  const autosaveTimerRef = useRef(null)
+  const loadedFileIdRef = useRef(null)
+
+  const handleAutoSave = async (fileId, codeToSave) => {
+    setSaveState("saving")
+    try {
+      await updateFileContent({ id: fileId, code: codeToSave })
+      setSaveState("saved")
+    } catch (err) {
+      console.error("Autosave failed", err)
+      setSaveState("error")
+      
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = setTimeout(() => {
+        handleAutoSave(fileId, codeToSave)
+      }, 3000)
+    }
+  }
 
   const taskSnippets = globalSnippets.filter(s =>
-    task?.snippets?.includes(s.id)
+    task?.snippets?.includes(s._id || s.id)
   )
 
   const getActiveFileOrSnippet = () => {
     if (selectedFilePath && selectedFilePath.startsWith("snippet:")) {
       const snippetId = selectedFilePath.replace("snippet:", "")
-      const snip = globalSnippets.find(s => s.id === snippetId)
+      const snip = globalSnippets.find(s => (s._id || s.id) === snippetId)
       if (snip) {
         return {
           name: snip.title,
           code: snip.code,
           isSnippet: true,
-          id: snip.id,
+          _id: snip._id,
+          id: snip._id || snip.id,
           language: snip.language
         }
       }
@@ -517,11 +539,6 @@ export default function TaskWorkspacePage() {
             updatedAt: new Date().toISOString()
           })
         }
-
-        const updatedProjects = [...projects]
-        updatedProjects[projectIndex].tasks[taskIndex].completed = calculatedCompleted
-        updatedProjects[projectIndex].tasks[taskIndex].progress = calculatedProgress
-        setProjects(updatedProjects)
       }
     }
   }, [
@@ -554,20 +571,6 @@ export default function TaskWorkspacePage() {
     return () => clearTimeout(timer)
   }, [projectIndex, taskIndex, task?.title, task])
 
-  // Initialize task files if they don't exist
-  useEffect(() => {
-    if (project && task && (!task.files || task.files.length === 0)) {
-      const updatedProjects = [...projects]
-      updatedProjects[projectIndex].tasks[taskIndex].files = [
-        {
-          name: "index.js",
-          code: "// Write your JavaScript code here\nconsole.log('Hello, World!');\n",
-          output: ""
-        }
-      ]
-      setProjects(updatedProjects)
-    }
-  }, [project, task, projectIndex, taskIndex, projects, setProjects])
 
   // Reset selectedFilePath on task switches
   useEffect(() => {
@@ -596,49 +599,49 @@ export default function TaskWorkspacePage() {
     return () => clearTimeout(timer)
   }, [task?.files, selectedFilePath, globalSnippets])
 
+  const activeFileCode = useQuery(api.files.getFileContent, selectedFile && !selectedFile.isSnippet ? { id: selectedFile._id } : "skip")
+
   // Sync editor values
   useEffect(() => {
     const timer = setTimeout(() => {
       if (selectedFile) {
-        setCode(selectedFile.code || "")
-        setOutput(selectedFile.output || "")
+        if (selectedFile.isSnippet) {
+          setCode(selectedFile.code || "")
+          setOutput(selectedFile.output || "")
+          loadedFileIdRef.current = null
+          setSaveState("saved")
+        } else {
+          if (activeFileCode !== undefined && loadedFileIdRef.current !== selectedFile._id) {
+            setCode(activeFileCode)
+            setOutput(selectedFile.output || "")
+            loadedFileIdRef.current = selectedFile._id
+            setSaveState("saved")
+          }
+        }
       } else {
         setCode("")
         setOutput("")
+        loadedFileIdRef.current = null
+        setSaveState("saved")
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [selectedFile])
+  }, [selectedFile, activeFileCode])
 
   // Listening to iframe console messages
   useEffect(() => {
     const handleConsoleMessage = (e) => {
       if (e.data && (e.data.type === 'html-console-log' || e.data.type === 'html-console-error')) {
-        const now = new Date()
-        const timeStr = now.toTimeString().split(" ")[0]
-        const logEntry = {
-          timestamp: timeStr,
-          type: e.data.type === 'html-console-error' ? "error" : "success",
-          text: e.data.text
-        }
-        
-        setProjects(prevProjects => {
-          const updated = [...prevProjects]
-          const currentTask = updated[projectIndex]?.tasks?.[taskIndex]
-          if (currentTask) {
-            if (!currentTask.terminalHistory) currentTask.terminalHistory = []
-            const history = currentTask.terminalHistory
-            if (history.length === 0 || history[history.length - 1].text !== logEntry.text || history[history.length - 1].timestamp !== logEntry.timestamp) {
-              currentTask.terminalHistory = [...history, logEntry]
-            }
-          }
-          return updated
-        })
+        appendConsoleOutput({
+          taskId: task._id,
+          output: e.data.text,
+          status: e.data.type === 'html-console-error' ? "error" : "success"
+        }).catch(err => console.error("Failed to append console output", err))
       }
     }
     window.addEventListener('message', handleConsoleMessage)
     return () => window.removeEventListener("message", handleConsoleMessage)
-  }, [projectIndex, taskIndex, task, setProjects, logActivity])
+  }, [task?._id, appendConsoleOutput])
 
   if (!isLoaded) {
     return (
@@ -667,102 +670,72 @@ export default function TaskWorkspacePage() {
     )
   }
 
-  const handleRunTask = () => {
+  const handleRunTask = async () => {
     const template = detectTaskTemplate(task)
-    const now = new Date()
-    const timeStr = now.toTimeString().split(" ")[0]
     
     const updatedProjects = [...projects]
     const currentTask = updatedProjects[projectIndex].tasks[taskIndex]
-    
-    if (!currentTask.terminalHistory) currentTask.terminalHistory = []
-    if (!currentTask.commandHistory) currentTask.commandHistory = []
 
     if (template === "HTML") {
       const indexHtmlNode = findFileByPath(task.files, "/index.html") || findFileByFilename(task.files, "index.html")
       const styleCssNode = findFileByPath(task.files, "/style.css") || findFileByFilename(task.files, "style.css")
       const appJsNode = findFileByPath(task.files, "/app.js") || findFileByFilename(task.files, "app.js")
 
-      const html = indexHtmlNode ? indexHtmlNode.code : "<h1>No index.html found</h1>"
-      const css = styleCssNode ? styleCssNode.code : ""
-      const js = appJsNode ? appJsNode.code : ""
+      const html = indexHtmlNode ? await convex.query(api.files.getFileContent, { id: indexHtmlNode._id }) : "<h1>No index.html found</h1>"
+      const css = styleCssNode ? await convex.query(api.files.getFileContent, { id: styleCssNode._id }) : ""
+      const js = appJsNode ? await convex.query(api.files.getFileContent, { id: appJsNode._id }) : ""
 
       // Combine HTML, CSS, JS
       const combined = combineHtmlCssJs(html, css, js)
       setHtmlSrcDoc(combined)
 
-      logActivity({
-        type: "code_executed",
-        message: `Executed code in task "${task.title}"`,
-        projectId: projectIndex,
-        projectTitle: updatedProjects[projectIndex].title
-      })
 
-      const logEntry = {
-        timestamp: timeStr,
-        type: "success",
-        text: "Project built. HTML preview refreshed successfully."
-      }
-      currentTask.terminalHistory.push(logEntry)
-      currentTask.projectRan = true
-      currentTask.codeExecuted = true
+
+      await runTaskMutation({
+        taskId: task._id,
+        output: "Project built. HTML preview refreshed successfully.",
+        status: "success"
+      })
+      
       setTerminalTab("preview")
-      setProjects(updatedProjects)
     } 
     else if (template === "React") {
-      logActivity({
-        type: "code_executed",
-        message: `Executed React code in task "${task.title}"`,
-        projectId: projectIndex,
-        projectTitle: updatedProjects[projectIndex].title
-      })
 
-      const logEntry = {
-        timestamp: timeStr,
-        type: "success",
-        text: "Vite dev server started. Live React Simulator rendered."
-      }
-      currentTask.terminalHistory.push(logEntry)
-      currentTask.projectRan = true
-      currentTask.codeExecuted = true
+
+      await runTaskMutation({
+        taskId: task._id,
+        output: "Vite dev server started. Live React Simulator rendered.",
+        status: "success"
+      })
+      
       setTerminalTab("preview")
-      setProjects(updatedProjects)
     } 
     else if (template === "Next.js") {
-      const logEntry = {
-        timestamp: timeStr,
-        type: "error",
-        text: "This starter represents a Next.js project structure. Runtime execution is not supported inside DevBoard X yet."
-      }
-      currentTask.terminalHistory.push(logEntry)
-      currentTask.projectRan = true
-      currentTask.codeExecuted = true
+      await runTaskMutation({
+        taskId: task._id,
+        output: "This starter represents a Next.js project structure. Runtime execution is not supported inside DevBoard X yet.",
+        status: "error"
+      })
+      
       setTerminalTab("console")
-      setProjects(updatedProjects)
     } 
     else if (template === "Node.js") {
-      const logEntry = {
-        timestamp: timeStr,
-        type: "error",
-        text: "Node runtime required. Backend execution environment not available."
-      }
-      currentTask.terminalHistory.push(logEntry)
-      currentTask.projectRan = true
-      currentTask.codeExecuted = true
+      await runTaskMutation({
+        taskId: task._id,
+        output: "Node runtime required. Backend execution environment not available.",
+        status: "error"
+      })
+      
       setTerminalTab("console")
-      setProjects(updatedProjects)
     } 
     else if (template === "Express") {
-      const logEntry = {
-        timestamp: timeStr,
-        type: "error",
-        text: "Server execution is not available inside browser environment."
-      }
-      currentTask.terminalHistory.push(logEntry)
-      currentTask.projectRan = true
-      currentTask.codeExecuted = true
+      await runTaskMutation({
+        taskId: task._id,
+        output: "Server execution is not available inside browser environment.",
+        status: "error"
+      })
+      
       setTerminalTab("console")
-      setProjects(updatedProjects)
     } 
     else {
       // Stand-alone JavaScript File execution (fallback)
@@ -785,51 +758,34 @@ export default function TaskWorkspacePage() {
         const finalOutput = result || "Code executed successfully."
         setOutput(finalOutput)
 
-        logActivity({
-          type: "code_executed",
-          message: `Executed JavaScript code in task "${task.title}"`,
-          projectId: projectIndex,
-          projectTitle: updatedProjects[projectIndex].title
-        })
 
-        const logEntry = {
-          timestamp: timeStr,
-          type: "success",
-          text: finalOutput,
-          command: code
-        }
 
-        currentTask.terminalHistory.push(logEntry)
-        currentTask.commandHistory.push({
-          timestamp: timeStr,
-          command: code
+        await runTaskMutation({
+          taskId: task._id,
+          fileId: selectedFile && !selectedFile.isSnippet ? selectedFile._id : undefined,
+          command: code,
+          output: finalOutput,
+          status: "success"
         })
 
         if (!selectedFilePath.startsWith("snippet:")) {
           currentTask.files = updateFileInTree(
             currentTask.files,
             selectedFilePath,
-            { code, output: finalOutput }
+            { output: finalOutput }
           )
+          setProjects(updatedProjects)
         }
 
-        currentTask.projectRan = true
-        currentTask.codeExecuted = true
         setTerminalTab("console")
-        setProjects(updatedProjects)
       }
       catch (error) {
-        const logEntry = {
-          timestamp: timeStr,
-          type: "error",
-          text: error.message,
-          command: code
-        }
-
-        currentTask.terminalHistory.push(logEntry)
-        currentTask.commandHistory.push({
-          timestamp: timeStr,
-          command: code
+        await runTaskMutation({
+          taskId: task._id,
+          fileId: selectedFile && !selectedFile.isSnippet ? selectedFile._id : undefined,
+          command: code,
+          output: error.message,
+          status: "error"
         })
 
         if (!selectedFilePath.startsWith("snippet:")) {
@@ -838,13 +794,10 @@ export default function TaskWorkspacePage() {
             selectedFilePath,
             { output: error.message }
           )
+          setProjects(updatedProjects)
         }
 
-        currentTask.projectRan = true
-        currentTask.codeExecuted = true
         setTerminalTab("console")
-        setProjects(updatedProjects)
-        setOutput(error.message)
       }
     }
   }
@@ -894,24 +847,7 @@ export default function TaskWorkspacePage() {
     const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
-    const withActivity = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.FILE_CREATED,
-        `Created file: ${fileName}`,
-        { taskIndex }
-      )
-    )
-
-    logActivity({
-      type: "file_created",
-      message: `Created file "${fileName}" in task "${task.title}"`,
-      projectId: projectIndex,
-      projectTitle: updatedProjects[projectIndex].title
-    })
-
-    setProjects(withActivity)
+    setProjects(updatedProjects)
 
     const newFilePath = parentPath ? `${parentPath}/${fileName}` : `/${fileName}`
     setSelectedFilePath(newFilePath)
@@ -979,17 +915,7 @@ export default function TaskWorkspacePage() {
     const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
-    const withActivity = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.FILE_RENAMED,
-        `Renamed file: ${currentName} → ${newName}`,
-        { taskIndex }
-      )
-    )
-
-    setProjects(withActivity)
+    setProjects(updatedProjects)
 
     if (selectedFilePath === pathStr) {
       const fileParts = pathStr.split("/")
@@ -1025,17 +951,7 @@ export default function TaskWorkspacePage() {
     const updatedProjects = [...projects]
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
-    const withActivity = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.FILE_RENAMED,
-        `Renamed folder: ${currentName} → ${newName}`,
-        { taskIndex }
-      )
-    )
-
-    setProjects(withActivity)
+    setProjects(updatedProjects)
 
     const folderParts = pathStr.split("/")
     folderParts[folderParts.length - 1] = newName
@@ -1084,24 +1000,7 @@ export default function TaskWorkspacePage() {
     await deleteFile({ id: node._id })
     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
-    const withActivity = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.FILE_DELETED,
-        `Deleted file: ${pathStr}`,
-        { taskIndex }
-      )
-    )
-
-    logActivity({
-      type: "file_deleted",
-      message: `Deleted file "${pathStr}" in task "${task.title}"`,
-      projectId: projectIndex,
-      projectTitle: updatedProjects[projectIndex].title
-    })
-
-    setProjects(withActivity)
+    setProjects(updatedProjects)
   }
 
   const handleDeleteFolder = async (pathStr) => {
@@ -1151,7 +1050,7 @@ export default function TaskWorkspacePage() {
   }
 
   // Snippet Actions
-  const handleSaveAsSnippet = () => {
+  const handleSaveAsSnippet = async () => {
     if (!selectedFilePath || !selectedFile) return
 
     let selectedCode = ""
@@ -1179,21 +1078,14 @@ export default function TaskWorkspacePage() {
     else if (ext === "json") lang = "json"
     else if (ext === "py") lang = "python"
 
-    const newSnippetId = crypto.randomUUID()
-    const newSnippet = {
-      id: newSnippetId,
+    const newSnippetId = await createSnippet({
       title: snippetTitle,
-      category: "Task Snippet",
-      language: lang,
+      description: `Saved from ${selectedFile.name}`,
       code: selectedCode,
-      createdAt: new Date().toLocaleDateString(),
-      taskId: taskIndex,
-      projectId: projectIndex
-    }
-
-    const saved = localStorage.getItem("devboard-snippets")
-    const globalList = saved ? JSON.parse(saved) : []
-    localStorage.setItem("devboard-snippets", JSON.stringify([newSnippet, ...globalList]))
+      language: lang,
+      tags: [],
+      favorite: false
+    })
 
     const updatedProjects = [...projects]
     if (!updatedProjects[projectIndex].tasks[taskIndex].snippets) {
@@ -1201,26 +1093,7 @@ export default function TaskWorkspacePage() {
     }
     updatedProjects[projectIndex].tasks[taskIndex].snippets.push(newSnippetId)
 
-    const withActivity = appendProjectActivity(
-      updatedProjects,
-      projectIndex,
-      buildActivityEntry(
-        ACTIVITY_TYPES.SNIPPET_SAVED,
-        `Saved snippet: ${snippetTitle}`,
-        { taskIndex }
-      )
-    )
-
-    logActivity({
-      type: "snippet_saved",
-      message: `Saved snippet "${snippetTitle}"`,
-      projectId: projectIndex,
-      projectTitle: updatedProjects[projectIndex].title
-    })
-
-    setProjects(withActivity)
-
-    setGlobalSnippets([newSnippet, ...globalList])
+    setProjects(updatedProjects)
 
     alert(`Snippet "${snippetTitle}" saved successfully!`)
   }
@@ -1482,17 +1355,18 @@ export default function TaskWorkspacePage() {
               <div className="flex flex-col gap-1 overflow-y-auto max-h-[100px] pr-1">
                 {taskSnippets.length > 0 ? (
                   taskSnippets.map((snippet) => {
-                    const isSelected = selectedFilePath === `snippet:${snippet.id}`
+                    const snippetId = snippet._id || snippet.id;
+                    const isSelected = selectedFilePath === `snippet:${snippetId}`
                     return (
                       <div
-                        key={snippet.id}
+                        key={snippetId}
                         className={`group flex items-center justify-between px-3 py-1 rounded-lg transition-all duration-200 w-full text-left ${isSelected
                           ? "bg-primary text-white shadow-sm"
                           : "hover:bg-bg-hover text-text-secondary hover:text-text-main"
                           }`}
                       >
                         <button
-                          onClick={() => setSelectedFilePath(`snippet:${snippet.id}`)}
+                          onClick={() => setSelectedFilePath(`snippet:${snippetId}`)}
                           aria-pressed={isSelected}
                           aria-label={`Select snippet ${snippet.title}`}
                           className="flex items-center gap-2 overflow-hidden mr-2 bg-transparent border-none p-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary outline-none text-inherit flex-1 text-left"
@@ -1503,20 +1377,55 @@ export default function TaskWorkspacePage() {
                           </span>
                         </button>
 
-                        {/* Unlink Action */}
                         <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+                          {/* Insert Action */}
                           <button
-                            title="Unlink"
+                            title="Insert into editor"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (editorRef && !selectedFile?.isSnippet) {
+                                const position = editorRef.getPosition();
+                                editorRef.executeEdits("snippet-insert", [{
+                                  range: { startLineNumber: position.lineNumber, startColumn: position.column, endLineNumber: position.lineNumber, endColumn: position.column },
+                                  text: snippet.code,
+                                  forceMoveMarkers: true
+                                }]);
+                                await incrementUsage({ id: snippetId });
+                              } else {
+                                alert("Please open a file to insert the snippet into.");
+                              }
+                            }}
+                            className={`p-0.5 rounded transition-colors ${isSelected ? "text-white hover:bg-white/20" : "text-zinc-400 hover:text-success hover:bg-success/10"}`}
+                          >
+                            <Plus size={12} />
+                          </button>
+                          {/* Delete Global Action */}
+                          <button
+                            title="Delete snippet globally"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Delete snippet "${snippet.title}" permanently?`)) {
+                                handleUnlinkSnippet(snippetId);
+                                deleteSnippet({ id: snippetId });
+                              }
+                            }}
+                            className={`p-0.5 rounded transition-colors ${isSelected ? "text-white hover:bg-white/20" : "text-zinc-400 hover:text-danger hover:bg-danger/10"}`}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                          {/* Unlink Action */}
+                          <button
+                            title="Unlink from task"
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleUnlinkSnippet(snippet.id)
+                              handleUnlinkSnippet(snippetId)
                             }}
                             className={`p-0.5 rounded transition-colors ${isSelected
                               ? "text-white hover:bg-white/20"
-                              : "text-zinc-400 hover:text-danger hover:bg-danger/10"
+                              : "text-zinc-400 hover:text-warning hover:bg-warning/10"
                               }`}
                           >
-                            <Trash2 size={12} />
+                            <span className="text-[10px] font-bold">U</span>
                           </button>
                         </div>
                       </div>
@@ -1583,25 +1492,7 @@ export default function TaskWorkspacePage() {
                       let updatedProjects = [...projects]
                       updatedProjects[projectIndex].tasks[taskIndex].userMarkedFinished = e.target.checked
 
-                      if (e.target.checked) {
-                        updatedProjects = appendProjectActivity(
-                          updatedProjects,
-                          projectIndex,
-                          buildActivityEntry(
-                            ACTIVITY_TYPES.TASK_COMPLETED,
-                            `Completed task: ${task.title}`,
-                            { taskIndex }
-                          )
-                        )
 
-                        logActivity({
-                          type: "task_completed",
-                          message: `Completed task "${task.title}"`,
-                          projectId: projectIndex,
-                          projectTitle: updatedProjects[projectIndex].title,
-                          taskId: taskIndex
-                        })
-                      }
 
                       setProjects(updatedProjects)
                     }}
@@ -1621,7 +1512,13 @@ export default function TaskWorkspacePage() {
           {/* CODE EDITOR */}
           <Card>
             <h2 className="text-xl font-semibold mb-4 flex items-center justify-between">
-              <span>Code Editor</span>
+              <div className="flex items-center gap-3">
+                <span>Code Editor</span>
+                {saveState === "saving" && <span className="text-xs font-semibold text-info animate-pulse">Saving...</span>}
+                {saveState === "saved" && <span className="text-xs font-semibold text-success">Saved</span>}
+                {saveState === "error" && <span className="text-xs font-semibold text-danger">Save Failed (Retrying...)</span>}
+                {saveState === "unsaved" && <span className="text-xs font-semibold text-zinc-400">Unsaved changes</span>}
+              </div>
               {selectedFilePath && (
                 <span className="text-xs px-2 py-1 rounded font-mono bg-bg-active text-text-muted">
                   {selectedFilePath}
@@ -1641,31 +1538,37 @@ export default function TaskWorkspacePage() {
                 onChange={(value) => {
                   const newCode = value || ""
                   setCode(newCode)
+                  setSaveState("unsaved")
 
                   if (selectedFilePath.startsWith("snippet:")) {
                     const snippetId = selectedFilePath.replace("snippet:", "")
-                    const saved = localStorage.getItem("devboard-snippets")
-                    const globalList = saved ? JSON.parse(saved) : []
-                    const updatedList = globalList.map(s => {
-                      if (s.id === snippetId) {
-                        return { ...s, code: newCode }
-                      }
-                      return s
-                    })
-                    localStorage.setItem("devboard-snippets", JSON.stringify(updatedList))
-                  } else {
-                    const updatedProjects = [...projects]
-                    if (!updatedProjects[projectIndex].tasks[taskIndex].files) {
-                      updatedProjects[projectIndex].tasks[taskIndex].files = []
+                    const snip = globalSnippets.find(s => (s._id || s.id) === snippetId)
+                    if (snip && snip._id) {
+                      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+                      autosaveTimerRef.current = setTimeout(() => {
+                        setSaveState("saving")
+                        updateSnippet({
+                          id: snip._id,
+                          title: snip.title,
+                          description: snip.description,
+                          code: newCode,
+                          language: snip.language,
+                          tags: snip.tags || []
+                        }).then(() => setSaveState("saved")).catch(() => setSaveState("error"))
+                      }, 800)
                     }
+                  } else if (selectedFile && !selectedFile.isSnippet) {
+                    const fileId = selectedFile._id
+                    
+                    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+                    
+                    autosaveTimerRef.current = setTimeout(() => {
+                      handleAutoSave(fileId, newCode)
+                    }, 800)
 
-                    updatedProjects[projectIndex].tasks[taskIndex].files = updateFileInTree(
-                      updatedProjects[projectIndex].tasks[taskIndex].files,
-                      selectedFilePath,
-                      { code: newCode }
-                    )
+                    // Mark file as edited locally
+                    const updatedProjects = [...projects]
                     updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-
                     setProjects(updatedProjects)
                   }
                 }}
@@ -1782,7 +1685,11 @@ export default function TaskWorkspacePage() {
                 {terminalTab === "console" && (
                   <button
                     title="Clear Console"
-                    onClick={handleClearTerminal}
+                    onClick={() => {
+                      if (task) {
+                        clearExecutionHistory({ taskId: task._id }).catch(err => console.error("Failed to clear history", err))
+                      }
+                    }}
                     className="p-1 rounded hover:bg-black/10 text-zinc-400 hover:text-white transition"
                   >
                     <Trash2 size={14} />
@@ -1871,14 +1778,14 @@ export default function TaskWorkspacePage() {
 
               {terminalTab === "console" && (
                 <div className="flex flex-col gap-1.5">
-                  {task?.terminalHistory && task.terminalHistory.length > 0 ? (
-                    task.terminalHistory.map((log, index) => (
+                  {executionLogs && executionLogs.length > 0 ? (
+                    executionLogs.map((log, index) => (
                       <div key={index} className="flex items-start gap-2 whitespace-pre-wrap">
                         <span className="text-zinc-400 shrink-0 select-none">
-                          [{log.timestamp}]
+                          [{new Date(log.startedAt).toTimeString().split(" ")[0]}]
                         </span>
-                        <span className={log.type === "error" ? "text-danger" : "text-success"}>
-                          {log.text}
+                        <span className={log.status === "error" ? "text-danger" : "text-success"}>
+                          {log.output}
                         </span>
                       </div>
                     ))
@@ -1898,14 +1805,14 @@ export default function TaskWorkspacePage() {
                     <span className="text-zinc-600">~/{task?.title || "workspace"}</span>
                     <span className="text-zinc-700">$</span>
                   </div>
-                  {task?.terminalHistory && task.terminalHistory.length > 0 ? (
-                    task.terminalHistory.map((log, index) => (
+                  {executionLogs && executionLogs.length > 0 ? (
+                    executionLogs.map((log, index) => (
                       <div key={index} className="flex items-start gap-2 whitespace-pre-wrap">
                         <span className="text-zinc-400 shrink-0 select-none">
-                          [{log.timestamp}]
+                          [{new Date(log.startedAt).toTimeString().split(" ")[0]}]
                         </span>
-                        <span className={log.type === "error" ? "text-danger" : "text-success"}>
-                          {log.text}
+                        <span className={log.status === "error" ? "text-danger" : "text-success"}>
+                          {log.output}
                         </span>
                       </div>
                     ))
@@ -1920,15 +1827,15 @@ export default function TaskWorkspacePage() {
 
               {terminalTab === "history" && (
                 <div className="flex flex-col gap-2">
-                  {task?.commandHistory && task.commandHistory.length > 0 ? (
-                    task.commandHistory.slice().reverse().map((cmd, index) => (
+                  {commandHistory && commandHistory.length > 0 ? (
+                    commandHistory.map((cmd, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-2 rounded bg-zinc-950 border border-zinc-800/40 gap-3 hover:border-zinc-700 transition"
                       >
                         <div className="flex flex-col gap-1 overflow-hidden">
                           <span className="text-xs text-zinc-400 select-none">
-                            Run at {cmd.timestamp}
+                            Run at {new Date(cmd.executedAt).toTimeString().split(" ")[0]}
                           </span>
                           <span className="truncate text-zinc-300 font-mono">
                             {cmd.command.length > 60 ? `${cmd.command.substring(0, 60)}...` : cmd.command}

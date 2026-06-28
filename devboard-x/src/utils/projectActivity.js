@@ -91,3 +91,43 @@ export function getActivityIcon(type) {
       return Activity
   }
 }
+
+export function getActivityCategory(type) {
+  switch (type) {
+    case ACTIVITY_TYPES.PROJECT_CREATED:
+    case ACTIVITY_TYPES.PROJECT_EXPORTED:
+    case ACTIVITY_TYPES.PROJECT_IMPORTED:
+      return "Project"
+    case ACTIVITY_TYPES.TASK_CREATED:
+    case ACTIVITY_TYPES.TASK_COMPLETED:
+    case ACTIVITY_TYPES.TASK_DELETED:
+      return "Task"
+    case ACTIVITY_TYPES.RESOURCE_ADDED:
+    case ACTIVITY_TYPES.RESOURCE_DELETED:
+      return "Resource"
+    case ACTIVITY_TYPES.SNIPPET_SAVED:
+    case ACTIVITY_TYPES.SNIPPET_DELETED:
+      return "Snippet"
+    case ACTIVITY_TYPES.CODE_EXECUTED:
+      return "Execution"
+    case ACTIVITY_TYPES.FILE_CREATED:
+    case ACTIVITY_TYPES.FILE_RENAMED:
+    case ACTIVITY_TYPES.FILE_DELETED:
+      return "Workspace"
+    default:
+      return "Workspace"
+  }
+}
+
+export function getCategoryEmoji(category) {
+  switch (category) {
+    case "Project": return "📁"
+    case "Task": return "✅"
+    case "Execution": return "💻"
+    case "Resource": return "📚"
+    case "Snippet": return "✂️"
+    case "Workspace": return "🌍"
+    case "Authentication": return "🔒"
+    default: return "📌"
+  }
+}
