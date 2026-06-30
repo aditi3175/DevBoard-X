@@ -28,6 +28,11 @@ export default function Sidebar() {
       path: "/projects"
     },
     {
+      name: "Snippets",
+      icon: Code2,
+      path: "/snippets"
+    },
+    {
       name: "Analytics",
       icon: BarChart3,
       path: "/analytics"

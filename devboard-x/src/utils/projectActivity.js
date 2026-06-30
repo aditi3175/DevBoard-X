@@ -22,7 +22,9 @@ export const ACTIVITY_TYPES = {
   TASK_DELETED: "task_deleted",
   RESOURCE_ADDED: "resource_added",
   RESOURCE_DELETED: "resource_deleted",
-  SNIPPET_SAVED: "snippet_saved",
+  SNIPPET_CREATED: "snippet_created",
+  SNIPPET_UPDATED: "snippet_updated",
+  SNIPPET_USED: "snippet_used",
   SNIPPET_DELETED: "snippet_deleted",
   PROJECT_EXPORTED: "project_exported",
   PROJECT_IMPORTED: "project_imported",
@@ -70,7 +72,9 @@ export function getActivityIcon(type) {
       return Link2
     case ACTIVITY_TYPES.RESOURCE_DELETED:
       return Scissors
-    case ACTIVITY_TYPES.SNIPPET_SAVED:
+    case ACTIVITY_TYPES.SNIPPET_CREATED:
+    case ACTIVITY_TYPES.SNIPPET_UPDATED:
+    case ACTIVITY_TYPES.SNIPPET_USED:
       return Save
     case ACTIVITY_TYPES.SNIPPET_DELETED:
       return Flame
@@ -105,7 +109,9 @@ export function getActivityCategory(type) {
     case ACTIVITY_TYPES.RESOURCE_ADDED:
     case ACTIVITY_TYPES.RESOURCE_DELETED:
       return "Resource"
-    case ACTIVITY_TYPES.SNIPPET_SAVED:
+    case ACTIVITY_TYPES.SNIPPET_CREATED:
+    case ACTIVITY_TYPES.SNIPPET_UPDATED:
+    case ACTIVITY_TYPES.SNIPPET_USED:
     case ACTIVITY_TYPES.SNIPPET_DELETED:
       return "Snippet"
     case ACTIVITY_TYPES.CODE_EXECUTED:

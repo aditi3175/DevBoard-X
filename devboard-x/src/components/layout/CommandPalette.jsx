@@ -148,11 +148,8 @@ export default function CommandPalette() {
         title: snippet.title,
         subtitle: snippet.description || snippet.language,
         meta: snippet.language,
-        // Since snippets don't have a dedicated page yet, they are usually viewed via tasks or a global page, 
-        // we'll route to home/workspace if selected. Or we can just leave route empty and handle it.
-        // Wait, where should a snippet route? Maybe we don't need a route, or maybe `/` for now?
-        // Actually, we can just give it a route like `/` to prevent crash.
-        route: `/`
+        // Route to the new Global Snippet Library
+        route: `/snippets`
       })
     })
 

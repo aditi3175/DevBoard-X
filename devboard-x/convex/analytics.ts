@@ -9,12 +9,22 @@ export const getWorkspaceAnalytics = query({
     const userId = identity.subject;
 
     const projects = await ctx.db.query("projects").withIndex("by_user", q => q.eq("userId", userId)).collect();
-    const tasks = await ctx.db.query("tasks").withIndex("by_user", q => q.eq("userId", userId)).collect();
-    const files = await ctx.db.query("files").withIndex("by_user", q => q.eq("userId", userId)).collect();
-    const resources = await ctx.db.query("resources").withIndex("by_user", q => q.eq("userId", userId)).collect();
+    const allTasks = await ctx.db.query("tasks").withIndex("by_user", q => q.eq("userId", userId)).collect();
+    const allFiles = await ctx.db.query("files").withIndex("by_user", q => q.eq("userId", userId)).collect();
+    const allResources = await ctx.db.query("resources").withIndex("by_user", q => q.eq("userId", userId)).collect();
     const snippets = await ctx.db.query("snippets").withIndex("by_user", q => q.eq("userId", userId)).collect();
     const activities = await ctx.db.query("activity").withIndex("by_user", q => q.eq("userId", userId)).collect();
-    const executionLogs = await ctx.db.query("execution_logs").withIndex("by_user", q => q.eq("userId", userId)).collect();
+    const allExecutionLogs = await ctx.db.query("execution_logs").withIndex("by_user", q => q.eq("userId", userId)).collect();
+
+    // Only count active projects for workspace analytics
+    const activeProjectIds = new Set(projects.map(p => p._id));
+    
+    const tasks = allTasks.filter(t => activeProjectIds.has(t.projectId));
+    const activeTaskIds = new Set(tasks.map(t => t._id));
+
+    const files = allFiles.filter(f => activeTaskIds.has(f.taskId));
+    const resources = allResources.filter(r => activeProjectIds.has(r.projectId));
+    const executionLogs = allExecutionLogs.filter(log => activeTaskIds.has(log.taskId));
 
     // ==========================================
     // WORKSPACE ANALYTICS (CURRENT)

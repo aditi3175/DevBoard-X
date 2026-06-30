@@ -87,6 +87,22 @@ export const deleteProject = mutation({
         message: `Deleted project: ${project.title}`,
       });
       await ctx.db.delete(args.id);
+
+      // Cascade delete tasks, their files, and execution logs
+      const tasks = await ctx.db.query("tasks").withIndex("by_project", q => q.eq("projectId", args.id)).collect();
+      for (const t of tasks) {
+        const files = await ctx.db.query("files").withIndex("by_task", q => q.eq("taskId", t._id)).collect();
+        for (const f of files) await ctx.db.delete(f._id);
+        
+        const logs = await ctx.db.query("execution_logs").withIndex("by_task", q => q.eq("taskId", t._id)).collect();
+        for (const log of logs) await ctx.db.delete(log._id);
+        
+        await ctx.db.delete(t._id);
+      }
+
+      // Cascade delete resources
+      const resources = await ctx.db.query("resources").withIndex("by_project", q => q.eq("projectId", args.id)).collect();
+      for (const r of resources) await ctx.db.delete(r._id);
     }
   },
 });

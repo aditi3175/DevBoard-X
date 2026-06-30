@@ -100,6 +100,12 @@ export const updateSnippet = mutation({
       tags: args.tags,
       updatedAt: now,
     });
+
+    await logActivityEvent(ctx, {
+      type: "snippet_updated",
+      message: `Updated snippet: ${args.title}`,
+      snippetId: args.id,
+    });
   },
 });
 

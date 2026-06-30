@@ -22,10 +22,12 @@ import {
   Minimize2,
   ExternalLink,
   AlertTriangle,
-  BarChart2
+  BarChart2,
+  Code2
 } from "lucide-react"
 
 import Card from "@/components/ui/Card"
+import SnippetPickerModal from "@/components/snippets/SnippetPickerModal"
 
 import { useProjects } from "@/context/ProjectContext"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
@@ -442,6 +444,7 @@ export default function TaskWorkspacePage() {
   const [htmlSrcDoc, setHtmlSrcDoc] = useState("")
   const [previewFullscreen, setPreviewFullscreen] = useState(false)
   const [saveState, setSaveState] = useState("saved") // "saved", "saving", "error", "unsaved"
+  const [isSnippetPickerOpen, setIsSnippetPickerOpen] = useState(false)
 
   const updateFileContent = useMutation(api.files.updateFileContent)
   const runTaskMutation = useMutation(api.execution.runTask)
@@ -479,9 +482,6 @@ export default function TaskWorkspacePage() {
     }
   }
 
-  const taskSnippets = globalSnippets.filter(s =>
-    task?.snippets?.includes(s._id || s.id)
-  )
 
   const getActiveFileOrSnippet = () => {
     if (selectedFilePath && selectedFilePath.startsWith("snippet:")) {
@@ -518,10 +518,6 @@ export default function TaskWorkspacePage() {
       if (task.projectRan) {
         calculatedProgress += 35;
       }
-      const snippetsCount = task.snippets ? task.snippets.length : 0;
-      if (snippetsCount > 0) {
-        calculatedProgress += 15;
-      }
       if (task.userMarkedFinished) {
         calculatedProgress = 100;
       }
@@ -552,8 +548,7 @@ export default function TaskWorkspacePage() {
     updateTask,
     task?.fileEdited,
     task?.projectRan,
-    task?.userMarkedFinished,
-    task?.snippets
+    task?.userMarkedFinished
   ])
 
   // Auto-switch tabs based on template type
@@ -697,6 +692,8 @@ export default function TaskWorkspacePage() {
         status: "success"
       })
       
+      currentTask.projectRan = true
+      setProjects(updatedProjects)
       setTerminalTab("preview")
     } 
     else if (template === "React") {
@@ -708,6 +705,8 @@ export default function TaskWorkspacePage() {
         status: "success"
       })
       
+      currentTask.projectRan = true
+      setProjects(updatedProjects)
       setTerminalTab("preview")
     } 
     else if (template === "Next.js") {
@@ -717,6 +716,8 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
+      currentTask.projectRan = true
+      setProjects(updatedProjects)
       setTerminalTab("console")
     } 
     else if (template === "Node.js") {
@@ -726,6 +727,8 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
+      currentTask.projectRan = true
+      setProjects(updatedProjects)
       setTerminalTab("console")
     } 
     else if (template === "Express") {
@@ -735,6 +738,8 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
+      currentTask.projectRan = true
+      setProjects(updatedProjects)
       setTerminalTab("console")
     } 
     else {
@@ -774,8 +779,9 @@ export default function TaskWorkspacePage() {
             selectedFilePath,
             { output: finalOutput }
           )
-          setProjects(updatedProjects)
         }
+        currentTask.projectRan = true
+        setProjects(updatedProjects)
 
         setTerminalTab("console")
       }
@@ -1087,28 +1093,7 @@ export default function TaskWorkspacePage() {
       favorite: false
     })
 
-    const updatedProjects = [...projects]
-    if (!updatedProjects[projectIndex].tasks[taskIndex].snippets) {
-      updatedProjects[projectIndex].tasks[taskIndex].snippets = []
-    }
-    updatedProjects[projectIndex].tasks[taskIndex].snippets.push(newSnippetId)
-
-    setProjects(updatedProjects)
-
-    alert(`Snippet "${snippetTitle}" saved successfully!`)
-  }
-
-  const handleUnlinkSnippet = (snippetId) => {
-    const updatedProjects = [...projects]
-    if (updatedProjects[projectIndex].tasks[taskIndex].snippets) {
-      updatedProjects[projectIndex].tasks[taskIndex].snippets =
-        updatedProjects[projectIndex].tasks[taskIndex].snippets.filter(id => id !== snippetId)
-      setProjects(updatedProjects)
-    }
-
-    if (selectedFilePath === `snippet:${snippetId}`) {
-      setSelectedFilePath("")
-    }
+    alert(`Snippet "${snippetTitle}" saved globally successfully!`)
   }
 
   // Recursive Tree Renderer
@@ -1278,7 +1263,6 @@ export default function TaskWorkspacePage() {
     return count
   }
   const totalFilesCount = countFiles(task?.files)
-  const snippetsCount = task?.snippets ? task.snippets.length : 0
   const codeExecuted = !!task?.projectRan
   const runCount = task?.terminalHistory ? task.terminalHistory.length : 0
   const progressPercent = task?.progress || 0
@@ -1346,99 +1330,6 @@ export default function TaskWorkspacePage() {
               )}
             </div>
 
-            {/* Snippets Section */}
-            <div className="flex flex-col mt-4 pt-3 border-t border-zinc-800/25">
-              <h3 className="font-semibold text-sm flex items-center justify-between mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400">
-                <span className="flex items-center gap-2"><FileText size={16} className="text-zinc-400" aria-hidden="true" /> Task Snippets</span>
-              </h3>
-
-              <div className="flex flex-col gap-1 overflow-y-auto max-h-[100px] pr-1">
-                {taskSnippets.length > 0 ? (
-                  taskSnippets.map((snippet) => {
-                    const snippetId = snippet._id || snippet.id;
-                    const isSelected = selectedFilePath === `snippet:${snippetId}`
-                    return (
-                      <div
-                        key={snippetId}
-                        className={`group flex items-center justify-between px-3 py-1 rounded-lg transition-all duration-200 w-full text-left ${isSelected
-                          ? "bg-primary text-white shadow-sm"
-                          : "hover:bg-bg-hover text-text-secondary hover:text-text-main"
-                          }`}
-                      >
-                        <button
-                          onClick={() => setSelectedFilePath(`snippet:${snippetId}`)}
-                          aria-pressed={isSelected}
-                          aria-label={`Select snippet ${snippet.title}`}
-                          className="flex items-center gap-2 overflow-hidden mr-2 bg-transparent border-none p-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary outline-none text-inherit flex-1 text-left"
-                        >
-                          <FileText size={14} className={isSelected ? "text-white" : "text-zinc-400"} />
-                          <span className={`truncate text-sm ${isSelected ? "font-medium text-white" : ""}`}>
-                            {snippet.title}
-                          </span>
-                        </button>
-
-                        <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
-                          {/* Insert Action */}
-                          <button
-                            title="Insert into editor"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (editorRef && !selectedFile?.isSnippet) {
-                                const position = editorRef.getPosition();
-                                editorRef.executeEdits("snippet-insert", [{
-                                  range: { startLineNumber: position.lineNumber, startColumn: position.column, endLineNumber: position.lineNumber, endColumn: position.column },
-                                  text: snippet.code,
-                                  forceMoveMarkers: true
-                                }]);
-                                await incrementUsage({ id: snippetId });
-                              } else {
-                                alert("Please open a file to insert the snippet into.");
-                              }
-                            }}
-                            className={`p-0.5 rounded transition-colors ${isSelected ? "text-white hover:bg-white/20" : "text-zinc-400 hover:text-success hover:bg-success/10"}`}
-                          >
-                            <Plus size={12} />
-                          </button>
-                          {/* Delete Global Action */}
-                          <button
-                            title="Delete snippet globally"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (confirm(`Delete snippet "${snippet.title}" permanently?`)) {
-                                handleUnlinkSnippet(snippetId);
-                                deleteSnippet({ id: snippetId });
-                              }
-                            }}
-                            className={`p-0.5 rounded transition-colors ${isSelected ? "text-white hover:bg-white/20" : "text-zinc-400 hover:text-danger hover:bg-danger/10"}`}
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                          {/* Unlink Action */}
-                          <button
-                            title="Unlink from task"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleUnlinkSnippet(snippetId)
-                            }}
-                            className={`p-0.5 rounded transition-colors ${isSelected
-                              ? "text-white hover:bg-white/20"
-                              : "text-zinc-400 hover:text-warning hover:bg-warning/10"
-                              }`}
-                          >
-                            <span className="text-[10px] font-bold">U</span>
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center p-3 text-center text-zinc-400">
-                    <span className="text-xs">No linked snippets</span>
-                    <span className="text-xs opacity-70 mt-1">Save code to link snippets</span>
-                  </div>
-                )}
-              </div>
-            </div>
 
             <div className="flex flex-col mt-4 pt-3 border-t border-zinc-800/25">
               <h3 className="font-semibold text-sm mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400 flex items-center gap-2">
@@ -1466,10 +1357,7 @@ export default function TaskWorkspacePage() {
                     <span>Files Created:</span>
                     <span className="text-zinc-200">{totalFilesCount}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span>Snippets Saved:</span>
-                    <span className="text-zinc-200">{snippetsCount}</span>
-                  </div>
+
                   <div className="flex justify-between items-center">
                     <span>Code Executed:</span>
                     <span className={codeExecuted ? "text-success font-bold" : "text-zinc-400"}>
@@ -1597,6 +1485,18 @@ export default function TaskWorkspacePage() {
               </button>
 
               <button
+                onClick={() => setIsSnippetPickerOpen(true)}
+                disabled={!selectedFilePath || selectedFile?.isSnippet}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
+                  selectedFilePath && !selectedFile?.isSnippet
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-white cursor-pointer"
+                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 cursor-not-allowed opacity-50"
+                }`}
+              >
+                <Code2 size={16} aria-hidden="true" /> Insert Snippet
+              </button>
+
+              <button
                 onClick={handleSaveAsSnippet}
                 disabled={!selectedFilePath || selectedFile?.isSnippet}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
@@ -1608,6 +1508,24 @@ export default function TaskWorkspacePage() {
                 <FileText size={16} aria-hidden="true" /> Save as Snippet
               </button>
             </div>
+            
+            <SnippetPickerModal
+              isOpen={isSnippetPickerOpen}
+              onClose={() => setIsSnippetPickerOpen(false)}
+              snippets={globalSnippets}
+              onInsert={(snippet) => {
+                if (editorRef) {
+                  const position = editorRef.getPosition()
+                  editorRef.executeEdits("snippet-insert", [{
+                    range: { startLineNumber: position.lineNumber, startColumn: position.column, endLineNumber: position.lineNumber, endColumn: position.column },
+                    text: snippet.code,
+                    forceMoveMarkers: true
+                  }])
+                  incrementUsage({ id: snippet._id })
+                  setIsSnippetPickerOpen(false)
+                }
+              }}
+            />
           </Card>
 
           {/* TERMINAL & PREVIEW SPLIT VIEW */}

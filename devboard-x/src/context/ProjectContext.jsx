@@ -100,13 +100,14 @@ export function ProjectProvider({ children }) {
         sortNodes(rootFiles)
 
         return {
-          ...ct,
           ...localTaskWorkspace,
+          ...ct,
           files: rootFiles
         }
       })
 
       return {
+        ...local,
         ...cp,
         tasks: mergedTasks,
         activity: local.activity || []
