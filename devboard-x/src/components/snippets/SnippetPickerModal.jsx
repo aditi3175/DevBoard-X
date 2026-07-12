@@ -19,7 +19,7 @@ export default function SnippetPickerModal({ isOpen, onClose, snippets, onInsert
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-page/90 p-4">
       <div className="bg-surface border border-zinc-800 rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
         
         <div className="flex items-center justify-between p-4 border-b border-zinc-800/60">

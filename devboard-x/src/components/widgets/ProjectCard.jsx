@@ -1,5 +1,7 @@
 "use client"
 import Button from "@/components/ui/Button"
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
 
 export default function ProjectCard({
   title,
@@ -7,11 +9,13 @@ export default function ProjectCard({
   status,
   techStack,
   updated,
-  tasks = [],
+  projectId,
   onDelete,
   onEdit,
   onOpen
 }) {
+
+  const tasks = useQuery(api.tasks?.getTasks, projectId ? { projectId } : "skip") || []
 
   const totalTasks = tasks.length
 
@@ -31,24 +35,24 @@ export default function ProjectCard({
 
   if (status === "Active") {
     statusStyles =
-      "bg-green-500/20 text-green-400 border border-green-500/30"
+      "bg-success-bg text-success border border-success/30"
   }
 
   else if (status === "Completed") {
     statusStyles =
-      "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+      "bg-info-bg text-info border border-info/30"
   }
 
   else if (status === "In Progress") {
     statusStyles =
-      "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+      "bg-warning-bg text-warning border border-warning/30"
   }
 
   return (
 
     <div
       onClick={onOpen}
-      className="cursor-pointer border rounded-2xl p-5 transition bg-surface border-border-subtle hover:border-border-strong"
+      className="cursor-pointer border rounded-xl p-5 transition bg-surface border-border-subtle hover:border-border-strong"
     >
 
       {/* TOP SECTION */}

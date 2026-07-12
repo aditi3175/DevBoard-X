@@ -11,10 +11,15 @@
 import type * as activity from "../activity.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
+import type * as crypto from "../crypto.js";
+import type * as dashboard from "../dashboard.js";
 import type * as execution from "../execution.js";
 import type * as files from "../files.js";
+import type * as github from "../github.js";
+import type * as githubActions from "../githubActions.js";
 import type * as projects from "../projects.js";
 import type * as resources from "../resources.js";
+import type * as search from "../search.js";
 import type * as snippets from "../snippets.js";
 import type * as tasks from "../tasks.js";
 
@@ -28,10 +33,15 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   analytics: typeof analytics;
   auth: typeof auth;
+  crypto: typeof crypto;
+  dashboard: typeof dashboard;
   execution: typeof execution;
   files: typeof files;
+  github: typeof github;
+  githubActions: typeof githubActions;
   projects: typeof projects;
   resources: typeof resources;
+  search: typeof search;
   snippets: typeof snippets;
   tasks: typeof tasks;
 }>;

@@ -22,7 +22,7 @@ export default function ResourceCard({
 
   return (
     <div
-      className={`border rounded-2xl p-5 transition hover:shadow-lg bg-surface border-border-subtle hover:border-border-strong ${compact ? "min-w-[280px] max-w-[320px] shrink-0" : ""}`}
+      className={`border rounded-xl p-5 transition hover:shadow-sm bg-surface border-border-subtle hover:border-border-strong ${compact ? "min-w-[280px] max-w-[320px] shrink-0" : ""}`}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0 flex-1">

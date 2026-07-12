@@ -1,10 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { useTheme } from "@/context/ThemeContext"
 import { usePersistentState } from "@/utils/storage"
 import { useProjects } from "@/context/ProjectContext"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useUser } from "@clerk/nextjs"
+import { useQuery } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
 import {
 
   DatabaseBackup,
@@ -13,8 +16,20 @@ import {
   HardDriveDownload,
   ShieldCheck,
   FolderKanban,
-  ChevronDown
+  ChevronDown,
+  ExternalLink,
+  Unplug,
+  Loader2,
+  CheckCircle2,
+  XCircle
 } from "lucide-react"
+
+// GitHub doesn't ship a logo icon in lucide-react, so we use an inline SVG
+const GithubIcon = ({ size = 24, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+  </svg>
+)
 
 import {
   exportProject,
@@ -37,6 +52,51 @@ import ImportConflictModal from "@/components/layout/ImportConflictModal"
 
 export default function SettingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { user } = useUser()
+  const clerkUserId = user?.id
+
+  // GitHub connection state
+  const githubConnection = useQuery(
+    api.github.getConnection,
+    clerkUserId ? { userId: clerkUserId } : "skip"
+  )
+  const [githubDisconnecting, setGithubDisconnecting] = useState(false)
+
+  // Read GitHub OAuth redirect status from URL params (lazy initializer, no effect needed)
+  const initialGithubStatus = useMemo(() => searchParams.get("github"), [searchParams])
+  const [githubStatus, setGithubStatus] = useState(initialGithubStatus)
+  const hasCleaned = useRef(false)
+
+  // Clean the URL once and auto-dismiss the status banner
+  useEffect(() => {
+    if (githubStatus && !hasCleaned.current) {
+      hasCleaned.current = true
+      const url = new URL(window.location.href)
+      url.searchParams.delete("github")
+      url.searchParams.delete("reason")
+      window.history.replaceState({}, "", url.pathname)
+    }
+    if (githubStatus) {
+      const timer = setTimeout(() => setGithubStatus(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [githubStatus])
+
+  const handleGithubDisconnect = async () => {
+    setGithubDisconnecting(true)
+    try {
+      const res = await fetch("/api/github/disconnect", { method: "POST" })
+      if (res.ok) {
+        setGithubStatus("disconnected")
+        setTimeout(() => setGithubStatus(null), 3000)
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err)
+    } finally {
+      setGithubDisconnecting(false)
+    }
+  }
 
   // SETTINGS STATE
   const { theme, setTheme, isLoaded: themeLoaded } = useTheme()
@@ -234,11 +294,11 @@ export default function SettingsPage() {
         </div>
         <div className="flex flex-col lg:flex-row gap-8 animate-pulse">
           <div className="w-full lg:w-1/4">
-            <div className="h-64 rounded-2xl bg-bg-active"></div>
+            <div className="h-64 rounded-xl bg-bg-active"></div>
           </div>
           <div className="w-full lg:w-3/4 flex flex-col gap-6">
-            <div className="h-64 rounded-2xl bg-bg-active"></div>
-            <div className="h-64 rounded-2xl bg-bg-active"></div>
+            <div className="h-64 rounded-xl bg-bg-active"></div>
+            <div className="h-64 rounded-xl bg-bg-active"></div>
           </div>
         </div>
       </div>
@@ -354,6 +414,116 @@ export default function SettingsPage() {
         >
           Save Settings
         </Button>
+
+        {/* ─── GITHUB INTEGRATION ─────────────────────────────────── */}
+        <div className="pt-4">
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+            <GithubIcon size={24} className="text-zinc-300" />
+            GitHub Integration
+          </h2>
+          <p className={`text-sm mb-6 ${subtitleClass}`}>
+            Connect your GitHub account to enable future repository operations.
+          </p>
+        </div>
+
+        <Card>
+          {/* Status Toast */}
+          {githubStatus === "connected" && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-success/10 border border-success/20 text-success text-sm font-medium">
+              <CheckCircle2 size={16} /> GitHub account connected successfully!
+            </div>
+          )}
+          {githubStatus === "denied" && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-warning/10 border border-warning/20 text-warning text-sm font-medium">
+              <XCircle size={16} /> GitHub authorization was denied.
+            </div>
+          )}
+          {githubStatus === "error" && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm font-medium">
+              <XCircle size={16} /> GitHub connection failed. Please try again.
+            </div>
+          )}
+          {githubStatus === "disconnected" && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-info/10 border border-info/20 text-info text-sm font-medium">
+              <CheckCircle2 size={16} /> GitHub account disconnected.
+            </div>
+          )}
+
+          {githubConnection ? (
+            // Connected State
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              {githubConnection.githubAvatarUrl && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={githubConnection.githubAvatarUrl}
+                  alt={githubConnection.githubUsername}
+                  className="w-14 h-14 rounded-full border-2 border-zinc-700 shadow-md"
+                />
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold truncate">{githubConnection.githubUsername}</h3>
+                  <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                    Connected
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Connected on {new Date(githubConnection.connectedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+                </p>
+                <a
+                  href={githubConnection.githubProfileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+                >
+                  View Profile <ExternalLink size={10} />
+                </a>
+              </div>
+
+              <button
+                onClick={handleGithubDisconnect}
+                disabled={githubDisconnecting}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 transition-colors disabled:opacity-50"
+              >
+                {githubDisconnecting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Unplug size={16} />
+                )}
+                Disconnect
+              </button>
+            </div>
+          ) : githubConnection === null ? (
+            // Disconnected State
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-semibold flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                    Disconnected
+                  </span>
+                </h3>
+                <p className={`text-sm mt-2 ${subtitleClass}`}>
+                  Connect your GitHub account to link repositories to your projects.
+                </p>
+              </div>
+              <a
+                href="/api/github/authorize"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-zinc-100 hover:bg-white text-zinc-900 transition-colors shadow-sm"
+              >
+                <GithubIcon size={18} />
+                Connect GitHub
+              </a>
+            </div>
+          ) : (
+            // Loading State
+            <div className="flex items-center justify-center py-6">
+              <Loader2 size={24} className="animate-spin text-zinc-500" />
+            </div>
+          )}
+        </Card>
 
         {/* ─── BACKUP & RESTORE SECTION ──────────────────────────── */}
         <div className="pt-4">

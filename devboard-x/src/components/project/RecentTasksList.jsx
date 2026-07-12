@@ -1,15 +1,17 @@
 "use client"
 
-import { getRecentTasks } from "@/utils/projectOverview"
 import EmptyState from "@/components/ui/EmptyState"
 import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 import Card from "@/components/ui/Card"
 import { useRouter } from "next/navigation"
+import { useQuery } from "convex/react"
+import { api } from "../../../convex/_generated/api"
 
-export default function RecentTasksList({ project, projectIndex }) {
+export default function RecentTasksList({ project }) {
   const router = useRouter()
-  const recentTasks = getRecentTasks(project, 5)
+  const tasks = useQuery(api.tasks.getTasks, project?._id ? { projectId: project._id } : "skip") || []
+  const recentTasks = [...tasks].slice(0, 5)
 
   return (
     <Card>
@@ -21,14 +23,14 @@ export default function RecentTasksList({ project, projectIndex }) {
           icon={CheckCircle}
           title="No tasks yet"
           description="Create your first task to track progress."
-          primaryAction={{ label: "Create Task", onClick: () => router.push(`/projects/${projectIndex}/tasks`) }}
+          primaryAction={{ label: "Create Task", onClick: () => router.push(`/projects/${project._id}/tasks`) }}
         />
       ) : (
         <div className="space-y-3">
           {recentTasks.map((task) => (
             <Link
-              key={task.taskIndex}
-              href={`/projects/${projectIndex}/tasks/${task.taskIndex}`}
+              key={task._id}
+              href={`/projects/${project._id}/tasks/${task._id}`}
               className="block w-full text-left p-4 rounded-xl transition bg-bg-active hover:bg-bg-hover outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <div className="flex items-start justify-between gap-2">

@@ -80,44 +80,23 @@ const getFileIconMini = (filename) => {
 
 export default function Workspace() {
   const router = useRouter()
-  const { projects } = useProjects()
-  const fetchedActivities = useQuery(api.activity.getActivity)
-  const globalActivities = fetchedActivities || []
-
+  
+  const dashboardData = useQuery(api.dashboard.getDashboardMetrics)
+  const analyticsData = useQuery(api.analytics.getWorkspaceMetrics)
+  
   const globalSnippets = useQuery(api.snippets.getSnippets) || []
+  const globalActivities = dashboardData?.recentActivity || []
+  const upcomingTasks = dashboardData?.upcomingTasks || []
+  const recentFiles = dashboardData?.recentFiles || []
 
-  // Flattened tasks across all projects
-  const allTasks = projects.flatMap((p, pIdx) =>
-    (p.tasks || []).map((t, tIdx) => ({
-      ...t,
-      projectId: pIdx,
-      taskId: tIdx,
-      projectTitle: p.title
-    }))
-  )
+  const metrics = analyticsData?.workspace || {
+    activeTasks: 0,
+    activeFiles: 0,
+    totalSnippets: 0,
+    totalExecutions: 0
+  }
 
-  // Active incomplete tasks
-  const activeTasks = allTasks.filter(t => !t.completed)
-
-  // Flattened files from all task trees
-  const allFiles = projects.flatMap((p, pIdx) =>
-    (p.tasks || []).flatMap((t, tIdx) =>
-      getAllFilesWithMeta(t.files || [], pIdx, tIdx, t.title)
-    )
-  )
-
-  // Flattened execution runs
-  const allExecutions = projects.flatMap((p, pIdx) =>
-    (p.tasks || []).flatMap((t, tIdx) =>
-      (t.terminalHistory || []).map(log => ({
-        ...log,
-        projectId: pIdx,
-        taskId: tIdx,
-        taskTitle: t.title,
-        projectTitle: p.title
-      }))
-    )
-  ).sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+  const recentProjects = dashboardData?.recentProjects || []
 
   return (
     <div className="flex-1 flex flex-col p-6 overflow-y-auto h-screen transition bg-page text-text-main">
@@ -135,25 +114,25 @@ export default function Workspace() {
         <WidgetCard
           Icon={Activity}
           title="Active Tasks"
-          value={activeTasks.length}
+          value={metrics.activeTasks}
           color="bg-blue-500"
         />
         <WidgetCard
           Icon={FileCode}
           title="Created Files"
-          value={allFiles.length}
+          value={metrics.activeFiles}
           color="bg-cyan-500"
         />
         <WidgetCard
           Icon={FileText}
-          title="Recent Snippets"
-          value={globalSnippets.length}
+          title="Total Snippets"
+          value={metrics.totalSnippets}
           color="bg-purple-500"
         />
         <WidgetCard
           Icon={Play}
           title="Total Executions"
-          value={allExecutions.length}
+          value={metrics.totalExecutions}
           color="bg-green-500"
         />
       </div>
@@ -173,10 +152,10 @@ export default function Workspace() {
                 <FolderOpen size={20} className="text-zinc-400" aria-hidden="true" /> Recent Files
               </h3>
               <div className="flex flex-col gap-2">
-                {allFiles.length > 0 ? (
-                  allFiles.slice(-5).reverse().map((file, i) => (
+                {recentFiles.length > 0 ? (
+                  recentFiles.map((file, i) => (
                     <Link
-                      key={i}
+                      key={file._id || i}
                       href={`/projects/${file.projectId}/tasks/${file.taskId}`}
                       aria-label={`Open file ${file.name} in task ${file.taskTitle}`}
                       className="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover"
@@ -184,7 +163,6 @@ export default function Workspace() {
                       <div className="flex items-center gap-2.5 overflow-hidden mr-2">
                         {getFileIconMini(file.name)}
                         <span className="text-sm font-medium truncate">{file.name}</span>
-                        <span className="text-xs text-text-muted truncate">({file.path})</span>
                       </div>
                       <span className="text-xs font-semibold bg-bg-active text-text-secondary px-2 py-0.5 rounded truncate shrink-0 max-w-[80px]">
                         {file.taskTitle}
@@ -243,11 +221,11 @@ export default function Workspace() {
               <ClipboardList size={20} className="text-zinc-400" aria-hidden="true" /> Recent Tasks
             </h3>
             <div className="flex flex-col gap-3">
-              {allTasks.length > 0 ? (
-                allTasks.slice(-4).reverse().map((t, i) => (
+              {upcomingTasks.length > 0 ? (
+                upcomingTasks.map((t, i) => (
                   <Link
-                    key={i}
-                    href={`/projects/${t.projectId}/tasks/${t.taskId}`}
+                    key={t._id || i}
+                    href={`/projects/${t.projectId}/tasks/${t._id}`}
                     aria-label={`Open task ${t.title} in project ${t.projectTitle}`}
                     className="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-xl cursor-pointer gap-3 transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover"
                   >
@@ -298,14 +276,11 @@ export default function Workspace() {
               <Heart size={20} className="text-zinc-400" aria-hidden="true" /> Project Health
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {projects.length > 0 ? (
-                projects.map((p, i) => {
-                  const tasks = p.tasks || []
-                  const total = tasks.length
-                  const completed = tasks.filter(t => t.completed).length
-                  const overdue = tasks.filter(t =>
-                    !t.completed && t.dueDate && new Date(t.dueDate).setHours(23, 59, 59, 999) < Date.now()
-                  ).length
+              {recentProjects.length > 0 ? (
+                recentProjects.map((p, i) => {
+                  const total = p.taskStats?.total || 0;
+                  const completed = p.taskStats?.completed || 0;
+                  const overdue = p.taskStats?.overdue || 0;
                   const rate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
                   let healthText = "Healthy"
@@ -323,8 +298,8 @@ export default function Workspace() {
 
                   return (
                     <Link
-                      key={i}
-                      href={`/projects/${i}`}
+                      key={p._id || i}
+                      href={`/projects/${p._id}`}
                       aria-label={`Open project ${p.title}`}
                       className="block p-3 rounded-xl cursor-pointer transition flex flex-col gap-2.5 focus-visible:ring-2 focus-visible:ring-blue-500 outline-none text-left w-full hover:bg-bg-hover border border-border-subtle hover:border-border-strong bg-transparent"
                     >

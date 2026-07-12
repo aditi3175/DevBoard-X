@@ -6,6 +6,9 @@ import { useProjects } from "@/context/ProjectContext"
 import EmptyState from "@/components/ui/EmptyState"
 import ProjectHeader from "@/components/project/ProjectHeader"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
+import GitHubPanel from "@/components/project/GitHubPanel"
+import { useQuery } from "convex/react"
+import { api } from "../../../../../../convex/_generated/api"
 
 export default function ProjectWorkspaceHubPage() {
   const router = useRouter()
@@ -16,6 +19,8 @@ export default function ProjectWorkspaceHubPage() {
   const isOldProject = !isNaN(Number(projectId))
   const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
+
+  const tasks = useQuery(api.tasks.getTasks, project?._id ? { projectId: project._id } : "skip") || []
 
   if (!isLoaded) {
     return (
@@ -39,8 +44,6 @@ export default function ProjectWorkspaceHubPage() {
       </div>
     )
   }
-
-  const tasks = project.tasks || []
 
   const sectionClass = "border rounded-2xl p-5 bg-surface border-border-subtle"
 
@@ -69,13 +72,13 @@ export default function ProjectWorkspaceHubPage() {
             icon={FolderCode}
             title="Workspace unavailable"
             description="Select or create a task to launch the IDE environment."
-            primaryAction={{ label: "Go to Tasks", onClick: () => router.push(`/projects/${projectIndex}/tasks`) }}
+            primaryAction={{ label: "Go to Tasks", onClick: () => router.push(`/projects/${project._id}/tasks`) }}
           />
         ) : (
           <div className="space-y-3">
-            {tasks.map((task, index) => (
+            {tasks.map((task) => (
               <div
-                key={index}
+                key={task._id}
                 className="flex items-center justify-between p-4 rounded-xl bg-bg-active"
               >
                 <div>
@@ -90,7 +93,7 @@ export default function ProjectWorkspaceHubPage() {
                 <button
                   onClick={() =>
                     router.push(
-                      `/projects/${projectIndex}/tasks/${index}`
+                      `/projects/${project._id}/tasks/${task._id}`
                     )
                   }
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-hover transition"
@@ -103,6 +106,12 @@ export default function ProjectWorkspaceHubPage() {
           </div>
         )}
       </div>
+      
+      {/* GitHub Integration Panel */}
+      <div className="mt-6">
+        <GitHubPanel project={project} />
+      </div>
+
     </div>
   )
 }

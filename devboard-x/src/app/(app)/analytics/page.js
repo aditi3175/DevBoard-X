@@ -140,7 +140,7 @@ function StatCard({ title, value, icon: Icon, color, bg }) {
 export default function AnalyticsPage() {
   const router = useRouter()
   
-  const analyticsData = useQuery(api.analytics.getWorkspaceAnalytics)
+  const analyticsData = useQuery(api.analytics.getWorkspaceMetrics)
   const fetchedActivities = useQuery(api.activity.getActivity)
   
   const isLoaded = analyticsData !== undefined && fetchedActivities !== undefined
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-pulse">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-32 rounded-2xl bg-bg-active"></div>
+            <div key={i} className="h-32 rounded-xl bg-bg-active"></div>
           ))}
         </div>
       </div>
@@ -325,7 +325,7 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-subtle">
-                {workspace.projectPerformance.length > 0 ? (
+                {(workspace.projectPerformance || []).length > 0 ? (
                   workspace.projectPerformance.map((proj) => (
                     <tr key={proj.id} className="transition-colors hover:bg-bg-hover">
                       <td className="px-6 py-4 font-medium flex items-center gap-3">

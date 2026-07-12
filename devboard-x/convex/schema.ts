@@ -17,6 +17,13 @@ export default defineSchema({
     techStack: v.array(v.string()),
     createdAt: v.string(),
     lastUpdatedAt: v.string(),
+    
+    // GitHub Integration fields
+    githubRepoId: v.optional(v.number()),
+    githubRepoName: v.optional(v.string()),
+    githubRepoUrl: v.optional(v.string()),
+    githubRepoDefaultBranch: v.optional(v.string()),
+    lastSyncedAt: v.optional(v.string()),
   }).index("by_user", ["userId"]),
 
   // Tasks table
@@ -30,6 +37,7 @@ export default defineSchema({
     progress: v.number(),
     template: v.string(), // "Blank", "HTML", "React", "Node.js"
     codeExecuted: v.boolean(),
+    fileEdited: v.optional(v.boolean()),
     userMarkedFinished: v.boolean(),
     createdAt: v.string(),
     updatedAt: v.string(),
@@ -111,4 +119,15 @@ export default defineSchema({
     command: v.string(),
     executedAt: v.string(),
   }).index("by_task", ["taskId"]).index("by_user", ["userId"]),
+
+  // GitHub OAuth connections
+  github_connections: defineTable({
+    userId: v.string(),
+    githubAccessToken: v.string(),
+    githubUsername: v.string(),
+    githubAvatarUrl: v.optional(v.string()),
+    githubProfileUrl: v.string(),
+    githubId: v.number(),
+    connectedAt: v.string(),
+  }).index("by_user", ["userId"]),
 });

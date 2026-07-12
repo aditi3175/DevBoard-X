@@ -12,7 +12,8 @@ import {
   PackageOpen, 
   Download, 
   Zap, 
-  Activity 
+  Activity,
+  Shield 
 } from "lucide-react"
 
 export const ACTIVITY_TYPES = {
@@ -31,7 +32,9 @@ export const ACTIVITY_TYPES = {
   FILE_CREATED: "file_created",
   FILE_DELETED: "file_deleted",
   FILE_RENAMED: "file_renamed",
-  CODE_EXECUTED: "code_executed"
+  CODE_EXECUTED: "code_executed",
+  GITHUB_CONNECTED: "github_connected",
+  GITHUB_DISCONNECTED: "github_disconnected"
 }
 
 const MAX_ACTIVITY = 50
@@ -91,6 +94,9 @@ export function getActivityIcon(type) {
       return Download
     case ACTIVITY_TYPES.CODE_EXECUTED:
       return Zap
+    case ACTIVITY_TYPES.GITHUB_CONNECTED:
+    case ACTIVITY_TYPES.GITHUB_DISCONNECTED:
+      return Shield
     default:
       return Activity
   }
@@ -120,6 +126,9 @@ export function getActivityCategory(type) {
     case ACTIVITY_TYPES.FILE_RENAMED:
     case ACTIVITY_TYPES.FILE_DELETED:
       return "Workspace"
+    case ACTIVITY_TYPES.GITHUB_CONNECTED:
+    case ACTIVITY_TYPES.GITHUB_DISCONNECTED:
+      return "Authentication"
     default:
       return "Workspace"
   }

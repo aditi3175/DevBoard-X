@@ -180,7 +180,7 @@ export default function Terminal() {
   return (
 
     <div
-      className="mt-6 w-full border rounded-2xl overflow-hidden shadow-xl transition bg-surface border-border-subtle"
+      className="mt-6 w-full border rounded-xl overflow-hidden transition bg-surface border-border-subtle"
     >
 
       {/* HEADER */}
@@ -191,11 +191,11 @@ export default function Terminal() {
         {/* DOTS */}
         <div className="flex items-center gap-2">
 
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <div className="w-3 h-3 rounded-full bg-danger"></div>
 
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <div className="w-3 h-3 rounded-full bg-warning"></div>
 
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <div className="w-3 h-3 rounded-full bg-success"></div>
 
         </div>
 
@@ -224,8 +224,8 @@ export default function Terminal() {
             <p
               key={index}
               className={`
-                ${isCommand ? "text-green-500 dark:text-green-400" : ""}
-                ${isError ? "text-red-500 dark:text-red-400" : ""}
+                ${isCommand ? "text-success" : ""}
+                ${isError ? "text-danger" : ""}
               `}
             >
               {entry}

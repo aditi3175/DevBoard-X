@@ -1,13 +1,13 @@
 "use client"
 
-import { Search, Bell, User, Menu, X, Layout, FolderKanban, BarChart3, Settings, ChevronRight } from "lucide-react"
+import { User, Menu, X, Layout, FolderKanban, BarChart3, Settings, ChevronRight } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
 import { useProjects } from "@/context/ProjectContext"
 import Button from "@/components/ui/Button"
-import Input from "@/components/ui/Input"
+
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -92,7 +92,7 @@ export default function Navbar() {
   }, [mobileMenuOpen])
 
   return (
-    <header className="h-16 w-full px-4 sm:px-6 flex items-center justify-between border-b transition bg-surface text-text-main border-border-subtle">
+    <header className="h-12 shrink-0 w-full px-4 sm:px-6 flex items-center justify-between border-b transition bg-surface text-text-main border-border-subtle">
       {/* LEFT SIDE: Brand / Menu Toggle */}
       <div className="flex items-center gap-3 overflow-hidden">
         <Button
@@ -129,26 +129,7 @@ export default function Navbar() {
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
 
-        {/* SEARCH */}
-        <label htmlFor="global-search" className="sr-only">Search Workspace</label>
-        <div className="w-full max-w-xs">
-          <Input
-            id="global-search"
-            type="text"
-            placeholder="Search..."
-            leftIcon={Search}
-          />
-        </div>
 
-        {/* NOTIFICATIONS */}
-        <Button
-          variant="ghost"
-          aria-label="Notifications"
-          leftIcon={Bell}
-          className="hidden sm:flex"
-        >
-          <span className="hidden lg:inline">Notifications</span>
-        </Button>
 
         {/* PROFILE */}
         <div className="hidden sm:flex ml-2">
@@ -161,7 +142,7 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden">
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
+            className="fixed inset-0 bg-page/90" 
             onClick={() => setMobileMenuOpen(false)} 
             aria-hidden="true"
           />

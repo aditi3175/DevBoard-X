@@ -17,7 +17,6 @@ import {
 } from "lucide-react"
 
 
-import { useProjects } from "@/context/ProjectContext"
 import { useQuery } from "convex/react"
 import { api } from "../../../convex/_generated/api"
 
@@ -60,9 +59,6 @@ const CATEGORY_ORDER = ["action", "project", "task", "snippet", "resource"]
 
 export default function CommandPalette() {
   const router = useRouter()
-  const { projects } = useProjects()
-  const globalSnippets = useQuery(api.snippets.getSnippets)
-
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [activeIndex, setActiveIndex] = useState(0)
@@ -71,10 +67,11 @@ export default function CommandPalette() {
   const listRef = useRef(null)
   const itemRefs = useRef([])
 
-  // ─── BUILD SEARCHABLE ITEMS ────────────────────────────────────
-  const allItems = useMemo(() => {
-    const items = []
-
+  // Search results from backend
+  const searchResults = useQuery(api.search.globalSearch, { query: query.trim() })
+  
+  // ─── FILTERED RESULTS ──────────────────────────────────────────
+  const filteredItems = useMemo(() => {
     // Quick Actions — always available
     const quickActions = [
       {
@@ -83,7 +80,7 @@ export default function CommandPalette() {
         title: "Create Task",
         subtitle: "Add a new task to a project",
         icon: Plus,
-        route: projects.length > 0 ? `/projects/0/tasks` : "/projects"
+        route: "/projects"
       },
       {
         id: "action-create-resource",
@@ -91,7 +88,7 @@ export default function CommandPalette() {
         title: "Create Resource",
         subtitle: "Add a new resource link",
         icon: Link2,
-        route: projects.length > 0 ? `/projects/0/resources` : "/projects"
+        route: "/projects"
       },
       {
         id: "action-open-workspace",
@@ -99,85 +96,24 @@ export default function CommandPalette() {
         title: "Open Workspace",
         subtitle: "Open project workspace",
         icon: FolderCode,
-        route: projects.length > 0 ? `/projects/0/workspace` : "/projects"
+        route: "/projects"
       }
     ]
-    items.push(...quickActions)
 
-    // Projects
-    projects.forEach((project, pIdx) => {
-      items.push({
-        id: `project-${pIdx}`,
-        category: "project",
-        title: project.title,
-        subtitle: project.description || project.status || "",
-        meta: project.status,
-        route: `/projects/${pIdx}`
-      })
+    const backendItems = searchResults || []
 
-      // Tasks inside each project
-      ;(project.tasks || []).forEach((task, tIdx) => {
-        items.push({
-          id: `task-${pIdx}-${tIdx}`,
-          category: "task",
-          title: task.title,
-          subtitle: project.title,
-          meta: task.priority || "",
-          route: `/projects/${pIdx}/tasks/${tIdx}`
-        })
-      })
-
-      // Resources inside each project
-      ;(project.resources || []).forEach((resource, rIdx) => {
-        items.push({
-          id: `resource-${pIdx}-${rIdx}`,
-          category: "resource",
-          title: resource.title,
-          subtitle: `${resource.category || ""} · ${project.title}`,
-          meta: resource.category || "",
-          route: `/projects/${pIdx}/resources`
-        })
-      })
-    })
-
-    // Snippets
-    ;(globalSnippets || []).forEach((snippet) => {
-      items.push({
-        id: `snippet-${snippet._id}`,
-        category: "snippet",
-        title: snippet.title,
-        subtitle: snippet.description || snippet.language,
-        meta: snippet.language,
-        // Route to the new Global Snippet Library
-        route: `/snippets`
-      })
-    })
-
-    return items
-  }, [projects, globalSnippets])
-
-  // ─── FILTERED RESULTS ──────────────────────────────────────────
-  const filteredItems = useMemo(() => {
-    const q = query.toLowerCase().trim()
-
-    if (!q) {
+    if (!query.trim()) {
       // When empty, show quick actions + up to 3 from each other category
-      const actions = allItems.filter((i) => i.category === "action")
       const others = []
       for (const cat of ["project", "task", "snippet", "resource"]) {
-        const catItems = allItems.filter((i) => i.category === cat).slice(0, 3)
+        const catItems = backendItems.filter((i) => i.category === cat).slice(0, 3)
         others.push(...catItems)
       }
-      return [...actions, ...others]
+      return [...quickActions, ...others]
     }
 
-    return allItems.filter((item) => {
-      const haystack = `${item.title} ${item.subtitle} ${item.meta || ""}`.toLowerCase()
-      // Match all query words (simple multi-word matching)
-      const words = q.split(/\s+/)
-      return words.every((word) => haystack.includes(word))
-    })
-  }, [query, allItems])
+    return [...quickActions, ...backendItems]
+  }, [query, searchResults])
 
   // Group filtered results by category for display
   const groupedResults = useMemo(() => {
@@ -278,7 +214,7 @@ export default function CommandPalette() {
 
   // ─── THEME TOKENS ──────────────────────────────────────────────
   const tokens = {
-    backdrop: "bg-black/60 backdrop-blur-sm dark:bg-black/80",
+    backdrop: "bg-page/90 dark:bg-page/90",
     panel: "bg-surface border-border-subtle shadow-2xl shadow-black/20",
     input: "text-text-main placeholder-text-muted",
     inputBorder: "border-border-subtle",

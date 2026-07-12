@@ -427,15 +427,14 @@ export default function TaskWorkspacePage() {
   const { projects, setProjects, isLoaded, updateTask, createFile, createFolder, renameFile, deleteFile } = useProjects()
 
   const urlTaskId = params.taskId === "undefined" ? null : params.taskId
-  const isOldTask = !isNaN(Number(urlTaskId))
   const projectId = params.id === "undefined" ? null : params.id
-  const isOldProject = !isNaN(Number(projectId))
   
-  const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
+  const fetchedTask = useQuery(api.tasks.getTask, urlTaskId ? { id: urlTaskId } : "skip")
+  const fetchedFiles = useQuery(api.files.getFileTree, urlTaskId ? { taskId: urlTaskId } : "skip")
+  const task = useMemo(() => fetchedTask ? { ...fetchedTask, files: fetchedFiles || [] } : null, [fetchedTask, fetchedFiles])
+  
+  const projectIndex = projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
-  
-  const taskIndex = isOldTask ? Number(urlTaskId) : project?.tasks?.findIndex(t => t._id === urlTaskId)
-  const task = project?.tasks?.[taskIndex]
 
   const [selectedFilePath, setSelectedFilePath] = useState("")
   const [expandedDirs, setExpandedDirs] = useState({ "/src": true, "/app": true })
@@ -515,7 +514,7 @@ export default function TaskWorkspacePage() {
       if (task.fileEdited) {
         calculatedProgress += 35;
       }
-      if (task.projectRan) {
+      if (task.codeExecuted) {
         calculatedProgress += 35;
       }
       if (task.userMarkedFinished) {
@@ -527,7 +526,7 @@ export default function TaskWorkspacePage() {
       if (task.completed !== calculatedCompleted || task.progress !== calculatedProgress) {
         
         // Update Convex Metadata
-        if (!isOldTask && task._id) {
+        if (task._id) {
           updateTask({
             id: task._id,
             completed: calculatedCompleted,
@@ -540,11 +539,8 @@ export default function TaskWorkspacePage() {
   }, [
     project,
     task,
-    projectIndex,
-    taskIndex,
     projects,
     setProjects,
-    isOldTask,
     updateTask,
     task?.fileEdited,
     task?.projectRan,
@@ -564,7 +560,7 @@ export default function TaskWorkspacePage() {
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [projectIndex, taskIndex, task?.title, task])
+  }, [projectId, urlTaskId, task?.title, task])
 
 
   // Reset selectedFilePath on task switches
@@ -573,7 +569,7 @@ export default function TaskWorkspacePage() {
       setSelectedFilePath("")
     }, 0)
     return () => clearTimeout(timer)
-  }, [projectIndex, taskIndex])
+  }, [projectId, urlTaskId])
 
   // Resolve selection if empty or invalid
   useEffect(() => {
@@ -667,9 +663,6 @@ export default function TaskWorkspacePage() {
 
   const handleRunTask = async () => {
     const template = detectTaskTemplate(task)
-    
-    const updatedProjects = [...projects]
-    const currentTask = updatedProjects[projectIndex].tasks[taskIndex]
 
     if (template === "HTML") {
       const indexHtmlNode = findFileByPath(task.files, "/index.html") || findFileByFilename(task.files, "index.html")
@@ -692,8 +685,7 @@ export default function TaskWorkspacePage() {
         status: "success"
       })
       
-      currentTask.projectRan = true
-      setProjects(updatedProjects)
+      updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
       setTerminalTab("preview")
     } 
     else if (template === "React") {
@@ -705,8 +697,7 @@ export default function TaskWorkspacePage() {
         status: "success"
       })
       
-      currentTask.projectRan = true
-      setProjects(updatedProjects)
+      updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
       setTerminalTab("preview")
     } 
     else if (template === "Next.js") {
@@ -716,8 +707,7 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
-      currentTask.projectRan = true
-      setProjects(updatedProjects)
+      updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
       setTerminalTab("console")
     } 
     else if (template === "Node.js") {
@@ -727,8 +717,7 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
-      currentTask.projectRan = true
-      setProjects(updatedProjects)
+      updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
       setTerminalTab("console")
     } 
     else if (template === "Express") {
@@ -738,8 +727,7 @@ export default function TaskWorkspacePage() {
         status: "error"
       })
       
-      currentTask.projectRan = true
-      setProjects(updatedProjects)
+      updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
       setTerminalTab("console")
     } 
     else {
@@ -773,15 +761,7 @@ export default function TaskWorkspacePage() {
           status: "success"
         })
 
-        if (!selectedFilePath.startsWith("snippet:")) {
-          currentTask.files = updateFileInTree(
-            currentTask.files,
-            selectedFilePath,
-            { output: finalOutput }
-          )
-        }
-        currentTask.projectRan = true
-        setProjects(updatedProjects)
+        updateTask({ id: task._id, codeExecuted: true, updatedAt: new Date().toISOString() })
 
         setTerminalTab("console")
       }
@@ -794,14 +774,7 @@ export default function TaskWorkspacePage() {
           status: "error"
         })
 
-        if (!selectedFilePath.startsWith("snippet:")) {
-          currentTask.files = updateFileInTree(
-            currentTask.files,
-            selectedFilePath,
-            { output: error.message }
-          )
-          setProjects(updatedProjects)
-        }
+
 
         setTerminalTab("console")
       }
@@ -809,9 +782,7 @@ export default function TaskWorkspacePage() {
   }
 
   const handleClearTerminal = () => {
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].terminalHistory = []
-    setProjects(updatedProjects)
+    // History is managed via execution logs now
   }
 
   const handleLoadCommand = (cmdText) => {
@@ -820,13 +791,7 @@ export default function TaskWorkspacePage() {
       return
     }
     setCode(cmdText)
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].files = updateFileInTree(
-      updatedProjects[projectIndex].tasks[taskIndex].files,
-      selectedFilePath,
-      { code: cmdText }
-    )
-    setProjects(updatedProjects)
+    // File contents are managed by the Convex editor bindings now
     alert("Command restored to Monaco Editor!")
   }
 
@@ -850,10 +815,7 @@ export default function TaskWorkspacePage() {
       order: siblings.length
     })
 
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-
-    setProjects(updatedProjects)
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
 
     const newFilePath = parentPath ? `${parentPath}/${fileName}` : `/${fileName}`
     setSelectedFilePath(newFilePath)
@@ -882,10 +844,7 @@ export default function TaskWorkspacePage() {
       order: siblings.length
     })
 
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-
-    setProjects(updatedProjects)
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
 
     const newFolderPath = parentPath ? `${parentPath}/${folderName}` : `/${folderName}`
     setExpandedDirs(prev => ({
@@ -918,10 +877,8 @@ export default function TaskWorkspacePage() {
       name: newName
     })
 
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
 
-    setProjects(updatedProjects)
 
     if (selectedFilePath === pathStr) {
       const fileParts = pathStr.split("/")
@@ -954,10 +911,7 @@ export default function TaskWorkspacePage() {
       name: newName
     })
 
-    const updatedProjects = [...projects]
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-
-    setProjects(updatedProjects)
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
 
     const folderParts = pathStr.split("/")
     folderParts[folderParts.length - 1] = newName
@@ -983,8 +937,7 @@ export default function TaskWorkspacePage() {
   }
 
   const handleDeleteFile = async (pathStr) => {
-    const updatedProjects = [...projects]
-    const currentFiles = updatedProjects[projectIndex].tasks[taskIndex].files || []
+    const currentFiles = task?.files || []
 
     const countFiles = (nodes) => {
       let count = 0
@@ -1004,16 +957,14 @@ export default function TaskWorkspacePage() {
     if (!node) return
 
     await deleteFile({ id: node._id })
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
 
-    setProjects(updatedProjects)
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
   }
 
   const handleDeleteFolder = async (pathStr) => {
     if (!confirm("Are you sure you want to delete this folder and all its contents?")) return
 
-    const updatedProjects = [...projects]
-    const currentFiles = updatedProjects[projectIndex].tasks[taskIndex].files || []
+    const currentFiles = task?.files || []
 
     const countFiles = (nodes) => {
       let count = 0
@@ -1034,8 +985,7 @@ export default function TaskWorkspacePage() {
     if (!folderNode) return
     await deleteFile({ id: folderNode._id })
 
-    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-    setProjects(updatedProjects)
+    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
 
     setExpandedDirs(prev => {
       const newExpanded = {}
@@ -1376,14 +1326,7 @@ export default function TaskWorkspacePage() {
                     id="mark-finished"
                     type="checkbox"
                     checked={userMarkedFinished}
-                    onChange={(e) => {
-                      let updatedProjects = [...projects]
-                      updatedProjects[projectIndex].tasks[taskIndex].userMarkedFinished = e.target.checked
-
-
-
-                      setProjects(updatedProjects)
-                    }}
+                    onChange={(e) => updateTask({ id: task._id, userMarkedFinished: e.target.checked, updatedAt: new Date().toISOString() })}
                     className="accent-blue-500 rounded cursor-pointer scale-90"
                   />
                   Mark workspace as finished
@@ -1454,10 +1397,7 @@ export default function TaskWorkspacePage() {
                       handleAutoSave(fileId, newCode)
                     }, 800)
 
-                    // Mark file as edited locally
-                    const updatedProjects = [...projects]
-                    updatedProjects[projectIndex].tasks[taskIndex].fileEdited = true
-                    setProjects(updatedProjects)
+                    updateTask({ id: task._id, fileEdited: true, updatedAt: new Date().toISOString() })
                   }
                 }}
                 options={{

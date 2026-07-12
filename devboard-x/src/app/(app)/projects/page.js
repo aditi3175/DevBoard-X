@@ -287,7 +287,7 @@ export default function ProjectsPage() {
               status={project.status}
               techStack={project.techStack}
               updated={project.updated}
-              tasks={project.tasks}
+              projectId={project._id}
               onDelete={() => handleDeleteProject(project._id, project.title)}
               onEdit={() => handleEditProject(project)}
               onOpen={() => router.push(`/projects/${project._id}`)}

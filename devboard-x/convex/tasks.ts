@@ -140,6 +140,7 @@ export const updateTask = mutation({
     completed: v.optional(v.boolean()),
     progress: v.optional(v.number()),
     codeExecuted: v.optional(v.boolean()),
+    fileEdited: v.optional(v.boolean()),
     userMarkedFinished: v.optional(v.boolean()),
     updatedAt: v.string(),
   },

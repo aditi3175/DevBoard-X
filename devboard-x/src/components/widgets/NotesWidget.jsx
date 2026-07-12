@@ -59,7 +59,7 @@ export default function NotesWidget() {
 
   if (!isLoaded) {
     return (
-      <div className="mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col min-h-[400px] animate-pulse bg-surface border-border-subtle">
+      <div className="mt-6 w-full border rounded-xl transition overflow-hidden flex flex-col min-h-[400px] animate-pulse bg-surface border-border-subtle">
         <div className="px-5 py-4 border-b flex items-center justify-between border-border-subtle bg-bg-hover">
           <div className="h-6 w-32 rounded bg-bg-active"></div>
           <div className="h-8 w-24 rounded-lg bg-bg-active"></div>
@@ -73,7 +73,7 @@ export default function NotesWidget() {
     )
   }
 
-  const cardClass = "mt-6 w-full border rounded-2xl transition overflow-hidden flex flex-col bg-surface border-border-subtle"
+  const cardClass = "mt-6 w-full border rounded-xl transition overflow-hidden flex flex-col bg-surface border-border-subtle"
 
   return (
     <div className={cardClass} style={{ minHeight: "400px" }}>

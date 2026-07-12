@@ -47,30 +47,23 @@ export default function LandingPage() {
       </header>
 
       {/* HERO SECTION */}
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative overflow-hidden">
-        {/* Glow Effects */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-        
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 relative">
         <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 rounded-full border border-primary/20">
-            <Zap size={14} />
-            Phase 11 SaaS Platform
-          </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8">
-            The Ultimate Agentic<br className="hidden md:block"/> Workspace for <span className="text-primary">Developers</span>
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 text-text-main">
+            Your Dedicated Workspace for <span className="text-primary">Development</span>
           </h1>
           <p className="text-lg md:text-xl text-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
             Manage projects, execute code, and store snippets in a fully isolated, secure environment built for the future of development.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <SignUpButton mode="modal">
-              <button className="px-8 py-4 text-base font-bold bg-primary text-white rounded-xl hover:bg-blue-600 transition shadow-lg shadow-primary/25 w-full sm:w-auto">
-                Start for free
+              <button className="px-8 py-4 text-base font-bold bg-primary text-white rounded-xl hover:bg-primary-hover transition border border-primary w-full sm:w-auto">
+                Start building
               </button>
             </SignUpButton>
             <SignInButton mode="modal">
-              <button className="px-8 py-4 text-base font-bold bg-surface border border-border-subtle text-text-main rounded-xl hover:bg-bg-hover transition w-full sm:w-auto">
-                Sign into account
+              <button className="px-8 py-4 text-base font-bold bg-surface border border-border-strong text-text-main rounded-xl hover:bg-bg-hover transition w-full sm:w-auto">
+                Sign in
               </button>
             </SignInButton>
           </div>
@@ -81,8 +74,8 @@ export default function LandingPage() {
       <section className="py-20 bg-surface border-t border-border-subtle">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-2xl border border-border-subtle bg-page">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
+            <div className="p-6 rounded-xl border border-border-strong bg-surface">
+              <div className="w-12 h-12 bg-bg-active text-primary rounded-xl flex items-center justify-center mb-6 border border-border-subtle">
                 <ShieldCheck size={24} />
               </div>
               <h3 className="text-xl font-bold mb-3">Isolated Workspaces</h3>
@@ -90,8 +83,8 @@ export default function LandingPage() {
                 Your data is strictly yours. Powered by Clerk and Convex, every project, task, and snippet is securely isolated from other tenants.
               </p>
             </div>
-            <div className="p-6 rounded-2xl border border-border-subtle bg-page">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
+            <div className="p-6 rounded-xl border border-border-strong bg-surface">
+              <div className="w-12 h-12 bg-bg-active text-primary rounded-xl flex items-center justify-center mb-6 border border-border-subtle">
                 <Code2 size={24} />
               </div>
               <h3 className="text-xl font-bold mb-3">Cloud Execution</h3>
@@ -99,8 +92,8 @@ export default function LandingPage() {
                 Run React, Node, HTML, and more directly in your browser. All code states and virtual file systems are synced instantly.
               </p>
             </div>
-            <div className="p-6 rounded-2xl border border-border-subtle bg-page">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-6">
+            <div className="p-6 rounded-xl border border-border-strong bg-surface">
+              <div className="w-12 h-12 bg-bg-active text-primary rounded-xl flex items-center justify-center mb-6 border border-border-subtle">
                 <FolderKanban size={24} />
               </div>
               <h3 className="text-xl font-bold mb-3">Project Management</h3>

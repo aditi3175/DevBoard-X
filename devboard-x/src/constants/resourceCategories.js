@@ -11,15 +11,15 @@ export const RESOURCE_CATEGORIES = [
 ]
 
 export const CATEGORY_BADGE_STYLES = {
-  GitHub: "bg-zinc-800 text-zinc-200 border-zinc-700",
-  Figma: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  "API Docs": "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  Deployment: "bg-green-500/20 text-green-400 border-green-500/30",
-  Database: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  Tutorial: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
-  Article: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
-  Design: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-  Other: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30"
+  GitHub: "bg-bg-active text-text-main border-border-strong",
+  Figma: "bg-primary/20 text-primary border-primary/30",
+  "API Docs": "bg-info-bg text-info border-info/30",
+  Deployment: "bg-success-bg text-success border-success/30",
+  Database: "bg-warning-bg text-warning border-warning/30",
+  Tutorial: "bg-info-bg text-info border-info/30",
+  Article: "bg-bg-active text-text-muted border-border-subtle",
+  Video: "bg-danger-bg text-danger border-danger/30",
+  Other: "bg-bg-active text-text-muted border-border-strong"
 }
 
 export function getCategoryBadgeStyle(category) {

@@ -27,35 +27,35 @@ export function getProjectPhase(progressPercent) {
   if (progressPercent >= 100) {
     return {
       label: "Completed",
-      color: "text-green-400",
-      barColor: "bg-green-500"
+      color: "text-success",
+      barColor: "bg-success"
     }
   }
   if (progressPercent >= 76) {
     return {
       label: "Finalizing",
-      color: "text-blue-400",
-      barColor: "bg-blue-500"
+      color: "text-primary",
+      barColor: "bg-primary"
     }
   }
   if (progressPercent >= 51) {
     return {
       label: "Developing",
-      color: "text-cyan-400",
-      barColor: "bg-cyan-500"
+      color: "text-info",
+      barColor: "bg-info"
     }
   }
   if (progressPercent >= 26) {
     return {
       label: "Building",
-      color: "text-yellow-400",
-      barColor: "bg-yellow-500"
+      color: "text-warning",
+      barColor: "bg-warning"
     }
   }
   return {
     label: "Planning",
-    color: "text-zinc-400",
-    barColor: "bg-zinc-500"
+    color: "text-text-muted",
+    barColor: "bg-bg-active"
   }
 }
 
@@ -105,13 +105,13 @@ export function getProjectLastUpdated(project) {
 
 export function getStatusStyles(status) {
   if (status === "Active") {
-    return "bg-green-500/20 text-green-400 border border-green-500/30"
+    return "bg-success-bg text-success border-success/30"
   }
   if (status === "Completed") {
-    return "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+    return "bg-info-bg text-info border-info/30"
   }
   if (status === "In Progress") {
-    return "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+    return "bg-warning-bg text-warning border-warning/30"
   }
-  return "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30"
+  return "bg-bg-active text-text-muted border-border-strong"
 }

@@ -11,8 +11,8 @@ export default function Card({
   const baseStyles = "border transition overflow-hidden"
 
   const variantStyles = {
-    standard: "bg-surface border-border-subtle p-5 sm:p-6 rounded-2xl",
-    compact: "bg-surface border-border-subtle p-4 sm:p-5 rounded-2xl",
+    standard: "bg-surface border-border-subtle p-5 sm:p-6 rounded-xl",
+    compact: "bg-surface border-border-subtle p-4 sm:p-5 rounded-xl",
     nested: "bg-bg-active border-transparent p-4 rounded-xl",
   }
 

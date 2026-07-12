@@ -15,7 +15,7 @@ export default function EmptyState({
   const isCompact = variant === "compact"
   
   return (
-    <div className={`flex flex-col items-center justify-center text-center ${isCompact ? "p-4 h-full min-h-[120px]" : "p-8 h-full min-h-[250px] border border-dashed rounded-2xl border-border-strong bg-surface/50"} ${className}`}>
+    <div className={`flex flex-col items-center justify-center text-center ${isCompact ? "p-4 h-full min-h-[120px]" : "p-8 h-full min-h-[250px] border border-dashed rounded-xl border-border-strong bg-surface/50"} ${className}`}>
       {Icon && (
         <div className={`mb-3 flex items-center justify-center rounded-full bg-bg-active text-text-muted ${isCompact ? "w-10 h-10" : "w-16 h-16"}`}>
           <Icon size={isCompact ? 20 : 32} />

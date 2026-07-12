@@ -19,7 +19,6 @@ import ProjectActivityFeed from "@/components/project/ProjectActivityFeed"
 import RecentTasksList from "@/components/project/RecentTasksList"
 import RecentResourcesList from "@/components/project/RecentResourcesList"
 import WidgetCard from "@/components/widgets/WidgetCard"
-import { getProjectMetrics } from "@/utils/projectOverview"
 import { useQuery } from "convex/react"
 import { api } from "../../../../../convex/_generated/api"
 
@@ -32,6 +31,7 @@ export default function ProjectOverviewPage() {
   const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
 
+  const tasks = useQuery(api.tasks.getTasks, project?._id ? { projectId: project._id } : "skip") || []
   const resources = useQuery(api.resources.getResources, project?._id ? { projectId: project._id } : "skip") || []
   const fetchedActivity = useQuery(api.activity.getProjectActivity, project?._id ? { projectId: project._id } : "skip")
 
@@ -62,7 +62,21 @@ export default function ProjectOverviewPage() {
     )
   }
 
-  const metrics = getProjectMetrics(project, resources)
+  const totalTasks = tasks.length
+  const completedTasks = tasks.filter(t => t.completed).length
+  const pendingTasks = totalTasks - completedTasks
+  const totalResources = resources.length
+  const progressPercent = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)
+  
+  const metrics = {
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    totalResources,
+    totalSnippets: 0, // Snippets are now global
+    progressPercent
+  }
+
   const activity = fetchedActivity || []
 
   return (
@@ -128,8 +142,8 @@ export default function ProjectOverviewPage() {
         </div>
 
         <div className="space-y-6">
-          <RecentTasksList project={project} projectIndex={projectIndex} />
-          <RecentResourcesList project={project} projectIndex={projectIndex} resources={resources} />
+          <RecentTasksList project={project} />
+          <RecentResourcesList project={project} resources={resources} />
         </div>
       </div>
     </div>

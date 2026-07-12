@@ -54,32 +54,73 @@ export default function Sidebar() {
       </div>
 
       {/* NAV LINKS */}
-      <nav aria-label="Desktop Sidebar" className="flex flex-col gap-2 flex-1">
-        {navItems.map((item) => {
-          const Icon = item.icon
+      <nav aria-label="Desktop Sidebar" className="flex flex-col gap-6 flex-1">
+        
+        {/* Workspace Section */}
+        <div>
+          <h2 className="px-4 text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+            Workspace
+          </h2>
+          <div className="flex flex-col gap-0.5">
+            {navItems.slice(0, 3).map((item) => {
+              const Icon = item.icon
+              const isActive = item.path === "/" 
+                ? pathname === "/" 
+                : pathname.startsWith(item.path)
 
-          // ACTIVE ROUTE
-          const isActive = item.path === "/" 
-            ? pathname === "/" 
-            : pathname.startsWith(item.path)
+              return (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`group flex items-center gap-3 px-4 py-2 transition-all outline-none border-l-2 ${
+                    isActive
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-main hover:border-border-strong"
+                  }`}
+                >
+                  <Icon size={18} className={`transition-transform ${isActive ? "" : "group-hover:scale-110"}`} />
+                  <span className={`text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
+                    {item.name}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
 
-          return (
-            <Link
-              key={item.name}
-              href={item.path}
-              aria-current={isActive ? "page" : undefined}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none ${isActive
-                  ? "bg-bg-active text-text-main shadow-sm"
-                  : "text-text-secondary hover:bg-bg-hover hover:text-text-main"
-                }`}
-            >
-              <Icon size={20} />
-              <span className="font-medium">
-                {item.name}
-              </span>
-            </Link>
-          )
-        })}
+        {/* Platform Section */}
+        <div>
+          <h2 className="px-4 text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+            Platform
+          </h2>
+          <div className="flex flex-col gap-0.5">
+            {navItems.slice(3).map((item) => {
+              const Icon = item.icon
+              const isActive = item.path === "/" 
+                ? pathname === "/" 
+                : pathname.startsWith(item.path)
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.path}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`group flex items-center gap-3 px-4 py-2 transition-all outline-none border-l-2 ${
+                    isActive
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-main hover:border-border-strong"
+                  }`}
+                >
+                  <Icon size={18} className={`transition-transform ${isActive ? "" : "group-hover:scale-110"}`} />
+                  <span className={`text-sm ${isActive ? "font-semibold" : "font-medium"}`}>
+                    {item.name}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
       </nav>
     </aside>
   )

@@ -7,7 +7,7 @@ import Card from "@/components/ui/Card"
 import { getRecentResources } from "@/utils/projectOverview"
 import { getCategoryBadgeStyle } from "@/constants/resourceCategories"
 
-export default function RecentResourcesList({ project, projectIndex, resources = [] }) {
+export default function RecentResourcesList({ project, resources = [] }) {
   const router = useRouter()
   const recentResources = getRecentResources(resources, 5)
 
@@ -21,7 +21,7 @@ export default function RecentResourcesList({ project, projectIndex, resources =
           icon={Link2}
           title="No resources yet"
           description="Add links to documentation, design files, or repositories."
-          primaryAction={{ label: "Add Resource", onClick: () => router.push(`/projects/${projectIndex}/resources`) }}
+          primaryAction={{ label: "Add Resource", onClick: () => router.push(`/projects/${project._id}/resources`) }}
         />
       ) : (
         <div className="space-y-3">
