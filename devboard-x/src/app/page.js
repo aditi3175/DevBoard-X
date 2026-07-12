@@ -77,7 +77,7 @@ export default function LandingPage() {
             <Activity size={14} />
             Developer workspace
           </p>
-          <h1 className="max-w-3xl text-5xl font-black leading-[1.02] tracking-tight md:text-6xl">
+          <h1 className="max-w-3xl text-5xl font-black leading-[1.02] tracking-tight md:text-5xl">
             Your projects, tasks, files, and snippets in one workspace.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary md:text-lg">
