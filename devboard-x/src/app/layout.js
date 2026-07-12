@@ -31,8 +31,8 @@ export const metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#eef9ff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b171b" },
   ],
 };
 
@@ -50,7 +50,7 @@ export default function RootLayout({ children }) {
               try {
                 let theme = localStorage.getItem('devboard-theme');
                 if (theme === '"dark"' || theme === 'dark') {
-                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('dark');
                 } else if (theme === '"light"' || theme === 'light') {
                   document.documentElement.classList.remove('dark');
                 } else {

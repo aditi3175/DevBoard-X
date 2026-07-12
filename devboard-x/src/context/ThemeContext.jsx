@@ -6,7 +6,7 @@ import { usePersistentState } from "@/utils/storage"
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme, isLoaded] = usePersistentState("devboard-theme", "dark")
+  const [theme, setTheme, isLoaded] = usePersistentState("devboard-theme", "light")
 
   // Ensure valid theme
   useEffect(() => {

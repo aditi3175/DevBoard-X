@@ -22,7 +22,7 @@ export default function NotesWidget() {
   const [selectedNoteId, setSelectedNoteId] = useState(null)
   const [isEditing, setIsEditing] = useState(true)
 
-  const activeNoteId = selectedNoteId || (notes.length > 0 ? notes[0].id : null)
+  const activeNoteId = selectedNoteId
 
   const handleCreateNote = () => {
     const newNote = {

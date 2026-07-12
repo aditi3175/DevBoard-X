@@ -1281,19 +1281,19 @@ export default function TaskWorkspacePage() {
             </div>
 
 
-            <div className="flex flex-col mt-4 pt-3 border-t border-zinc-800/25">
-              <h3 className="font-semibold text-sm mb-2 pb-1.5 border-b border-zinc-800/20 text-zinc-400 flex items-center gap-2">
-                <BarChart2 size={16} className="text-zinc-400" aria-hidden="true" /> Workspace Statistics
+            <div className="flex flex-col mt-4 pt-3 border-t border-border-subtle">
+              <h3 className="font-semibold text-sm mb-2 pb-1.5 border-b border-border-subtle text-text-secondary flex items-center gap-2">
+                <BarChart2 size={16} className="text-text-secondary" aria-hidden="true" /> Workspace Statistics
               </h3>
 
               <div className="flex flex-col gap-2.5">
                 {/* Progress bar */}
                 <div>
-                  <div className="flex justify-between text-xs mb-1 font-medium text-zinc-400">
+                  <div className="flex justify-between text-xs mb-1 font-medium text-text-secondary">
                     <span>Task Progress</span>
                     <span>{progressPercent}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-bg-active rounded-full overflow-hidden">
                     <div
                       className="h-full bg-success transition-all duration-300"
                       style={{ width: `${progressPercent}%` }}
@@ -1302,21 +1302,21 @@ export default function TaskWorkspacePage() {
                 </div>
 
                 {/* Statistics checklist */}
-                <div className="text-xs space-y-1 text-zinc-400 font-medium bg-zinc-950/45 p-2.5 rounded-lg border border-zinc-800/40">
+                <div className="text-xs space-y-1 text-text-secondary font-medium bg-bg-active/70 p-2.5 rounded-lg border border-border-subtle dark:bg-bg-input">
                   <div className="flex justify-between items-center">
                     <span>Files Created:</span>
-                    <span className="text-zinc-200">{totalFilesCount}</span>
+                    <span className="font-bold text-text-main">{totalFilesCount}</span>
                   </div>
 
                   <div className="flex justify-between items-center">
                     <span>Code Executed:</span>
-                    <span className={codeExecuted ? "text-success font-bold" : "text-zinc-400"}>
+                    <span className={codeExecuted ? "text-success font-bold" : "text-text-secondary"}>
                       {codeExecuted ? "Yes" : "No"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Project Runs:</span>
-                    <span className="text-zinc-200">{runCount}</span>
+                    <span className="font-bold text-text-main">{runCount}</span>
                   </div>
                 </div>
 
@@ -1327,7 +1327,7 @@ export default function TaskWorkspacePage() {
                     type="checkbox"
                     checked={userMarkedFinished}
                     onChange={(e) => updateTask({ id: task._id, userMarkedFinished: e.target.checked, updatedAt: new Date().toISOString() })}
-                    className="accent-blue-500 rounded cursor-pointer scale-90"
+                    className="accent-primary rounded cursor-pointer scale-90"
                   />
                   Mark workspace as finished
                 </label>

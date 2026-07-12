@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState, useMemo, useRef } from "react"
-import { 
-  CheckCircle2, Circle, Clock, Code2, Play, FolderKanban, ListTodo, 
-  FileCode, Search, Activity, Sparkles, Folder, Archive, Save, Flame, Layout, 
+import {
+  CheckCircle2, Circle, Clock, Code2, Play, FolderKanban, ListTodo,
+  FileCode, Search, Activity, Sparkles, Folder, Archive, Save, Flame, Layout,
   Link2, Trophy, BarChart3, Database, CalendarDays
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -116,22 +116,19 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 function StatCard({ title, value, icon: Icon, color, bg }) {
   return (
-    <Card isInteractive className="relative overflow-hidden group transition-all duration-200">
-      <div className={`absolute -right-4 -top-4 w-24 h-24 blur-[40px] rounded-full pointer-events-none transition-all duration-200 opacity-50 group-hover:opacity-100 ${bg}`} />
-
-      <div className="flex justify-between items-start mb-4 relative z-10">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bg}`}>
+    <Card isInteractive className="panel-shadow">
+      <div className="flex items-center gap-4">
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${bg}`}>
           <Icon size={20} className={color} />
         </div>
-      </div>
-
-      <div className="relative z-10">
-        <h3 className="text-3xl font-black tracking-tight mb-1 text-text-main">
-          {value}
-        </h3>
-        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-          {title}
-        </p>
+        <div>
+          <h3 className="text-3xl font-black tracking-tight text-text-main">
+            {value}
+          </h3>
+          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-text-muted">
+            {title}
+          </p>
+        </div>
       </div>
     </Card>
   )
@@ -139,10 +136,10 @@ function StatCard({ title, value, icon: Icon, color, bg }) {
 
 export default function AnalyticsPage() {
   const router = useRouter()
-  
+
   const analyticsData = useQuery(api.analytics.getWorkspaceMetrics)
   const fetchedActivities = useQuery(api.activity.getActivity)
-  
+
   const isLoaded = analyticsData !== undefined && fetchedActivities !== undefined
 
   const { workspace, lifetime } = useMemo(() => {
@@ -183,9 +180,9 @@ export default function AnalyticsPage() {
         String(d.getMonth() + 1).padStart(2, '0'),
         String(d.getDate()).padStart(2, '0')
       ].join("-")
-      
+
       const counts = workspace.activityByDate?.[dateStr] || { created: 0, completed: 0 }
-      
+
       data.push({
         dateStr: d.toLocaleDateString("en-US", { weekday: "short" }),
         dateObj: d,
@@ -213,23 +210,26 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="h-full flex-1 p-4 md:p-8 transition-colors bg-page text-text-main overflow-y-auto">
+    <div className="workspace-canvas h-full flex-1 overflow-y-auto p-4 text-text-main md:p-8">
 
       {/* ======================================================== */}
       {/* SECTION 1: WORKSPACE ANALYTICS */}
       {/* ======================================================== */}
       <div className="mb-12">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center gap-3">
-            <Layout className="text-primary" size={32} />
+        <div className="mb-8 rounded-2xl border border-border-subtle bg-surface/95 p-6 panel-shadow">
+          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+            <Layout size={14} />
             Workspace Analytics
+          </p>
+          <h1 className="text-3xl font-black tracking-tight md:text-5xl">
+            Workspace performance
           </h1>
-          <p className="mt-2 text-sm md:text-base text-text-secondary">
-            Real-time overview of your current workspace.
+          <p className="mt-2 text-sm leading-6 text-text-secondary md:text-base">
+            Track project health, task progress, execution history, and activity trends in one place.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <StatCard title="Active Projects" value={workspace.activeProjects} icon={FolderKanban} color="text-info-text" bg="bg-info-bg" />
           <StatCard title="Active Tasks" value={workspace.activeTasks} icon={ListTodo} color="text-primary" bg="bg-primary/10" />
           <StatCard title="Completed Tasks" value={workspace.completedTasks} icon={CheckCircle2} color="text-success" bg="bg-success-bg" />
@@ -242,9 +242,9 @@ export default function AnalyticsPage() {
         </div>
 
         {/* WORKSPACE CHARTS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* TASK STATUS DOUGHNUT */}
-          <Card className="md:col-span-6 xl:col-span-3 relative group">
+          <Card className="relative md:col-span-6 xl:col-span-3 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Task Status</h2>
             <div className="h-[220px]">
               {statusData.length > 0 ? (
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* PRIORITY DOUGHNUT */}
-          <Card className="md:col-span-6 xl:col-span-3 relative group">
+          <Card className="relative md:col-span-6 xl:col-span-3 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Priority Distribution</h2>
             <div className="h-[220px]">
               {priorityData.length > 0 ? (
@@ -288,7 +288,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* WEEKLY ACTIVITY LINE CHART */}
-          <Card className="md:col-span-12 xl:col-span-6 relative group">
+          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Activity (Last 7 Days)</h2>
             <div className="h-[220px]">
               <SafeChartContainer>
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* PROJECT HEALTH TABLE */}
-        <Card className="!p-0 flex flex-col relative group">
+        <Card className="!p-0 relative flex flex-col panel-shadow">
           <div className="p-6 border-b border-border-subtle">
             <h2 className="text-lg font-bold flex items-center gap-2">Current Project Health</h2>
           </div>
@@ -364,14 +364,14 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <hr className="border-border-subtle mb-12" />
+      <hr className="mb-12 border-border-subtle" />
 
       {/* ======================================================== */}
       {/* SECTION 2: DEVELOPER INSIGHTS */}
       {/* ======================================================== */}
       <div>
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-3xl font-black tracking-tight md:text-4xl">
             <Trophy className="text-warning" size={32} />
             Developer Insights
           </h1>
@@ -380,7 +380,7 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           <StatCard title="Projects Created" value={lifetime.projectsCreated} icon={Folder} color="text-info-text" bg="bg-info-bg" />
           <StatCard title="Tasks Created" value={lifetime.tasksCreated} icon={ListTodo} color="text-primary" bg="bg-primary/10" />
           <StatCard title="Tasks Completed" value={lifetime.tasksCompleted} icon={CheckCircle2} color="text-success" bg="bg-success-bg" />
@@ -394,7 +394,7 @@ export default function AnalyticsPage() {
 
         {/* EXTRA INSIGHT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="flex flex-col justify-center bg-surface border-border-subtle">
+          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <Clock size={24} />
@@ -405,8 +405,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </Card>
-          
-          <Card className="flex flex-col justify-center bg-surface border-border-subtle">
+
+          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-warning-bg flex items-center justify-center text-warning">
                 <Code2 size={24} />
@@ -418,7 +418,7 @@ export default function AnalyticsPage() {
             </div>
           </Card>
 
-          <Card className="flex flex-col justify-center bg-surface border-border-subtle">
+          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-success-bg flex items-center justify-center text-success">
                 <Flame size={24} />
@@ -434,7 +434,7 @@ export default function AnalyticsPage() {
         {/* LIFETIME CHARTS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
           {/* MONTHLY ACTIVITY (PRODUCTIVITY TREND) */}
-          <Card className="md:col-span-12 xl:col-span-6 relative group">
+          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Monthly Activity</h2>
             <div className="h-[250px]">
               {lifetime.monthlyActivityData.length > 0 ? (
@@ -456,7 +456,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* EXECUTION HISTORY */}
-          <Card className="md:col-span-12 xl:col-span-6 relative group">
+          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Execution History</h2>
             <div className="h-[250px]">
               {lifetime.executionHistoryData.length > 0 ? (
@@ -476,9 +476,9 @@ export default function AnalyticsPage() {
               )}
             </div>
           </Card>
-          
+
           {/* LANGUAGE DISTRIBUTION */}
-          <Card className="md:col-span-6 xl:col-span-6 relative group">
+          <Card className="relative md:col-span-6 xl:col-span-6 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Language Distribution (Snippets)</h2>
             <div className="h-[220px]">
               {lifetime.languageDistribution.length > 0 ? (
@@ -500,7 +500,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* SNIPPET USAGE */}
-          <Card className="md:col-span-6 xl:col-span-6 relative group">
+          <Card className="relative md:col-span-6 xl:col-span-6 panel-shadow">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Top Snippets Usage</h2>
             <div className="h-[220px]">
               {lifetime.snippetUsageData.length > 0 ? (

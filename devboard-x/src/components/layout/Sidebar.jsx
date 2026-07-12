@@ -45,12 +45,15 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="hidden md:flex h-full w-64 p-4 flex-col border-r transition bg-page text-text-main border-border-subtle">
+    <aside className="hidden md:flex h-full w-64 p-4 flex-col border-r transition bg-surface text-text-main border-border-subtle">
       {/* LOGO */}
-      <div className="mb-8 px-3">
-        <h1 className="text-2xl font-bold tracking-tight">
+      <div className="mb-8 rounded-2xl border border-border-subtle bg-page px-4 py-4 panel-shadow">
+        <h1 className="text-2xl font-black tracking-tight">
           DevBoard X
         </h1>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+          Build space
+        </p>
       </div>
 
       {/* NAV LINKS */}
@@ -73,9 +76,9 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.path}
                   aria-current={isActive ? "page" : undefined}
-                  className={`group flex items-center gap-3 px-4 py-2 transition-all outline-none border-l-2 ${
+                  className={`group flex items-center gap-3 rounded-r-xl px-4 py-2.5 transition-all outline-none border-l-4 ${
                     isActive
-                      ? "border-primary bg-primary/5 text-primary"
+                      ? "border-primary bg-secondary text-primary"
                       : "border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-main hover:border-border-strong"
                   }`}
                 >
@@ -106,9 +109,9 @@ export default function Sidebar() {
                   key={item.name}
                   href={item.path}
                   aria-current={isActive ? "page" : undefined}
-                  className={`group flex items-center gap-3 px-4 py-2 transition-all outline-none border-l-2 ${
+                  className={`group flex items-center gap-3 rounded-r-xl px-4 py-2.5 transition-all outline-none border-l-4 ${
                     isActive
-                      ? "border-primary bg-primary/5 text-primary"
+                      ? "border-primary bg-secondary text-primary"
                       : "border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-main hover:border-border-strong"
                   }`}
                 >

@@ -42,7 +42,6 @@ import {
 } from "@/utils/projectExportImport"
 
 import Button from "@/components/ui/Button"
-import Switch from "@/components/ui/Switch"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Select from "@/components/ui/Select"
@@ -104,9 +103,7 @@ export default function SettingsPage() {
 
   const [settings, setSettings, settingsLoaded] = usePersistentState("devboard-settings", {
     username: "",
-    email: "",
-    notifications: true,
-    animations: true
+    email: ""
   })
 
   const isLoaded = themeLoaded && projectsLoaded && settingsLoaded
@@ -306,23 +303,27 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="h-full flex-1 p-6 transition bg-page text-text-main">
+    <div className="workspace-canvas h-full flex-1 overflow-y-auto p-4 text-text-main md:p-8">
       {/* PAGE HEADER */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">
+      <div className="mb-8 rounded-2xl border border-border-subtle bg-surface/95 p-6 panel-shadow">
+        <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-primary">
+          Control room
+        </p>
+        <h1 className="text-4xl font-black tracking-tight">
           Settings
         </h1>
-        <p className={`mt-2 ${subtitleClass}`}>
-          Manage your dashboard preferences.
+        <p className={`mt-2 max-w-2xl ${subtitleClass}`}>
+          Manage identity, appearance, backups, and external connections without the heavy boxed layout.
         </p>
       </div>
 
       {/* SETTINGS CONTAINER */}
-      <div className="space-y-6 max-w-3xl">
+      <div className="grid max-w-6xl grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.75fr)]">
+        <div className="space-y-6">
 
         {/* PROFILE SECTION */}
-        <Card>
-          <h2 className="text-2xl font-semibold mb-5">
+        <Card className="panel-shadow">
+          <h2 className="mb-5 text-xl font-black">
             Profile Settings
           </h2>
           <div className="space-y-4">
@@ -348,8 +349,8 @@ export default function SettingsPage() {
         </Card>
 
         {/* THEME SECTION */}
-        <Card>
-          <h2 className="text-2xl font-semibold mb-5">
+        <Card className="panel-shadow">
+          <h2 className="mb-5 text-xl font-black">
             Appearance
           </h2>
           <Field label="Theme" htmlFor="appearance-theme">
@@ -364,48 +365,6 @@ export default function SettingsPage() {
           </Field>
         </Card>
 
-        {/* PREFERENCES */}
-        <Card>
-          <h2 className="text-2xl font-semibold mb-5">
-            Preferences
-          </h2>
-          <div className="space-y-5">
-            {/* NOTIFICATIONS */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium" id="label-notifications">
-                  Notifications
-                </h3>
-                <p className={`text-sm ${subtitleClass}`}>
-                  Receive dashboard notifications.
-                </p>
-              </div>
-              <Switch
-                checked={settings.notifications}
-                onChange={(checked) => setSettings({ ...settings, notifications: checked })}
-                aria-label="Toggle notifications"
-              />
-            </div>
-
-            {/* ANIMATIONS */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium" id="label-animations">
-                  Animations
-                </h3>
-                <p className={`text-sm ${subtitleClass}`}>
-                  Enable UI animations.
-                </p>
-              </div>
-              <Switch
-                checked={settings.animations}
-                onChange={(checked) => setSettings({ ...settings, animations: checked })}
-                aria-label="Toggle animations"
-              />
-            </div>
-          </div>
-        </Card>
-
         {/* SAVE BUTTON */}
         <Button
           variant="primary"
@@ -414,11 +373,14 @@ export default function SettingsPage() {
         >
           Save Settings
         </Button>
+        </div>
+
+        <div className="space-y-6">
 
         {/* ─── GITHUB INTEGRATION ─────────────────────────────────── */}
         <div className="pt-4">
-          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-            <GithubIcon size={24} className="text-zinc-300" />
+          <h2 className="mb-2 flex items-center gap-2 text-xl font-black">
+            <GithubIcon size={22} className="text-text-secondary" />
             GitHub Integration
           </h2>
           <p className={`text-sm mb-6 ${subtitleClass}`}>
@@ -426,7 +388,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <Card>
+        <Card className="panel-shadow">
           {/* Status Toast */}
           {githubStatus === "connected" && (
             <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-success/10 border border-success/20 text-success text-sm font-medium">
@@ -458,7 +420,7 @@ export default function SettingsPage() {
                 <img
                   src={githubConnection.githubAvatarUrl}
                   alt={githubConnection.githubUsername}
-                  className="w-14 h-14 rounded-full border-2 border-zinc-700 shadow-md"
+                  className="w-14 h-14 rounded-full border-2 border-border-strong shadow-md"
                 />
               )}
               <div className="flex-1 min-w-0">
@@ -500,8 +462,8 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-semibold flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-neutral-bg text-neutral-text border border-border-subtle">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral" />
                     Disconnected
                   </span>
                 </h3>
@@ -511,7 +473,7 @@ export default function SettingsPage() {
               </div>
               <a
                 href="/api/github/authorize"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-zinc-100 hover:bg-white text-zinc-900 transition-colors shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-text-main hover:opacity-90 text-bg-page transition-colors shadow-sm"
               >
                 <GithubIcon size={18} />
                 Connect GitHub
@@ -520,15 +482,15 @@ export default function SettingsPage() {
           ) : (
             // Loading State
             <div className="flex items-center justify-center py-6">
-              <Loader2 size={24} className="animate-spin text-zinc-500" />
+              <Loader2 size={24} className="animate-spin text-text-muted" />
             </div>
           )}
         </Card>
 
         {/* ─── BACKUP & RESTORE SECTION ──────────────────────────── */}
         <div className="pt-4">
-          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-            <ShieldCheck size={24} className="text-blue-400" />
+          <h2 className="mb-2 flex items-center gap-2 text-xl font-black">
+            <ShieldCheck size={22} className="text-primary" />
             Backup & Restore
           </h2>
           <p className={`text-sm mb-6 ${subtitleClass}`}>
@@ -536,12 +498,12 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {/* EXPORT ALL PROJECTS */}
-          <Card>
+          <Card className="overflow-visible panel-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center">
-                <DatabaseBackup size={20} className="text-blue-400" />
+              <div className="w-10 h-10 rounded-xl bg-info-bg flex items-center justify-center">
+                <DatabaseBackup size={20} className="text-info" />
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Full Backup</h3>
@@ -566,10 +528,10 @@ export default function SettingsPage() {
           </Card>
 
           {/* EXPORT SINGLE PROJECT */}
-          <Card>
+          <Card className="overflow-visible panel-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                <Download size={20} className="text-amber-400" />
+              <div className="w-10 h-10 rounded-xl bg-warning-bg flex items-center justify-center">
+                <Download size={20} className="text-warning" />
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Export Project</h3>
@@ -597,7 +559,7 @@ export default function SettingsPage() {
               {/* Dropdown */}
               {exportDropdown && projects.length > 0 && (
                 <div
-                  className="absolute left-0 right-0 mt-2 rounded-xl border overflow-hidden z-50 max-h-[240px] overflow-y-auto shadow-lg bg-surface border-border-subtle"
+                  className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[240px] overflow-y-auto rounded-xl border border-border-subtle bg-surface shadow-2xl"
                 >
                   {projects.map((project, index) => (
                     <button
@@ -605,7 +567,7 @@ export default function SettingsPage() {
                       onClick={() => handleExportSingle(index)}
                       className="w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition hover:bg-bg-hover text-text-main"
                     >
-                      <FolderKanban size={14} className="text-amber-400 shrink-0" />
+                      <FolderKanban size={14} className="text-warning shrink-0" />
                       <span className="truncate">{project.title}</span>
                     </button>
                   ))}
@@ -615,10 +577,10 @@ export default function SettingsPage() {
           </Card>
 
           {/* IMPORT PROJECT */}
-          <Card>
+          <Card className="panel-shadow">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                <Upload size={20} className="text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl bg-success-bg flex items-center justify-center">
+                <Upload size={20} className="text-success" />
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Import</h3>
@@ -652,6 +614,7 @@ export default function SettingsPage() {
 
         </div>
 
+        </div>
       </div>
 
       {/* Toast Notification */}

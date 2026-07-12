@@ -46,94 +46,112 @@
 }
 
 :root {
-  --bg-page: #fff1e8;
-  --bg-surface: #fffaf5;
-  --bg-surface-hover: #ffe7d8;
+  --bg-page: #eef9ff;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #e2f3fb;
   
-  --border-subtle: #f0c8b5;
-  --border-strong: #d99b83;
+  --border-subtle: #c5e1ee;
+  --border-strong: #8fc4d8;
   
-  --text-main: #30201a;
-  --text-secondary: #6f4c3f;
-  --text-muted: #a87867;
+  --text-main: #14242c;
+  --text-secondary: #45616d;
+  --text-muted: #7b96a1;
   
-  --bg-hover: #ffe7d8;
-  --bg-active: #f0c8b5;
-  --bg-input: #fffaf5;
+  --bg-hover: #e2f3fb;
+  --bg-active: #d3edf7;
+  --bg-input: #ffffff;
+  --grid-line: rgba(33, 158, 188, 0.12);
 
   /* Semantic Colors - Light Mode */
-  --primary: #e76f51;
-  --primary-hover: #d85f42;
-  --secondary: #ffe0d0;
-  --secondary-hover: #ffd2bd;
+  --primary: #00a896;
+  --primary-hover: #008f80;
+  --secondary: #d8f3dc;
+  --secondary-hover: #c8ebcf;
   
-  --success: #2a9d8f;
-  --success-bg: rgba(42, 157, 143, 0.15);
-  --success-text: #1d7066;
+  --success: #6abf69;
+  --success-bg: rgba(106, 191, 105, 0.16);
+  --success-text: #2f7f3b;
   
-  --warning: #f4a261;
-  --warning-bg: rgba(244, 162, 97, 0.15);
-  --warning-text: #a8652b;
+  --warning: #fb8500;
+  --warning-bg: rgba(251, 133, 0, 0.14);
+  --warning-text: #9b5200;
   
-  --danger: #d94f45;
-  --danger-bg: rgba(217, 79, 69, 0.15);
-  --danger-text: #96352d;
+  --danger: #ef476f;
+  --danger-bg: rgba(239, 71, 111, 0.14);
+  --danger-text: #a71f43;
   
-  --info: #3a86a8;
-  --info-bg: rgba(58, 134, 168, 0.15);
-  --info-text: #265d75;
+  --info: #219ebc;
+  --info-bg: rgba(33, 158, 188, 0.14);
+  --info-text: #126174;
 
-  --neutral: #a87867;
-  --neutral-bg: #ffe7d8;
-  --neutral-text: #6f4c3f;
+  --neutral: #7b96a1;
+  --neutral-bg: #e2f3fb;
+  --neutral-text: #45616d;
 }
 
 .dark {
-  --bg-page: #251611;
-  --bg-surface: #33211a;
-  --bg-surface-hover: #40291f;
+  --bg-page: #0b171b;
+  --bg-surface: #122329;
+  --bg-surface-hover: #1b333b;
   
-  --border-subtle: #5a382b;
-  --border-strong: #7a4b39;
+  --border-subtle: #294650;
+  --border-strong: #3f6875;
   
-  --text-main: #fff1e8;
-  --text-secondary: #e0b8a6;
-  --text-muted: #aa7b6a;
+  --text-main: #effaff;
+  --text-secondary: #b8d7e0;
+  --text-muted: #82a3ad;
   
-  --bg-hover: #40291f;
-  --bg-active: #5a382b;
-  --bg-input: #33211a;
+  --bg-hover: #1b333b;
+  --bg-active: #294650;
+  --bg-input: #102127;
+  --grid-line: rgba(94, 202, 230, 0.10);
 
   /* Semantic Colors - Dark Mode */
-  --primary: #ff8a65;
-  --primary-hover: #ff9d7d;
-  --secondary: #4a2f25;
-  --secondary-hover: #5a392c;
+  --primary: #35d6c6;
+  --primary-hover: #58e5d8;
+  --secondary: #203b34;
+  --secondary-hover: #294a42;
   
-  --success: #63c7b8;
-  --success-bg: rgba(99, 199, 184, 0.15);
-  --success-text: #8ae3d6;
+  --success: #8bd17c;
+  --success-bg: rgba(139, 209, 124, 0.15);
+  --success-text: #b8eca9;
   
-  --warning: #ffc071;
-  --warning-bg: rgba(255, 192, 113, 0.15);
-  --warning-text: #ffe0b3;
+  --warning: #ffb057;
+  --warning-bg: rgba(255, 176, 87, 0.15);
+  --warning-text: #ffd7a5;
   
-  --danger: #ff786f;
-  --danger-bg: rgba(255, 120, 111, 0.15);
-  --danger-text: #ffb4af;
+  --danger: #ff6f91;
+  --danger-bg: rgba(255, 111, 145, 0.15);
+  --danger-text: #ffb5c8;
   
-  --info: #76c7e3;
-  --info-bg: rgba(118, 199, 227, 0.15);
-  --info-text: #aae0f2;
+  --info: #5ecae6;
+  --info-bg: rgba(94, 202, 230, 0.15);
+  --info-text: #b7ecf8;
 
-  --neutral: #aa7b6a;
-  --neutral-bg: #40291f;
-  --neutral-text: #e0b8a6;
+  --neutral: #82a3ad;
+  --neutral-bg: #1b333b;
+  --neutral-text: #b8d7e0;
 }
 
 body {
   background: var(--bg-page);
   color: var(--text-main);
+}
+
+.workspace-canvas {
+  background-color: var(--bg-page);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.panel-shadow {
+  box-shadow: 0 10px 30px rgba(20, 36, 44, 0.08);
+}
+
+.dark .panel-shadow {
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
 }
 
 /* Hide scrollbar but keep scroll functionality */

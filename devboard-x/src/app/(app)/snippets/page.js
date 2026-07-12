@@ -63,7 +63,7 @@ export default function SnippetsPage() {
   }
 
   return (
-    <div className="flex-1 p-8 bg-surface text-text-main overflow-y-auto">
+    <div className="workspace-canvas flex-1 overflow-y-auto p-8 text-text-main">
       <div className="max-w-6xl mx-auto">
         
         <div className="flex items-end justify-between mb-8">
@@ -71,19 +71,19 @@ export default function SnippetsPage() {
             <h1 className="text-4xl font-black flex items-center gap-3">
               <Code2 className="text-primary" size={36} /> Snippet Library
             </h1>
-            <p className="text-zinc-400 mt-2">Manage your global code snippets usable across all tasks.</p>
+            <p className="mt-2 text-text-muted">Manage your global code snippets usable across all tasks.</p>
           </div>
         </div>
 
-        <Card className="mb-6 bg-zinc-950/40 p-4 border border-zinc-800/60 flex flex-wrap gap-4 items-center justify-between">
+        <Card className="mb-6 flex flex-wrap items-center justify-between gap-4 border-border-subtle bg-surface/95 p-4 panel-shadow">
           <div className="relative flex-1 min-w-[300px]">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               placeholder="Search snippets by title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-primary/50 text-white"
+              className="w-full rounded-xl border border-border-subtle bg-bg-input py-2.5 pl-10 pr-4 text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none"
             />
           </div>
           
@@ -91,7 +91,7 @@ export default function SnippetsPage() {
             <select
               value={filterLang}
               onChange={(e) => setFilterLang(e.target.value)}
-              className="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-primary/50 text-zinc-300"
+              className="rounded-xl border border-border-subtle bg-bg-input px-4 py-2.5 text-text-main focus:border-primary focus:outline-none"
             >
               {languages.map(lang => (
                 <option key={lang} value={lang}>{lang === "all" ? "All Languages" : lang}</option>
@@ -101,7 +101,7 @@ export default function SnippetsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-primary/50 text-zinc-300"
+              className="rounded-xl border border-border-subtle bg-bg-input px-4 py-2.5 text-text-main focus:border-primary focus:outline-none"
             >
               <option value="recent">Recently Added</option>
               <option value="used">Most Used</option>
@@ -113,49 +113,49 @@ export default function SnippetsPage() {
         {filteredSnippets.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {filteredSnippets.map((snippet) => (
-              <Card key={snippet._id} className="group relative overflow-hidden bg-zinc-950/50 hover:border-zinc-700 transition-all flex flex-col h-[320px]">
+              <Card key={snippet._id} className="group relative flex h-[320px] flex-col overflow-hidden bg-surface/95 transition-all hover:-translate-y-0.5 hover:border-border-strong panel-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h3 className="flex items-center gap-2 text-lg font-black text-text-main">
                       {snippet.title}
                     </h3>
                     {snippet.description && (
-                      <p className="text-sm text-zinc-400 mt-1">{snippet.description}</p>
+                      <p className="mt-1 text-sm text-text-muted">{snippet.description}</p>
                     )}
                   </div>
                   <button
                     onClick={() => toggleFavorite({ id: snippet._id, favorite: !snippet.favorite })}
-                    className={`p-1.5 rounded-full transition-colors ${snippet.favorite ? "text-danger bg-danger/10 hover:bg-danger/20" : "text-zinc-500 hover:text-white hover:bg-zinc-800"}`}
+                    className={`p-1.5 rounded-full transition-colors ${snippet.favorite ? "text-danger bg-danger-bg hover:bg-danger/20" : "text-text-muted hover:bg-bg-hover hover:text-text-main"}`}
                   >
                     <Heart size={18} fill={snippet.favorite ? "currentColor" : "none"} />
                   </button>
                 </div>
                 
-                <div className="flex-1 overflow-hidden relative rounded-lg border border-zinc-800/80 bg-zinc-900/50 p-4 font-mono text-sm text-zinc-300">
+                <div className="relative flex-1 overflow-hidden rounded-lg border border-border-subtle bg-bg-active/70 p-4 font-mono text-sm text-text-secondary dark:bg-bg-input">
                   <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                    <button onClick={() => copyToClipboard(snippet.code)} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded" title="Copy Code">
+                    <button onClick={() => copyToClipboard(snippet.code)} className="rounded bg-surface p-1.5 text-text-main shadow-sm transition hover:bg-bg-hover" title="Copy Code">
                       <Copy size={14} />
                     </button>
                   </div>
-                  <pre className="h-full overflow-hidden whitespace-pre-wrap break-all opacity-80">
+                  <pre className="h-full overflow-hidden whitespace-pre-wrap break-all">
                     {snippet.code.length > 400 ? snippet.code.slice(0, 400) + "\n..." : snippet.code}
                   </pre>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-zinc-800/50 flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-between border-t border-border-subtle pt-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded">
+                    <span className="rounded border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-black text-primary">
                       {snippet.language}
                     </span>
-                    <span className="text-xs text-zinc-500 flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-xs text-text-muted">
                       <Terminal size={12} /> Used {snippet.usageCount || 0} times
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleDuplicate(snippet)} className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition" title="Duplicate">
+                    <button onClick={() => handleDuplicate(snippet)} className="rounded p-1.5 text-text-muted transition hover:bg-bg-hover hover:text-text-main" title="Duplicate">
                       <Plus size={16} />
                     </button>
-                    <button onClick={() => handleDelete(snippet._id, snippet.title)} className="p-1.5 text-zinc-400 hover:text-danger hover:bg-danger/10 rounded transition" title="Delete">
+                    <button onClick={() => handleDelete(snippet._id, snippet.title)} className="rounded p-1.5 text-text-muted transition hover:bg-danger-bg hover:text-danger" title="Delete">
                       <Trash2 size={16} />
                     </button>
                   </div>
