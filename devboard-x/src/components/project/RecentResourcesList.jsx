@@ -31,11 +31,11 @@ export default function RecentResourcesList({ project, resources = [] }) {
               href={resource.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-left p-4 rounded-xl transition bg-bg-active hover:bg-bg-hover outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="block w-full text-left p-4 rounded-xl transition bg-bg-active hover:bg-bg-hover outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium truncate text-text-main">{resource.title}</p>
-                <ExternalLink size={14} className="text-blue-500 dark:text-blue-400 shrink-0 mt-1" />
+                <ExternalLink size={14} className="text-primary shrink-0 mt-1" />
               </div>
 
               <span
@@ -44,7 +44,7 @@ export default function RecentResourcesList({ project, resources = [] }) {
                 {resource.category}
               </span>
 
-              <p className="text-xs text-blue-500 dark:text-blue-400 truncate mt-2">
+              <p className="text-xs text-primary truncate mt-2">
                 {resource.url}
               </p>
             </a>

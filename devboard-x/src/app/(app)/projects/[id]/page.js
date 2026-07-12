@@ -81,7 +81,7 @@ export default function ProjectOverviewPage() {
 
   return (
     <div
-      className="h-full flex-1 p-6 bg-surface text-text-main"
+      className="workspace-canvas h-full flex-1 p-6 text-text-main overflow-y-auto"
     >
       <ProjectHeader project={project} />
       <ProjectSubNav projectIndex={projectIndex} />
@@ -119,19 +119,20 @@ export default function ProjectOverviewPage() {
           Icon={Link2}
           title="Total Resources"
           value={metrics.totalResources}
-          color="bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-500 dark:text-cyan-400"
+          color="bg-info-bg text-info-text"
         />
         <WidgetCard
           Icon={TrendingUp}
           title="Project Progress"
           value={`${metrics.progressPercent}%`}
-          color="bg-orange-500/10 dark:bg-orange-500/20 text-orange-500 dark:text-orange-400"
+          color="bg-warning-bg text-warning-text"
         />
       </div>
 
       <div className="mb-8">
         <ProjectHealthSection
           progressPercent={metrics.progressPercent}
+          completedTasks={metrics.completedTasks}
           totalTasks={metrics.totalTasks}
         />
       </div>

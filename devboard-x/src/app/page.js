@@ -3,7 +3,7 @@
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Activity, Code2, FileCode, FolderKanban, Play, Terminal } from "lucide-react";
+import { Activity, CheckCircle2, Code2, FileCode, FolderKanban, Play, Terminal } from "lucide-react";
 
 const PreviewRow = ({ label, value, tone = "primary" }) => {
   const tones = {
@@ -71,17 +71,17 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 pb-12 pt-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 pb-12 pt-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <section>
           <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-surface px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-primary panel-shadow">
             <Activity size={14} />
             Developer workspace
           </p>
-          <h1 className="max-w-3xl text-5xl font-black leading-[0.96] tracking-tight md:text-7xl">
-            Projects that feel alive while you build.
+          <h1 className="max-w-3xl text-5xl font-black leading-[1.02] tracking-tight md:text-6xl">
+            Your projects, tasks, files, and snippets in one workspace.
           </h1>
-          <p className="mt-6 max-w-xl text-base leading-7 text-text-secondary md:text-lg">
-            Track work, files, snippets, execution, and project health in one bright workspace that feels more like a build board than an admin dashboard.
+          <p className="mt-5 max-w-xl text-base leading-7 text-text-secondary md:text-lg">
+            DevBoard X keeps your development work organized with project health, task progress, code snippets, resources, and execution history.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <SignUpButton mode="modal">
@@ -100,8 +100,8 @@ export default function LandingPage() {
         <section className="rounded-3xl border border-border-subtle bg-surface/95 p-4 panel-shadow md:p-5">
           <div className="mb-4 flex items-center justify-between border-b border-border-subtle pb-4">
             <div>
-              <p className="text-sm font-black">Today&apos;s build board</p>
-              <p className="text-xs text-text-muted">Active project pulse</p>
+              <p className="text-sm font-black">Workspace preview</p>
+              <p className="text-xs text-text-muted">Project activity and progress</p>
             </div>
             <div className="flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-danger" />
@@ -149,12 +149,25 @@ export default function LandingPage() {
                 ))}
               </div>
 
-              <div className="rounded-2xl border border-border-subtle bg-text-main p-4 text-bg-page">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.14em] opacity-70">activity log</p>
-                <div className="space-y-2 font-mono text-xs">
-                  <p>$ updated task auth-refresh</p>
-                  <p>$ executed preview build</p>
-                  <p>$ saved snippet route-helper</p>
+              <div className="rounded-2xl border border-border-subtle bg-page/70 p-4">
+                <p className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-text-muted">
+                  <Activity size={14} className="text-primary" />
+                  Recent activity
+                </p>
+                <div className="space-y-3">
+                  {[
+                    ["Updated task", "Auth refresh", CheckCircle2, "text-success"],
+                    ["Saved snippet", "route-helper", Code2, "text-info"],
+                    ["Ran preview", "Editor shell", Play, "text-primary"]
+                  ].map(([label, value, Icon, color]) => (
+                    <div key={`${label}-${value}`} className="flex items-center gap-3 rounded-xl bg-surface px-3 py-2">
+                      <Icon size={15} className={color} />
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-black text-text-main">{label}</p>
+                        <p className="truncate text-[11px] text-text-muted">{value}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

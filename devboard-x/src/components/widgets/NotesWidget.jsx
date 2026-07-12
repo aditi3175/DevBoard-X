@@ -150,40 +150,41 @@ export default function NotesWidget() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-3">
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className="group relative p-4 rounded-xl border transition flex flex-col h-[160px] bg-surface border-border-subtle hover:border-border-strong"
+                  className="group rounded-xl border bg-surface border-border-subtle transition hover:border-border-strong hover:bg-bg-hover"
                 >
                   <button
                     onClick={() => setSelectedNoteId(note.id)}
                     aria-label={`Open note ${note.title || "Untitled"}`}
-                    className="absolute inset-0 z-0 w-full h-full rounded-xl focus-visible:ring-2 focus-visible:ring-primary outline-none"
-                  />
-                  <div className="relative z-10 pointer-events-none flex-1 flex flex-col">
-                    <h3 className="font-bold text-lg mb-2 truncate text-text-main">
-                      {note.title || "Untitled Note"}
-                    </h3>
-                    <p
-                      className="text-sm line-clamp-3 mb-auto text-text-secondary"
-                    >
-                      {note.content || "Empty note..."}
-                    </p>
-                  </div>
-                  <div className="relative z-10 mt-3 pt-3 border-t flex items-center justify-between text-xs uppercase font-bold border-border-subtle text-text-muted tracking-wider">
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} />
-                      {new Date(note.lastEdited).toLocaleDateString()}
+                    className="w-full p-3 text-left focus-visible:ring-2 focus-visible:ring-primary outline-none rounded-xl"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-black text-text-main">
+                          {note.title || "Untitled Note"}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-xs text-text-secondary">
+                          {note.content || "Empty note..."}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                  <div className="mx-3 flex items-center justify-between border-t border-border-subtle py-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+                    <span className="flex min-w-0 items-center gap-1">
+                      <Clock size={12} className="shrink-0" />
+                      <span className="truncate">{new Date(note.lastEdited).toLocaleDateString()}</span>
                     </span>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="iconSm"
                       onClick={(e) => handleDeleteNote(note.id, e)}
                       aria-label={`Delete note ${note.title || "Untitled"}`}
-                      className="opacity-0 group-hover:opacity-100 hover:text-danger text-text-muted px-2 h-6 text-xs"
+                      className="shrink-0 hover:text-danger text-text-muted"
                     >
-                      Delete
+                      <Trash2 size={14} />
                     </Button>
                   </div>
                 </div>

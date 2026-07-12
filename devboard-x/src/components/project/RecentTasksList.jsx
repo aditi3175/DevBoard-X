@@ -31,7 +31,7 @@ export default function RecentTasksList({ project }) {
             <Link
               key={task._id}
               href={`/projects/${project._id}/tasks/${task._id}`}
-              className="block w-full text-left p-4 rounded-xl transition bg-bg-active hover:bg-bg-hover outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="block w-full text-left p-4 rounded-xl transition bg-bg-active hover:bg-bg-hover outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium truncate text-text-main">{task.title}</p>

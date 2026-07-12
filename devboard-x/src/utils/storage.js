@@ -92,7 +92,7 @@ function createStore(key, initialValue) {
 
     if (key === "devboard-theme") {
       if (parsedValue !== "dark" && parsedValue !== "light") {
-        parsedValue = "dark"
+        parsedValue = "light"
         requiresMigration = true
       }
     }

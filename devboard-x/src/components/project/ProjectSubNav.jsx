@@ -44,7 +44,7 @@ export default function ProjectSubNav({ projectIndex }) {
             aria-current={active ? "page" : undefined}
             className={`px-4 py-2.5 font-medium transition whitespace-nowrap border-b-2 ${
               active
-                ? "border-blue-500 text-text-main font-semibold"
+                ? "border-primary text-text-main font-semibold"
                 : "border-transparent text-text-secondary hover:text-text-main hover:border-border-strong"
             }`}
           >

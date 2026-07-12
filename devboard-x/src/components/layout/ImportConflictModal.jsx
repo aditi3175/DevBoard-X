@@ -53,8 +53,8 @@ export default function ImportConflictModal({
             {/* Header */}
             <div className="px-6 pt-6 pb-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                  <AlertTriangle size={20} className="text-amber-400" />
+                <div className="w-10 h-10 rounded-xl bg-warning-bg flex items-center justify-center">
+                  <AlertTriangle size={20} className="text-warning" />
                 </div>
                 <div>
                   <h2
@@ -98,7 +98,7 @@ export default function ImportConflictModal({
               >
                 <div className="text-left flex flex-col gap-0.5">
                   <p className="text-sm font-medium">Keep Both</p>
-                  <p className="text-xs text-blue-200 font-normal">
+                  <p className="text-xs text-white/80 font-normal">
                     Import as &ldquo;{projectTitle} (Imported)&rdquo;
                   </p>
                 </div>

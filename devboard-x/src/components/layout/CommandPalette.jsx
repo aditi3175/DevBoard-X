@@ -25,32 +25,32 @@ const CATEGORIES = {
   action: {
     label: "Quick Actions",
     icon: Zap,
-    color: "text-amber-400",
-    bg: "bg-amber-500/15"
+    color: "text-warning",
+    bg: "bg-warning-bg"
   },
   project: {
     label: "Projects",
     icon: FolderKanban,
-    color: "text-blue-400",
-    bg: "bg-blue-500/15"
+    color: "text-primary",
+    bg: "bg-primary/10"
   },
   task: {
     label: "Tasks",
     icon: ListTodo,
-    color: "text-green-400",
-    bg: "bg-green-500/15"
+    color: "text-success",
+    bg: "bg-success-bg"
   },
   snippet: {
     label: "Snippets",
     icon: Code2,
-    color: "text-purple-400",
-    bg: "bg-purple-500/15"
+    color: "text-info",
+    bg: "bg-info-bg"
   },
   resource: {
     label: "Resources",
     icon: Link2,
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/15"
+    color: "text-neutral-text",
+    bg: "bg-neutral-bg"
   }
 }
 
@@ -400,7 +400,7 @@ export default function CommandPalette() {
                 </span>
               </div>
               <span className="flex items-center gap-1.5">
-                <Zap size={11} className="text-amber-500" />
+                <Zap size={11} className="text-warning" />
                 DevBoard X
               </span>
             </div>
