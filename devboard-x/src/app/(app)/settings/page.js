@@ -99,7 +99,7 @@ export default function SettingsPage() {
 
   // SETTINGS STATE
   const { theme, setTheme, isLoaded: themeLoaded } = useTheme()
-  const { projects, setProjects, isLoaded: projectsLoaded } = useProjects()
+  const { projects, setProjects, isLoaded: projectsLoaded, deleteProject } = useProjects()
 
   const [settings, setSettings, settingsLoaded] = usePersistentState("devboard-settings", {
     username: "",
@@ -363,6 +363,67 @@ export default function SettingsPage() {
               <option value="light">Light</option>
             </Select>
           </Field>
+        </Card>
+
+        {/* DANGER ZONE */}
+        <Card className="border-danger/30 bg-danger/5">
+          <h2 className="mb-2 text-xl font-black flex items-center gap-2 text-danger">
+            <ShieldCheck size={20} /> Danger Zone
+          </h2>
+          <p className="text-sm mb-6 text-text-muted">
+            Irreversible actions that affect your workspace data.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg bg-page border border-danger/20">
+              <div>
+                <h3 className="font-bold text-text-main text-sm">Reset Settings</h3>
+                <p className="text-xs text-text-muted mt-1">Revert appearance and general preferences to defaults.</p>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  if (confirm("Reset all settings to defaults?")) {
+                    setTheme("light")
+                    setSettings({ username: "", email: "" })
+                    setToast({ visible: true, message: "Settings reset to defaults.", type: "success" })
+                  }
+                }}
+                className="shrink-0"
+              >
+                Reset Defaults
+              </Button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg bg-page border border-danger/20">
+              <div>
+                <h3 className="font-bold text-danger text-sm">Delete All Projects</h3>
+                <p className="text-xs text-text-muted mt-1">Permanently wipes all your projects and tasks.</p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (confirm("Are you sure? This will PERMANENTLY delete all projects. This cannot be undone.")) {
+                    try {
+                      for (const p of projects) {
+                        // Attempt to delete from Convex backend if it has a valid ID
+                        if (p._id && typeof p._id === "string" && !p._id.startsWith("local-") && isNaN(Number(p._id))) {
+                          await deleteProject({ id: p._id }).catch(e => console.error("Failed to delete backend project", e));
+                        }
+                      }
+                    } finally {
+                      // Always wipe local storage
+                      setProjects([])
+                      setToast({ visible: true, message: "All projects have been deleted.", type: "success" })
+                    }
+                  }
+                }}
+                className="shrink-0"
+              >
+                Delete Data
+              </Button>
+            </div>
+          </div>
         </Card>
 
         {/* SAVE BUTTON */}
