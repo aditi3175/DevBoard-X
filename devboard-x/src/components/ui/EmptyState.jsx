@@ -1,7 +1,5 @@
-"use client"
-
 import React from "react"
-import Button from "@/components/ui/Button"
+import Button from "./Button"
 
 export default function EmptyState({
   icon: Icon,
@@ -9,45 +7,68 @@ export default function EmptyState({
   description,
   primaryAction,
   secondaryAction,
-  variant = "full", // "full" | "compact"
-  className = ""
+  variant = "standard"
 }) {
-  const isCompact = variant === "compact"
-  
-  return (
-    <div className={`flex flex-col items-center justify-center text-center ${isCompact ? "p-4 h-full min-h-[120px]" : "p-8 h-full min-h-[250px] border border-dashed rounded-xl border-border-strong bg-surface/50"} ${className}`}>
-      {Icon && (
-        <div className={`mb-3 flex items-center justify-center rounded-full bg-bg-active text-text-muted ${isCompact ? "w-10 h-10" : "w-16 h-16"}`}>
-          <Icon size={isCompact ? 20 : 32} />
+  if (variant === "compact") {
+    return (
+      <div className="flex flex-col text-left py-4 px-2 border border-dashed border-border bg-page">
+        <div className="flex items-center gap-2 mb-2 font-mono text-sm text-text-muted">
+          <span className="text-accent">~</span>
+          <span className="text-text-main">$</span>
+          <span>{title.toLowerCase().replace(/\s+/g, '_')}</span>
         </div>
-      )}
-      <h3 className={`font-semibold text-text-main ${isCompact ? "text-sm" : "text-xl"}`}>{title}</h3>
-      {description && (
-        <p className={`mt-1 text-text-secondary ${isCompact ? "text-xs max-w-[250px]" : "text-sm max-w-md"}`}>{description}</p>
-      )}
-      
-      {(primaryAction || secondaryAction) && (
-        <div className={`flex flex-wrap items-center justify-center gap-3 ${isCompact ? "mt-3" : "mt-5"}`}>
-          {secondaryAction && (
+        <p className="text-xs text-text-muted font-mono pl-6 mb-4 max-w-sm">
+          // {description}
+        </p>
+        
+        {primaryAction && (
+          <div className="pl-6">
             <Button
               variant="secondary"
-              size={isCompact ? "sm" : "md"}
-              onClick={secondaryAction.onClick}
-            >
-              {secondaryAction.label}
-            </Button>
-          )}
-          {primaryAction && (
-            <Button
-              variant="primary"
-              size={isCompact ? "sm" : "md"}
+              size="sm"
               onClick={primaryAction.onClick}
             >
               {primaryAction.label}
             </Button>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center text-center p-12 border border-dashed border-border bg-page">
+      <div className="flex items-center justify-center w-16 h-16 rounded-none bg-surface border border-border text-accent mb-6">
+        {Icon && <Icon size={24} />}
+        {!Icon && <span className="font-mono text-2xl animate-pulse">_</span>}
+      </div>
+      
+      <h3 className="text-lg font-mono font-bold text-text-main mb-2">
+        <span className="text-accent mr-2">{'>'}</span>{title}
+      </h3>
+      
+      <p className="text-sm text-text-muted font-mono max-w-md mb-8">
+        /* {description} */
+      </p>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        {primaryAction && (
+          <Button
+            variant="primary"
+            onClick={primaryAction.onClick}
+          >
+            {primaryAction.label}
+          </Button>
+        )}
+        {secondaryAction && (
+          <Button
+            variant="ghost"
+            onClick={secondaryAction.onClick}
+          >
+            {secondaryAction.label}
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

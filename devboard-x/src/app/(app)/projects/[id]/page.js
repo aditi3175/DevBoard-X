@@ -7,8 +7,11 @@ import {
   Code2,
   Link2,
   ListTodo,
-  TrendingUp
+  TrendingUp,
+  AlertTriangle
 } from "lucide-react"
+
+import EmptyState from "@/components/ui/EmptyState"
 
 import { useProjects } from "@/context/ProjectContext"
 import ProjectHeader from "@/components/project/ProjectHeader"
@@ -54,10 +57,12 @@ export default function ProjectOverviewPage() {
 
   if (!project) {
     return (
-      <div
-        className="h-full flex-1 p-6 bg-surface text-text-main"
-      >
-        <h1 className="text-3xl font-bold">Project Not Found</h1>
+      <div className="h-full flex-1 p-6 bg-surface text-text-main flex flex-col items-center justify-center">
+        <EmptyState 
+          icon={AlertTriangle} 
+          title="Project Not Found" 
+          description="This project might have been deleted or you don't have access." 
+        />
       </div>
     )
   }

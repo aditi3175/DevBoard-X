@@ -148,23 +148,18 @@ export default function ProjectsPage() {
   return (
 
     <div
-      className="h-full flex-1 p-6 transition bg-surface text-text-main"
+      className="h-full flex-1 p-6 transition bg-page text-text-main font-mono"
     >
 
 
       {/* PAGE HEADER */}
-      <div className="mb-8">
-
-        <h1 className="text-4xl font-bold">
-          Projects
+      <div className="mb-8 border-b border-border pb-4">
+        <h1 className="text-3xl font-mono font-bold">
+          <span className="text-accent mr-3">~/</span>Projects
         </h1>
-
-        <p
-          className="mt-2 text-text-secondary"
-        >
-          Create and manage your development projects.
+        <p className="mt-2 text-text-muted font-mono text-sm">
+          // Create and manage your development projects.
         </p>
-
       </div>
 
       {/* PROJECT FORM */}

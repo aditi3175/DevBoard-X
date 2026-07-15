@@ -5,12 +5,25 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Plus, Trash2, Edit2, ChevronLeft, Eye, Clock, Type } from "lucide-react"
 import { usePersistentState } from "@/utils/storage"
-import EmptyState from "@/components/ui/EmptyState"
-import Button from "@/components/ui/Button"
+
+// Terminal Window Wrapper for Notes
+const NotesTerminalWindow = ({ title, children, className = "" }) => {
+  return (
+    <div className={`bg-page border border-border rounded-[8px] overflow-hidden z-10 w-full ${className}`}>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-page-raised">
+        <div className="w-2.5 h-2.5 rounded-full bg-danger" />
+        <div className="w-2.5 h-2.5 rounded-full bg-warning" />
+        <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+        <span className="ml-4 text-xs text-text-muted font-mono">{title}</span>
+      </div>
+      <div className="p-5 font-mono h-full flex flex-col">
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function NotesWidget() {
-
-  // STATE
   const [notes, setNotes, isLoaded] = usePersistentState("devboard-notes", [
     {
       id: "default-note",
@@ -59,133 +72,99 @@ export default function NotesWidget() {
 
   if (!isLoaded) {
     return (
-      <div className="mt-6 w-full border rounded-xl transition overflow-hidden flex flex-col min-h-[400px] animate-pulse bg-surface border-border-subtle">
-        <div className="px-5 py-4 border-b flex items-center justify-between border-border-subtle bg-bg-hover">
-          <div className="h-6 w-32 rounded bg-bg-active"></div>
-          <div className="h-8 w-24 rounded-lg bg-bg-active"></div>
+      <NotesTerminalWindow title="~/workspace/notes.sh" className="min-h-[400px]">
+        <div className="flex gap-2 mb-6 text-sm">
+          <span className="text-accent">~</span>
+          <span className="text-text-main">$</span>
+          <span className="text-text-muted">Loading note buffers...</span>
         </div>
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 rounded-xl bg-bg-active"></div>
-          ))}
-        </div>
-      </div>
+        <div className="text-text-main animate-pulse pt-2">_</div>
+      </NotesTerminalWindow>
     )
   }
 
-  const cardClass = "mt-6 w-full border rounded-xl transition overflow-hidden flex flex-col bg-surface border-border-subtle"
-
   return (
-    <div className={cardClass} style={{ minHeight: "400px" }}>
-      {/* HEADER */}
-      <div
-        className="px-5 py-4 border-b flex items-center justify-between border-border-subtle bg-bg-hover"
-      >
-        <div className="flex items-center gap-3">
+    <NotesTerminalWindow title={activeNoteId ? `~/workspace/notes/${activeNote?.title.replace(/\s+/g, '-').toLowerCase() || 'untitled'}.md` : "~/workspace/notes.md"} className="min-h-[400px]">
+      
+      {/* TOOLBAR */}
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+        <div className="flex items-center gap-3 text-sm">
           {activeNoteId && (
-            <Button
-              variant="ghost"
-              size="iconSm"
+            <button
               onClick={() => setSelectedNoteId(null)}
+              className="text-text-muted hover:text-text-main transition-colors flex items-center gap-1 outline-none focus-visible:text-accent"
             >
-              <ChevronLeft size={20} />
-            </Button>
+              <ChevronLeft size={16} /> cd ..
+            </button>
           )}
-          <div>
-            <h2 className="text-xl font-bold text-text-main">
-              {activeNoteId ? "Edit Note" : "Developer Notes"}
-            </h2>
-            <p className="text-xs mt-0.5 text-text-secondary">
-              {activeNoteId
-                ? "Notion-style workspace"
-                : "Keep track of ideas, tasks and bugs."}
-            </p>
-          </div>
+          {!activeNoteId && (
+            <span className="text-text-main font-bold">ls -l ./notes</span>
+          )}
         </div>
 
-        {!activeNoteId && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleCreateNote}
-            aria-label="Create new note"
-            leftIcon={Plus}
-          >
-            <span className="hidden sm:inline">New Note</span>
-          </Button>
-        )}
-
-        {activeNoteId && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant={isEditing ? "primary" : "secondary"}
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-              leftIcon={isEditing ? Eye : Edit2}
-              className={isEditing ? "bg-primary/20 text-primary hover:bg-primary/30" : ""}
+        <div className="flex items-center gap-3">
+          {!activeNoteId ? (
+            <button
+              onClick={handleCreateNote}
+              className="text-accent hover:text-text-main transition-colors text-xs flex items-center gap-1 uppercase tracking-wider font-bold outline-none"
             >
-              {isEditing ? "Preview" : "Edit"}
-            </Button>
-            <Button
-              variant="destructive"
-              size="iconSm"
-              onClick={(e) => handleDeleteNote(activeNoteId, e)}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        )}
+              <Plus size={14} /> touch new_note.md
+            </button>
+          ) : (
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`${isEditing ? 'text-info' : 'text-text-muted hover:text-text-main'} transition-colors text-xs flex items-center gap-1 uppercase tracking-wider font-bold outline-none`}
+              >
+                {isEditing ? <Eye size={14} /> : <Edit2 size={14} />} 
+                {isEditing ? "cat" : "nano"}
+              </button>
+              <button
+                onClick={(e) => handleDeleteNote(activeNoteId, e)}
+                className="text-danger hover:text-danger-bg transition-colors text-xs flex items-center gap-1 uppercase tracking-wider font-bold outline-none"
+              >
+                <Trash2 size={14} /> rm -rf
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* CONTENT AREA */}
-      <div className="p-5 flex-1 flex flex-col relative">
+      <div className="flex-1 flex flex-col relative text-sm">
         {!activeNoteId ? (
-          /* NOTES GRID */
+          /* NOTES LIST */
           notes.length === 0 ? (
-            <div className="flex-1">
-              <EmptyState
-                icon={Type}
-                title="No notes yet"
-                description="Create your first developer note to keep track of ideas, tasks, and bugs."
-              />
-            </div>
+            <div className="text-text-muted mt-4">Total 0. Directory empty.</div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center text-text-muted border-b border-border pb-2 mb-2 uppercase text-[10px] font-bold tracking-wider">
+                <div className="flex-1">Filename</div>
+                <div className="w-32 text-right">Modified</div>
+                <div className="w-12 text-center">Action</div>
+              </div>
               {notes.map((note) => (
                 <div
                   key={note.id}
-                  className="group rounded-xl border bg-surface border-border-subtle transition hover:border-border-strong hover:bg-bg-hover"
+                  className="group flex items-center hover:bg-surface -mx-2 px-2 py-1.5 transition-colors cursor-pointer"
+                  onClick={() => setSelectedNoteId(note.id)}
                 >
-                  <button
-                    onClick={() => setSelectedNoteId(note.id)}
-                    aria-label={`Open note ${note.title || "Untitled"}`}
-                    className="w-full p-3 text-left focus-visible:ring-2 focus-visible:ring-primary outline-none rounded-xl"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-black text-text-main">
-                          {note.title || "Untitled Note"}
-                        </h3>
-                        <p className="mt-1 line-clamp-2 text-xs text-text-secondary">
-                          {note.content || "Empty note..."}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                  <div className="mx-3 flex items-center justify-between border-t border-border-subtle py-2 text-xs font-bold uppercase tracking-wider text-text-muted">
-                    <span className="flex min-w-0 items-center gap-1">
-                      <Clock size={12} className="shrink-0" />
-                      <span className="truncate">{new Date(note.lastEdited).toLocaleDateString()}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-accent mr-2">-rw-r--r--</span>
+                    <span className="text-text-main font-bold truncate">
+                      {note.title || "untitled_note"}.md
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="iconSm"
+                  </div>
+                  <div className="w-32 text-right text-text-muted text-xs">
+                    {new Date(note.lastEdited).toLocaleDateString()}
+                  </div>
+                  <div className="w-12 text-center">
+                    <button
                       onClick={(e) => handleDeleteNote(note.id, e)}
-                      aria-label={`Delete note ${note.title || "Untitled"}`}
-                      className="shrink-0 hover:text-danger text-text-muted"
+                      className="text-text-muted hover:text-danger outline-none"
                     >
                       <Trash2 size={14} />
-                    </Button>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -194,70 +173,56 @@ export default function NotesWidget() {
         ) : (
           /* ACTIVE NOTE EDITOR */
           <div className="flex flex-col flex-1 h-full">
-            <label htmlFor="note-title-input" className="sr-only">Note Title</label>
-            <input
-              id="note-title-input"
-              type="text"
-              value={activeNote?.title || ""}
-              onChange={(e) => handleUpdateActiveNote({ title: e.target.value })}
-              placeholder="Note Title"
-              className="text-2xl font-black mb-4 outline-none bg-transparent rounded focus-visible:ring-2 focus-visible:ring-primary text-text-main placeholder-text-muted"
-            />
+            <div className="flex items-center gap-2 mb-4 text-text-main text-lg font-bold">
+              <span className="text-accent">#</span>
+              <input
+                type="text"
+                value={activeNote?.title || ""}
+                onChange={(e) => handleUpdateActiveNote({ title: e.target.value })}
+                placeholder="Note Title"
+                className="flex-1 outline-none bg-transparent placeholder-text-muted focus-visible:border-b focus-visible:border-accent pb-1 transition-all"
+              />
+            </div>
 
             {isEditing ? (
-              <>
-                <label htmlFor="note-content-input" className="sr-only">Note Content</label>
-                <textarea
-                  id="note-content-input"
-                  value={activeNote?.content || ""}
-                  onChange={(e) => handleUpdateActiveNote({ content: e.target.value })}
-                  placeholder="Start typing your markdown notes here..."
-                  className="flex-1 w-full min-h-[300px] outline-none resize-none bg-transparent rounded p-2 focus-visible:ring-2 focus-visible:ring-primary text-text-main placeholder-text-muted"
-                />
-              </>
+              <textarea
+                value={activeNote?.content || ""}
+                onChange={(e) => handleUpdateActiveNote({ content: e.target.value })}
+                placeholder="Start typing your markdown notes here..."
+                className="flex-1 w-full min-h-[250px] outline-none resize-none bg-transparent focus-visible:ring-1 focus-visible:ring-accent p-2 text-text-sub placeholder-text-muted font-mono leading-relaxed rounded"
+              />
             ) : (
-              <div
-                className="flex-1 w-full min-h-[300px] prose prose-sm max-w-none overflow-y-auto dark:prose-invert text-text-main"
-              >
+              <div className="flex-1 w-full min-h-[250px] prose prose-invert prose-sm max-w-none overflow-y-auto text-text-main font-sans">
                 {activeNote?.content ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {activeNote.content}
                   </ReactMarkdown>
                 ) : (
-                  <div className="mt-8">
-                    <EmptyState
-                      variant="compact"
-                      icon={Eye}
-                      title="Nothing to preview"
-                      description="Switch to edit mode to start writing your markdown note."
-                    />
-                  </div>
+                  <div className="text-text-muted font-mono mt-4">Empty file...</div>
                 )}
               </div>
             )}
 
             {/* STATUS BAR */}
-            <div
-              className="mt-4 pt-3 border-t flex items-center justify-between text-xs font-medium border-border-subtle text-text-muted"
-            >
+            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-text-muted">
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
-                  <Clock size={14} />
-                  Last edited: {new Date(activeNote?.lastEdited).toLocaleString()}
+                  <Clock size={12} />
+                  {new Date(activeNote?.lastEdited).toLocaleString([], { hour12: false })}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Type size={14} />
-                  {activeNote?.content.length || 0} characters
+                  <Type size={12} />
+                  {activeNote?.content.length || 0} bytes
                 </span>
               </div>
-              <span className="text-success flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                Auto-saved
+              <span className="text-success flex items-center gap-1 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                [ WROTE ]
               </span>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </NotesTerminalWindow>
   )
 }

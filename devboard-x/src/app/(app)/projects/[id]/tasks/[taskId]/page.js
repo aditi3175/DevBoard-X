@@ -28,6 +28,8 @@ import {
 
 import Card from "@/components/ui/Card"
 import SnippetPickerModal from "@/components/snippets/SnippetPickerModal"
+import Button from "@/components/ui/Button"
+import EmptyState from "@/components/ui/EmptyState"
 
 import { useProjects } from "@/context/ProjectContext"
 import ProjectSubNav from "@/components/project/ProjectSubNav"
@@ -433,7 +435,8 @@ export default function TaskWorkspacePage() {
   const fetchedFiles = useQuery(api.files.getFileTree, urlTaskId ? { taskId: urlTaskId } : "skip")
   const task = useMemo(() => fetchedTask ? { ...fetchedTask, files: fetchedFiles || [] } : null, [fetchedTask, fetchedFiles])
   
-  const projectIndex = projects.findIndex(p => p._id === projectId)
+  const isOldProject = !isNaN(Number(projectId))
+  const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
   const project = projects[projectIndex]
 
   const [selectedFilePath, setSelectedFilePath] = useState("")
@@ -651,12 +654,12 @@ export default function TaskWorkspacePage() {
 
   if (!project || !task) {
     return (
-      <div
-        className="h-full flex-1 p-6 bg-surface text-text-main"
-      >
-        <h1 className="text-3xl font-bold">
-          Task Not Found
-        </h1>
+      <div className="h-full flex-1 p-6 bg-surface text-text-main flex flex-col items-center justify-center">
+        <EmptyState 
+          icon={AlertTriangle} 
+          title="Task Not Found" 
+          description="This task might have been deleted or you don't have access." 
+        />
       </div>
     )
   }
@@ -1412,41 +1415,29 @@ export default function TaskWorkspacePage() {
             </div>
 
             <div className="flex items-center gap-3 mt-4">
-              <button
+              <Button
+                variant="success"
                 onClick={handleRunTask}
                 disabled={!selectedFilePath}
-                className={`px-5 py-2.5 rounded-xl text-white font-medium shadow-sm transition-colors text-sm ${
-                  selectedFilePath
-                    ? "bg-success hover:brightness-110 cursor-pointer"
-                    : "bg-zinc-600 cursor-not-allowed opacity-50"
-                }`}
               >
                 ▶ Run Task
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setIsSnippetPickerOpen(true)}
                 disabled={!selectedFilePath || selectedFile?.isSnippet}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
-                  selectedFilePath && !selectedFile?.isSnippet
-                    ? "bg-zinc-800 hover:bg-zinc-700 text-white cursor-pointer"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 cursor-not-allowed opacity-50"
-                }`}
               >
                 <Code2 size={16} aria-hidden="true" /> Insert Snippet
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="primary"
                 onClick={handleSaveAsSnippet}
                 disabled={!selectedFilePath || selectedFile?.isSnippet}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium shadow-sm transition-colors text-sm ${
-                  selectedFilePath && !selectedFile?.isSnippet
-                    ? "bg-primary hover:bg-primary-hover text-white cursor-pointer"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 cursor-not-allowed opacity-50"
-                }`}
               >
                 <FileText size={16} aria-hidden="true" /> Save as Snippet
-              </button>
+              </Button>
             </div>
             
             <SnippetPickerModal

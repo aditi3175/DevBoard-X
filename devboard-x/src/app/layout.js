@@ -1,17 +1,6 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext"
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider"
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata = {
   title: {
@@ -31,8 +20,8 @@ export const metadata = {
 
 export const viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef9ff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b171b" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f0e8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f0a" },
   ],
 };
 
@@ -40,21 +29,22 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-theme="dark"
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                let theme = localStorage.getItem('devboard-theme');
-                if (theme === '"dark"' || theme === 'dark') {
-                  document.documentElement.classList.remove('dark');
-                } else if (theme === '"light"' || theme === 'light') {
-                  document.documentElement.classList.remove('dark');
-                } else {
-                  document.documentElement.classList.add('dark');
+                var t = localStorage.getItem('devboard-theme');
+                if (t) { t = t.replace(/"/g, ''); }
+                if (t === 'light' || t === 'dark') {
+                  document.documentElement.dataset.theme = t;
                 }
               } catch (e) {}
             `,

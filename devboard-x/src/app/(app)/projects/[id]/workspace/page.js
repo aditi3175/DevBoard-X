@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
-import { ExternalLink, FolderCode } from "lucide-react"
+import { ExternalLink, FolderCode, AlertTriangle } from "lucide-react"
 import { useProjects } from "@/context/ProjectContext"
 import EmptyState from "@/components/ui/EmptyState"
 import ProjectHeader from "@/components/project/ProjectHeader"
@@ -37,10 +37,12 @@ export default function ProjectWorkspaceHubPage() {
 
   if (!project) {
     return (
-      <div
-        className="h-full flex-1 p-6 bg-surface text-text-main"
-      >
-        <h1 className="text-3xl font-bold">Project Not Found</h1>
+      <div className="h-full flex-1 p-6 bg-surface text-text-main flex flex-col items-center justify-center">
+        <EmptyState 
+          icon={AlertTriangle} 
+          title="Project Not Found" 
+          description="This project might have been deleted or you don't have access." 
+        />
       </div>
     )
   }

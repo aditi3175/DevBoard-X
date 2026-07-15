@@ -1,11 +1,12 @@
 "use client"
 
-import { User, Menu, X, Layout, FolderKanban, BarChart3, Settings, ChevronRight } from "lucide-react"
+import { User, Menu, X, Layout, FolderKanban, BarChart3, Settings, ChevronRight, Sun, Moon } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
 import { useProjects } from "@/context/ProjectContext"
+import { useTheme } from "@/context/ThemeContext"
 import Button from "@/components/ui/Button"
 
 
@@ -13,6 +14,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const drawerRef = useRef(null)
+  const { theme, setTheme } = useTheme()
 
   const { projects, isLoaded } = useProjects()
 
@@ -40,7 +42,10 @@ export default function Navbar() {
         return breadcrumbs
       }
 
-      const project = projects[parseInt(projectId, 10)]
+      const isOldProject = !isNaN(Number(projectId))
+      const projectIndex = isOldProject ? Number(projectId) : projects.findIndex(p => p._id === projectId)
+      const project = projects[projectIndex]
+      
       if (!project) {
         breadcrumbs.push({ name: "Project Not Found" })
         return breadcrumbs
@@ -49,13 +54,7 @@ export default function Navbar() {
       breadcrumbs.push({ name: project.title, path: `/projects/${projectId}` })
 
       if (parts[2] === "tasks" && parts[3]) {
-        const taskId = parts[3]
-        const task = project.tasks[parseInt(taskId, 10)]
-        if (!task) {
-          breadcrumbs.push({ name: "Task Not Found" })
-        } else {
-          breadcrumbs.push({ name: task.title })
-        }
+        breadcrumbs.push({ name: "Task Editor" })
       } else if (parts[2] === "tasks") {
         breadcrumbs.push({ name: "Tasks" })
       } else if (parts[2] === "workspace") {
@@ -92,7 +91,7 @@ export default function Navbar() {
   }, [mobileMenuOpen])
 
   return (
-    <header className="h-12 shrink-0 w-full px-4 sm:px-6 flex items-center justify-between border-b transition bg-surface text-text-main border-border-subtle">
+    <header className="h-12 shrink-0 w-full px-4 sm:px-6 flex items-center justify-between bg-transparent text-text-main border-b border-border">
       {/* LEFT SIDE: Brand / Menu Toggle */}
       <div className="flex items-center gap-3 overflow-hidden">
         <Button
@@ -111,11 +110,11 @@ export default function Navbar() {
             return (
               <div key={index} className="flex items-center gap-1.5 overflow-hidden">
                 {crumb.path && !isLast ? (
-                  <Link href={crumb.path} className="text-sm font-medium text-text-secondary hover:text-text-main truncate max-w-[120px] md:max-w-[200px]">
+                  <Link href={crumb.path} className="text-sm font-medium text-text-sub hover:text-text-main truncate max-w-[120px] md:max-w-[200px]">
                     {crumb.name}
                   </Link>
                 ) : (
-                  <span className={`text-sm font-semibold truncate max-w-[120px] md:max-w-[200px] ${isLast ? "text-text-main" : "text-text-secondary"}`}>
+                  <span className={`text-sm font-semibold truncate max-w-[120px] md:max-w-[200px] ${isLast ? "text-text-main" : "text-text-sub"}`}>
                     {crumb.name}
                   </span>
                 )}
@@ -128,8 +127,15 @@ export default function Navbar() {
 
       {/* RIGHT SIDE */}
       <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
-
-
+        {/* Theme toggle */}
+        <Button
+          variant="ghost"
+          size="iconSm"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        </Button>
 
         {/* PROFILE */}
         <div className="hidden sm:flex ml-2">
@@ -149,10 +155,10 @@ export default function Navbar() {
           <nav 
             ref={drawerRef}
             aria-label="Mobile Sidebar"
-            className="relative w-64 h-full shadow-xl flex flex-col p-4 transition-transform bg-page text-text-main"
+            className="relative w-64 h-full flex flex-col p-4 transition-transform bg-page text-text-main border-r border-border"
           >
             <div className="flex items-center justify-between mb-8 px-3">
-              <h1 className="text-2xl font-bold tracking-tight">DevBoard X</h1>
+              <span className="font-mono text-accent font-bold text-lg">DevBoard<span className="text-text-main">_X</span></span>
               <Button 
                 variant="ghost"
                 size="icon"
@@ -162,7 +168,7 @@ export default function Navbar() {
                 <X size={20} />
               </Button>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = item.path === "/" ? pathname === "/" : pathname.startsWith(item.path)
@@ -172,10 +178,10 @@ export default function Navbar() {
                     href={item.path}
                     onClick={() => setMobileMenuOpen(false)}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary outline-none ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] font-medium transition-[background,color] duration-[120ms] outline-none ${
                       isActive
-                        ? "bg-bg-active text-text-main shadow-sm"
-                        : "text-text-secondary hover:bg-bg-hover hover:text-text-main"
+                        ? "bg-surface text-accent"
+                        : "text-text-sub hover:bg-surface-hover hover:text-text-main"
                     }`}
                   >
                     <Icon size={20} />

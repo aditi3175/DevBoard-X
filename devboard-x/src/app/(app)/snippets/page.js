@@ -7,6 +7,9 @@ import { Code2, Search, Trash2, Edit, Copy, Heart, Plus, Terminal } from "lucide
 
 import Card from "@/components/ui/Card"
 import EmptyState from "@/components/ui/EmptyState"
+import Input from "@/components/ui/Input"
+import Select from "@/components/ui/Select"
+import Button from "@/components/ui/Button"
 
 export default function SnippetsPage() {
   const _snippets = useQuery(api.snippets.getSnippets)
@@ -63,50 +66,47 @@ export default function SnippetsPage() {
   }
 
   return (
-    <div className="workspace-canvas flex-1 overflow-y-auto p-8 text-text-main">
+    <div className="h-full flex-1 overflow-y-auto p-8 text-text-main bg-page font-mono">
       <div className="max-w-6xl mx-auto">
         
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-black flex items-center gap-3">
-              <Code2 className="text-primary" size={36} /> Snippet Library
-            </h1>
-            <p className="mt-2 text-text-muted">Manage your global code snippets usable across all tasks.</p>
-          </div>
+        <div className="mb-8 border-b border-border pb-4">
+          <h1 className="text-3xl font-mono font-bold flex items-center gap-3 text-terminal-main">
+            <span className="text-terminal-accent">~/</span>Snippet_Library
+          </h1>
+          <p className="mt-2 text-terminal-muted text-sm">// Manage your global code snippets usable across all tasks.</p>
         </div>
 
-        <Card className="mb-6 flex flex-wrap items-center justify-between gap-4 border-border-subtle bg-surface/95 p-4 panel-shadow">
+        <Card title="~/scripts/search_filter.sh" className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="relative flex-1 min-w-[300px]">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
+            <Input
               type="text"
               placeholder="Search snippets by title or description..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-border-subtle bg-bg-input py-2.5 pl-10 pr-4 text-text-main placeholder:text-text-muted focus:border-primary focus:outline-none"
+              leftIcon={Search}
             />
           </div>
           
           <div className="flex items-center gap-3">
-            <select
+            <Select
               value={filterLang}
               onChange={(e) => setFilterLang(e.target.value)}
-              className="rounded-xl border border-border-subtle bg-bg-input px-4 py-2.5 text-text-main focus:border-primary focus:outline-none"
+              className="w-40 md:w-48"
             >
               {languages.map(lang => (
                 <option key={lang} value={lang}>{lang === "all" ? "All Languages" : lang}</option>
               ))}
-            </select>
+            </Select>
             
-            <select
+            <Select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-border-subtle bg-bg-input px-4 py-2.5 text-text-main focus:border-primary focus:outline-none"
+              className="w-40 md:w-48"
             >
               <option value="recent">Recently Added</option>
               <option value="used">Most Used</option>
-              <option value="favorites">Favorites Only</option>
-            </select>
+              <option value="favorites">Favorites</option>
+            </Select>
           </div>
         </Card>
 
@@ -131,20 +131,20 @@ export default function SnippetsPage() {
                   </button>
                 </div>
                 
-                <div className="relative flex-1 overflow-hidden rounded-lg border border-border-subtle bg-bg-active/70 p-4 font-mono text-sm text-text-secondary dark:bg-bg-input">
+                <div className="relative flex-1 min-h-0 rounded-lg border border-border-subtle bg-bg-active/70 p-4 font-mono text-sm text-text-secondary dark:bg-bg-input">
                   <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                     <button onClick={() => copyToClipboard(snippet.code)} className="rounded bg-surface p-1.5 text-text-main shadow-sm transition hover:bg-bg-hover" title="Copy Code">
                       <Copy size={14} />
                     </button>
                   </div>
-                  <pre className="h-full overflow-hidden whitespace-pre-wrap break-all">
+                  <pre className="h-full overflow-y-auto whitespace-pre-wrap break-all custom-scrollbar">
                     {snippet.code.length > 400 ? snippet.code.slice(0, 400) + "\n..." : snippet.code}
                   </pre>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-border-subtle pt-4">
                   <div className="flex items-center gap-3">
-                    <span className="rounded border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-black text-primary">
+                    <span className="rounded border border-accent/20 bg-accent/10 px-2 py-1 text-xs font-black text-accent">
                       {snippet.language}
                     </span>
                     <span className="flex items-center gap-1 text-xs text-text-muted">

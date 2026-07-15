@@ -1,91 +1,126 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Activity,
   AlertTriangle,
-  CheckCircle,
-  ClipboardList,
   Code2,
-  File,
   FileCode,
   FileJson,
   FileText,
-  Folder,
-  FolderOpen,
   Play,
-  Sparkles,
   Wind
 } from "lucide-react"
 
 import NotesWidget from "@/components/widgets/NotesWidget"
-import EmptyState from "@/components/ui/EmptyState"
-import Card from "@/components/ui/Card"
-import Button from "@/components/ui/Button"
-import { getActivityCategory } from "@/utils/projectActivity"
 import { formatProjectDate } from "@/utils/projectOverview"
 import { useQuery } from "convex/react"
 import { api } from "../../../convex/_generated/api"
 
-const getFileIconMini = (filename) => {
-  const name = filename.toLowerCase()
-  const ext = name.split(".").pop()
-  if (name === "tailwind.config.js" || name === "tailwind.config.ts") {
-    return <Wind size={15} className="text-info shrink-0" aria-hidden="true" />
-  }
+// --- PARTICLES BACKGROUND ---
+const Particles = () => {
+  const canvasRef = useRef(null)
 
-  switch (ext) {
-    case "js":
-    case "mjs":
-    case "jsx":
-    case "tsx":
-      return <FileCode size={15} className="text-warning shrink-0" aria-hidden="true" />
-    case "css":
-      return <FileCode size={15} className="text-info shrink-0" aria-hidden="true" />
-    case "json":
-      return <FileJson size={15} className="text-danger shrink-0" aria-hidden="true" />
-    case "md":
-      return <FileText size={15} className="text-primary shrink-0" aria-hidden="true" />
-    default:
-      return <File size={15} className="text-text-muted shrink-0" aria-hidden="true" />
-  }
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext("2d")
+    let animationFrameId
+    let particles = []
+
+    // Attempt to get CSS variable --accent (fallback to lime #c8f135)
+    let accent = "#c8f135"
+    if (typeof window !== "undefined") {
+      const style = getComputedStyle(document.documentElement)
+      const val = style.getPropertyValue("--accent").trim()
+      if (val) accent = val
+    }
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    window.addEventListener("resize", resize)
+    resize()
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width
+        this.y = Math.random() * canvas.height
+        this.size = Math.random() * 2 + 0.5
+        this.speedX = (Math.random() * 0.3) - 0.15
+        this.speedY = (Math.random() * 0.3) - 0.15
+      }
+      update() {
+        this.x += this.speedX
+        this.y += this.speedY
+        if (this.x > canvas.width) this.x = 0
+        else if (this.x < 0) this.x = canvas.width
+        if (this.y > canvas.height) this.y = 0
+        else if (this.y < 0) this.y = canvas.height
+      }
+      draw() {
+        ctx.globalAlpha = 0.2
+        ctx.fillStyle = accent
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = 1
+      }
+    }
+
+    for (let i = 0; i < 40; i++) {
+      particles.push(new Particle())
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      particles.forEach((p) => {
+        p.update()
+        p.draw()
+      })
+      animationFrameId = requestAnimationFrame(animate)
+    }
+    animate()
+
+    return () => {
+      window.removeEventListener("resize", resize)
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none opacity-50" />
 }
 
-const SummaryTile = ({ icon: Icon, label, value, tone = "primary" }) => {
-  const toneStyles = {
-    primary: "bg-primary text-white",
-    info: "bg-info-bg text-info-text",
-    success: "bg-success-bg text-success-text",
-    warning: "bg-warning-bg text-warning-text"
-  }
-
+// --- TERMINAL WINDOW WRAPPER ---
+const TerminalWindow = ({ title, children, className = "" }) => {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border-subtle bg-surface/90 px-4 py-3 panel-shadow">
-      <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${toneStyles[tone]}`}>
-        <Icon size={18} />
-      </span>
-      <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-text-muted">
-          {label}
-        </p>
-        <p className="text-2xl font-black leading-tight text-text-main">
-          {value}
-        </p>
+    <div className={`bg-page border border-border rounded-[8px] overflow-hidden z-10 flex flex-col ${className}`}>
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-page-raised shrink-0">
+        <div className="w-2.5 h-2.5 rounded-full bg-danger" />
+        <div className="w-2.5 h-2.5 rounded-full bg-warning" />
+        <div className="w-2.5 h-2.5 rounded-full bg-accent" />
+        <span className="ml-4 text-xs text-text-muted font-mono">{title}</span>
+      </div>
+      <div className="p-5 font-mono flex-1 flex flex-col">
+        {children}
       </div>
     </div>
   )
 }
 
-const SectionHeader = ({ icon: Icon, title, action }) => (
-  <div className="mb-4 flex items-center justify-between gap-3">
-    <h2 className="flex items-center gap-2 text-base font-black tracking-tight text-text-main">
-      <Icon size={18} className="text-primary" />
-      {title}
-    </h2>
-    {action}
-  </div>
-)
+const getFileIconColor = (filename) => {
+  const ext = filename.split(".").pop().toLowerCase()
+  switch (ext) {
+    case "js": case "jsx": case "ts": case "tsx": return "text-warning"
+    case "css": return "text-info"
+    case "json": return "text-danger"
+    case "md": return "text-accent"
+    default: return "text-text-muted"
+  }
+}
 
 export default function Workspace() {
   const router = useRouter()
@@ -107,237 +142,177 @@ export default function Workspace() {
   }
 
   return (
-    <div className="workspace-canvas flex h-screen flex-1 flex-col overflow-y-auto p-4 text-text-main md:p-6 xl:p-8">
-      <section className="mb-6 overflow-hidden rounded-2xl border border-border-subtle bg-surface/95 panel-shadow">
-        <div className="flex flex-col gap-5 p-5 md:flex-row md:items-end md:justify-between md:p-6">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-primary">
-              <Sparkles size={14} />
-              Live Workspace
-            </div>
-            <h1 className="text-3xl font-black tracking-tight md:text-5xl">
-              Build board
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary md:text-base">
-              A quick view of active work, changed files, reusable snippets, and recent workspace movement.
-            </p>
-          </div>
+    <div className="relative flex h-screen flex-1 flex-col overflow-y-auto bg-page text-text-sub font-mono selection:bg-accent selection:text-text-on-lime">
+      <Particles />
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:min-w-[520px]">
-            <SummaryTile icon={Activity} label="Tasks" value={metrics.activeTasks} />
-            <SummaryTile icon={FileCode} label="Files" value={metrics.activeFiles} tone="info" />
-            <SummaryTile icon={Code2} label="Snips" value={metrics.totalSnippets} tone="warning" />
-            <SummaryTile icon={Play} label="Runs" value={metrics.totalExecutions} tone="success" />
+      <div className="relative z-10 flex-1 p-6 md:p-8 xl:p-12 max-w-[1600px] mx-auto w-full">
+        
+        {/* HEADER */}
+        <div className="mb-10">
+          <div className="flex gap-2 text-sm">
+            <span className="text-accent">~</span>
+            <span className="text-text-main">$</span>
+            <span className="text-text-sub">devboard status --overview</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="border-l-2 border-border pl-4">
+              <div className="text-xs text-text-muted mb-1">active_tasks</div>
+              <div className="text-2xl text-text-main font-bold">{metrics.activeTasks}</div>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <div className="text-xs text-text-muted mb-1">tracked_files</div>
+              <div className="text-2xl text-text-main font-bold">{metrics.activeFiles}</div>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <div className="text-xs text-text-muted mb-1">snippets</div>
+              <div className="text-2xl text-text-main font-bold">{metrics.totalSnippets}</div>
+            </div>
+            <div className="border-l-2 border-border pl-4">
+              <div className="text-xs text-text-muted mb-1">executions</div>
+              <div className="text-2xl text-text-main font-bold">{metrics.totalExecutions}</div>
+            </div>
           </div>
         </div>
-      </section>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(360px,0.85fr)]">
-        <div className="flex flex-col gap-6">
-          <Card className="panel-shadow">
-            <SectionHeader
-              icon={ClipboardList}
-              title="Active Work"
-              action={
-                <Button variant="secondary" size="sm" onClick={() => router.push("/projects")}>
-                  View projects
-                </Button>
-              }
-            />
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(350px,0.8fr)] gap-8">
+          
+          <div className="flex flex-col gap-8">
+            {/* ACTIVE PROJECTS */}
+            <TerminalWindow title="~/workspace/active-projects.sh">
+              <div className="flex gap-2 mb-6 text-sm">
+                <span className="text-accent">{">"}</span>
+                <span className="text-text-muted">Loading project health streams...</span>
+              </div>
+              <div className="space-y-4">
+                {recentProjects.length > 0 ? (
+                  recentProjects.slice(0, 4).map((project, i) => {
+                    const total = project.taskStats?.total || 0
+                    const completed = project.taskStats?.completed || 0
+                    const overdue = project.taskStats?.overdue || 0
+                    const rate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
-            <div className="space-y-3">
-              {upcomingTasks.length > 0 ? (
-                upcomingTasks.slice(0, 6).map((task, index) => (
-                  <Link
-                    key={task._id || index}
-                    href={`/projects/${task.projectId}/tasks/${task._id}`}
-                    className="group grid gap-3 rounded-xl border border-border-subtle bg-page/60 p-3 transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface md:grid-cols-[minmax(0,1fr)_180px]"
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
-                        task.priority === "High" ? "bg-danger" : task.priority === "Medium" ? "bg-warning" : "bg-success"
-                      }`} />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-text-main">{task.title}</p>
-                        <p className="truncate text-xs text-text-muted">{task.projectTitle}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-bg-active">
-                        <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${task.progress || 0}%` }} />
-                      </div>
-                      <span className="w-10 text-right text-xs font-black text-text-secondary">{task.progress || 0}%</span>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <EmptyState
-                  variant="compact"
-                  icon={CheckCircle}
-                  title="No active tasks"
-                  description="Create a project task and it will appear in this work queue."
-                  primaryAction={{ label: "View Projects", onClick: () => router.push("/projects") }}
-                />
-              )}
-            </div>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card className="panel-shadow">
-              <SectionHeader icon={FolderOpen} title="Recent Files" />
-              <div className="divide-y divide-border-subtle">
-                {recentFiles.length > 0 ? (
-                  recentFiles.slice(0, 6).map((file, index) => (
-                    <Link
-                      key={file._id || index}
-                      href={`/projects/${file.projectId}/tasks/${file.taskId}`}
-                      className="flex items-center justify-between gap-3 py-3 transition hover:px-2 hover:text-primary"
-                    >
-                      <span className="flex min-w-0 items-center gap-2.5">
-                        {getFileIconMini(file.name)}
-                        <span className="truncate text-sm font-semibold">{file.name}</span>
-                      </span>
-                      <span className="max-w-[90px] shrink-0 truncate rounded-md bg-bg-active px-2 py-1 text-[11px] font-bold text-text-secondary">
-                        {file.taskTitle}
-                      </span>
-                    </Link>
-                  ))
+                    return (
+                      <Link key={project._id || i} href={`/projects/${project._id}`} className="block group">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between border border-transparent group-hover:border-border p-3 -mx-3 transition-colors">
+                          <div>
+                            <div className="text-text-main font-bold mb-1 flex items-center gap-2">
+                              {project.title}
+                              {overdue > 0 && <span className="text-danger text-xs">[ERR: {overdue} OVERDUE]</span>}
+                            </div>
+                            <div className="text-xs text-text-muted">
+                              Tasks: {completed}/{total} | Updated: {formatProjectDate(project.updatedAt)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 mt-3 md:mt-0">
+                            <div className="text-accent text-xs">[{rate}%]</div>
+                            <div className="w-32 h-1 bg-surface">
+                              <div className="h-full bg-accent" style={{ width: `${rate}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })
                 ) : (
-                  <EmptyState
-                    variant="compact"
-                    icon={FileCode}
-                    title="No tracked files"
-                    description="Execute code or create files within tasks to see them here."
-                  />
+                  <div className="text-text-muted">No active projects found. Initialize with `devboard init`</div>
                 )}
               </div>
-            </Card>
+            </TerminalWindow>
 
-            <Card className="panel-shadow">
-              <SectionHeader icon={Code2} title="Snippet Shelf" />
-              <div className="space-y-2">
-                {globalSnippets.length > 0 ? (
-                  globalSnippets.slice(0, 5).map((snippet, index) => (
-                    <div key={snippet._id || index} className="rounded-xl border border-border-subtle bg-page/60 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="truncate text-sm font-bold">{snippet.title}</p>
-                        <span className="shrink-0 rounded-md bg-info-bg px-2 py-1 text-[11px] font-black text-info-text">
-                          {snippet.language}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-text-muted">Saved: {snippet.createdAt}</p>
-                    </div>
-                  ))
-                ) : (
-                  <EmptyState
-                    variant="compact"
-                    icon={FileText}
-                    title="Your library is empty"
-                    description="Save useful code snippets from the editor to reuse them."
-                  />
-                )}
-              </div>
-            </Card>
-          </div>
-
-          <Card className="panel-shadow">
-            <SectionHeader icon={Folder} title="Project Health" />
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {recentProjects.length > 0 ? (
-                recentProjects.slice(0, 4).map((project, index) => {
-                  const total = project.taskStats?.total || 0
-                  const completed = project.taskStats?.completed || 0
-                  const overdue = project.taskStats?.overdue || 0
-                  const rate = total === 0 ? 0 : Math.round((completed / total) * 100)
-
-                  return (
-                    <Link
-                      key={project._id || index}
-                      href={`/projects/${project._id}`}
-                      className="rounded-xl border border-border-subtle bg-page/60 p-4 transition hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface"
-                    >
-                      <div className="mb-3 flex items-start justify-between gap-3">
-                        <p className="truncate text-sm font-black">{project.title}</p>
-                        {overdue > 0 ? (
-                          <span className="flex items-center gap-1 rounded-full bg-danger-bg px-2 py-1 text-[11px] font-bold text-danger-text">
-                            <AlertTriangle size={12} /> {overdue}
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-success-bg px-2 py-1 text-[11px] font-bold text-success-text">
-                            steady
-                          </span>
-                        )}
-                      </div>
-                      <div className="mb-2 h-2 overflow-hidden rounded-full bg-bg-active">
-                        <div className="h-full rounded-full bg-success" style={{ width: `${rate}%` }} />
-                      </div>
-                      <p className="text-xs text-text-muted">{completed}/{total} tasks completed</p>
-                    </Link>
-                  )
-                })
-              ) : (
-                <div className="md:col-span-2">
-                  <EmptyState
-                    variant="compact"
-                    icon={Folder}
-                    title="No project data"
-                    description="Initialize a project to monitor health and progress."
-                    primaryAction={{ label: "Create Project", onClick: () => router.push("/projects") }}
-                  />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* RECENT FILES */}
+              <TerminalWindow title="~/workspace/tracked-files.json">
+                <div className="text-accent mb-4">{"{"}</div>
+                <div className="pl-4 space-y-2 text-sm">
+                  {recentFiles.length > 0 ? (
+                    recentFiles.slice(0, 5).map((file, i) => (
+                      <Link key={file._id || i} href={`/projects/${file.projectId}/tasks/${file.taskId}`} className="flex gap-3 hover:bg-surface -mx-2 px-2 py-1">
+                        <span className="text-text-muted">"{file.name}":</span>
+                        <span className={getFileIconColor(file.name)}>"{file.taskTitle}"</span>
+                        {i < 4 && <span className="text-text-muted">,</span>}
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="text-text-muted">"status": "empty"</div>
+                  )}
                 </div>
-              )}
-            </div>
-          </Card>
-        </div>
+                <div className="text-accent mt-4">{"}"}</div>
+              </TerminalWindow>
 
-        <aside className="flex flex-col gap-6">
-          <Card className="panel-shadow xl:sticky xl:top-6">
-            <SectionHeader icon={Activity} title="Activity Log" />
-            <div className="relative space-y-0 border-l border-border-subtle pl-4">
-              {globalActivities && globalActivities.length > 0 ? (
-                globalActivities.slice(0, 10).map((log, index) => {
-                  const isClickable = log.projectId !== null && log.projectId !== undefined
-                  const LogElement = isClickable ? "button" : "div"
-
-                  return (
-                    <LogElement
-                      key={log._id || log.id || index}
-                      onClick={() => {
-                        if (!isClickable) return
-                        if (log.taskId !== null && log.taskId !== undefined) {
-                          router.push(`/projects/${log.projectId}/tasks/${log.taskId}`)
-                        } else {
-                          router.push(`/projects/${log.projectId}`)
-                        }
-                      }}
-                      className={`relative w-full py-3 text-left text-xs outline-none transition ${
-                        isClickable ? "cursor-pointer hover:text-primary focus-visible:text-primary" : ""
-                      }`}
-                    >
-                      <span className="absolute -left-[21px] top-4 h-2.5 w-2.5 rounded-full border-2 border-surface bg-primary" />
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="font-black uppercase tracking-[0.12em] text-text-secondary">
-                          {getActivityCategory(log.type)}
-                        </span>
-                        <span className="shrink-0 text-text-muted">{formatProjectDate(log.timestamp)}</span>
+              {/* SNIPPETS */}
+              <TerminalWindow title="~/workspace/snippets.yaml">
+                <div className="space-y-4 text-sm">
+                  {globalSnippets.length > 0 ? (
+                    globalSnippets.slice(0, 5).map((snippet, i) => (
+                      <div key={snippet._id || i} className="hover:bg-surface -mx-2 px-2 py-1 cursor-pointer">
+                        <div className="text-text-main">- name: <span className="text-info">{snippet.title}</span></div>
+                        <div className="text-text-muted pl-4">lang: <span className="text-warning">{snippet.language}</span></div>
                       </div>
-                      <p className="mt-1 truncate font-semibold text-text-main">{log.message}</p>
-                    </LogElement>
-                  )
-                })
-              ) : (
-                <EmptyState
-                  variant="compact"
-                  icon={Activity}
-                  title="Quiet workspace"
-                  description="Activity will automatically log as you manage projects and run code."
-                />
-              )}
+                    ))
+                  ) : (
+                    <div className="text-text-muted">items: []</div>
+                  )}
+                </div>
+              </TerminalWindow>
             </div>
-          </Card>
+            
+            <NotesWidget />
+          </div>
 
-          <NotesWidget />
-        </aside>
+          <div className="flex flex-col h-full">
+            {/* LIVE LOG STREAM */}
+            <TerminalWindow title="~/system/live-log-stream" className="h-full">
+              <div className="flex items-center gap-3 mb-6 shrink-0">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                <span className="text-xs text-text-muted">Tail output /var/log/workspace</span>
+              </div>
+              
+              <div className="flex-1 flex flex-col gap-3 text-sm overflow-hidden">
+                <div className="space-y-3">
+                {globalActivities && globalActivities.length > 0 ? (
+                  globalActivities.slice(0, 30).map((log, i) => {
+                    const isClickable = log.projectId !== null && log.projectId !== undefined
+                    const LogElement = isClickable ? "button" : "div"
+                    
+                    // Determine log type styling
+                    let tag = "inf"
+                    let color = "text-info"
+                    
+                    if (log.type.includes("CREATED") || log.type.includes("COMPLETED")) { tag = "ok"; color = "text-success" }
+                    if (log.type.includes("DELETED") || log.type.includes("ERROR")) { tag = "err"; color = "text-danger" }
+                    if (log.type.includes("UPDATED")) { tag = "upd"; color = "text-warning" }
+                    
+                    return (
+                      <LogElement
+                        key={log._id || log.id || i}
+                        onClick={() => {
+                          if (!isClickable) return
+                          if (log.taskId !== null && log.taskId !== undefined) {
+                            router.push(`/projects/${log.projectId}/tasks/${log.taskId}`)
+                          } else {
+                            router.push(`/projects/${log.projectId}`)
+                          }
+                        }}
+                        className={`flex items-start gap-3 w-full text-left outline-none ${isClickable ? "hover:bg-surface -mx-2 px-2 py-1" : ""}`}
+                      >
+                        <span className="text-text-muted shrink-0 text-xs mt-0.5">
+                          {new Date(log._creationTime || log.timestamp || log.createdAt || Date.now()).toLocaleTimeString([], { hour12: false })}
+                        </span>
+                        <span className={`shrink-0 ${color}`}>[ {tag} ]</span>
+                        <span className="text-text-sub truncate">{log.message}</span>
+                      </LogElement>
+                    )
+                  })
+                ) : (
+                  <div className="text-text-muted flex gap-2"><span className="text-accent">~</span> <span className="text-text-main">$</span> waiting for logs...</div>
+                )}
+                </div>
+                <div className="flex-1"></div>
+                <div className="text-text-main animate-pulse pt-2 shrink-0">_</div>
+              </div>
+            </TerminalWindow>
+          </div>
+        </div>
       </div>
     </div>
   )

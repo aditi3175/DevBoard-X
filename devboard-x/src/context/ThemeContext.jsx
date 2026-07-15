@@ -6,7 +6,7 @@ import { usePersistentState } from "@/utils/storage"
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme, isLoaded] = usePersistentState("devboard-theme", "light")
+  const [theme, setTheme, isLoaded] = usePersistentState("devboard-theme", "dark")
 
   // Ensure valid theme
   useEffect(() => {
@@ -15,14 +15,10 @@ export function ThemeProvider({ children }) {
     }
   }, [theme, isLoaded, setTheme])
 
-  // APPLY THEME
+  // APPLY THEME via data-theme attribute
   useEffect(() => {
     if (!isLoaded) return
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark")
-    } else {
-      document.documentElement.classList.remove("dark")
-    }
+    document.documentElement.dataset.theme = theme
   }, [theme, isLoaded])
 
   return (

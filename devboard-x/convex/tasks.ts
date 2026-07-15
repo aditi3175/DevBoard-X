@@ -155,9 +155,7 @@ export const updateTask = mutation({
     await ctx.db.patch(id, updates);
 
     let isCompleted = false;
-    if (updates.userMarkedFinished && !existing.userMarkedFinished) {
-      isCompleted = true;
-    } else if (updates.completed && !existing.completed) {
+    if (updates.completed && !existing.completed) {
       isCompleted = true;
     }
 
@@ -192,6 +190,14 @@ export const deleteTask = mutation({
         message: `Deleted task: ${existing.title}`,
         projectId: existing.projectId,
       });
+
+      // Cascade delete files and execution logs
+      const files = await ctx.db.query("files").withIndex("by_task", q => q.eq("taskId", args.id)).collect();
+      for (const f of files) await ctx.db.delete(f._id);
+      
+      const logs = await ctx.db.query("execution_logs").withIndex("by_task", q => q.eq("taskId", args.id)).collect();
+      for (const log of logs) await ctx.db.delete(log._id);
+
       await ctx.db.delete(args.id);
     }
   },

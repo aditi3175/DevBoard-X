@@ -11,6 +11,7 @@ import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Select from "@/components/ui/Select"
 import Field from "@/components/ui/Field"
+import Button from "@/components/ui/Button"
 
 import { getTemplateFiles } from "../starterTemplates"
 
@@ -74,10 +75,12 @@ export default function ProjectTasksPage() {
 
   if (!project) {
     return (
-      <div
-        className="h-full flex-1 p-6 bg-surface text-text-main"
-      >
-        <h1 className="text-3xl font-bold">Project Not Found</h1>
+      <div className="h-full flex-1 p-6 bg-surface text-text-main flex flex-col items-center justify-center">
+        <EmptyState 
+          icon={AlertTriangle} 
+          title="Project Not Found" 
+          description="This project might have been deleted or you don't have access." 
+        />
       </div>
     )
   }
@@ -283,26 +286,26 @@ export default function ProjectTasksPage() {
           )}
 
           <div className="flex gap-3 w-full xl:w-auto">
-            <button
+            <Button
               type="submit"
-              className="px-5 py-3 rounded-xl bg-primary text-white whitespace-nowrap font-medium hover:bg-primary-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
+              variant="primary"
             >
               {editTaskId !== null ? "Update Task" : "Add Task"}
-            </button>
+            </Button>
 
             {editTaskId !== null && (
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => {
                   setEditTaskId(null)
                   setTaskTitle("")
                   setPriority("Medium")
                   setDueDate("")
                 }}
-                className="px-5 py-3 rounded-xl bg-surface border border-border-subtle text-text-main whitespace-nowrap font-medium hover:bg-bg-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
               >
                 Cancel
-              </button>
+              </Button>
             )}
           </div>
         </form>
@@ -327,21 +330,13 @@ export default function ProjectTasksPage() {
 
         <div className="flex flex-wrap gap-3 mb-6">
           {["All", "Pending", "Completed"].map((label) => (
-            <button
+            <Button
               key={label}
+              variant={filter === label ? (label === "All" ? "primary" : label === "Pending" ? "warning" : "success") : "secondary"}
               onClick={() => setFilter(label)}
-              className={`px-4 py-2 rounded-xl transition font-medium ${
-                filter === label
-                  ? label === "All"
-                    ? "bg-primary text-white"
-                    : label === "Pending"
-                      ? "bg-warning text-white"
-                      : "bg-success text-white"
-                  : "bg-surface border border-border-subtle text-text-main hover:bg-bg-hover"
-              }`}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
 

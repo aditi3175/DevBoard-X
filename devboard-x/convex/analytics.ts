@@ -11,15 +11,22 @@ export const getWorkspaceMetrics = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const tasks = await ctx.db
+    let tasks = await ctx.db
       .query("tasks")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const files = await ctx.db
+    let files = await ctx.db
       .query("files")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+
+    // Filter out orphaned tasks and files
+    const validProjectIds = new Set(projects.map(p => p._id));
+    tasks = tasks.filter(t => validProjectIds.has(t.projectId));
+    
+    const validTaskIds = new Set(tasks.map(t => t._id));
+    files = files.filter(f => validTaskIds.has(f.taskId));
 
     const resources = await ctx.db
       .query("resources")
@@ -67,8 +74,8 @@ export const getWorkspaceMetrics = query({
     const activityByDate = activity.reduce((acc: Record<string, { created: number; completed: number }>, act) => {
       const dateStr = act.createdAt.split('T')[0];
       if (!acc[dateStr]) acc[dateStr] = { created: 0, completed: 0 };
-      if (act.type === 'TASK_CREATED') acc[dateStr].created++;
-      if (act.type === 'TASK_COMPLETED') acc[dateStr].completed++;
+      if (act.type === 'task_created') acc[dateStr].created++;
+      if (act.type === 'task_completed') acc[dateStr].completed++;
       return acc;
     }, {});
     // Calculate project performance
@@ -165,13 +172,21 @@ export const getWorkspaceMetrics = query({
           .slice(0, 5)
           .map(s => ({ name: s.title.length > 15 ? s.title.slice(0, 15) + "…" : s.title, uses: s.usageCount }));
 
+        // Calculate lifetime creations from activity history
+        const projectsCreated = activity.filter(a => a.type === "project_created").length;
+        const tasksCreated = activity.filter(a => a.type === "task_created").length;
+        const tasksCompleted = activity.filter(a => a.type === "task_completed").length;
+        const filesCreated = activity.filter(a => a.type === "file_created").length;
+        const resourcesAdded = activity.filter(a => a.type === "resource_added").length;
+        const snippetsSaved = activity.filter(a => a.type === "snippet_created").length;
+
         return {
-          projectsCreated: totalProjects,
-          tasksCreated: totalTasks,
-          tasksCompleted: completedTasks,
-          filesCreated: totalFiles,
-          resourcesAdded: totalResources,
-          snippetsSaved: totalSnippets,
+          projectsCreated,
+          tasksCreated,
+          tasksCompleted,
+          filesCreated,
+          resourcesAdded,
+          snippetsSaved,
           totalExecutions,
           totalActivityEvents: activity.length,
           averageTaskCompletionTime,

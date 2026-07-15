@@ -59,13 +59,23 @@ function SafeChartContainer({ children }) {
 }
 
 const COLORS = {
-  primary: "var(--color-primary)",
+  primary: "var(--color-accent)",
   success: "var(--color-success)",
   warning: "var(--color-warning)",
   danger: "var(--color-danger)",
   info: "var(--color-info)",
-  neutral: "var(--color-neutral)"
+  neutral: "var(--color-text-muted)"
 }
+
+const CHART_COLORS = [
+  "var(--color-accent)",    // Terminal green
+  "var(--color-info)",      // Blue
+  "var(--color-warning)",   // Yellow/Orange
+  "#a855f7",                // Purple
+  "var(--color-danger)",    // Red
+  "#06b6d4",                // Cyan
+  "#ec4899",                // Pink
+]
 
 const PRIORITY_COLORS = {
   High: COLORS.danger,
@@ -76,7 +86,7 @@ const PRIORITY_COLORS = {
 const STATUS_COLORS = {
   Completed: COLORS.success,
   Pending: COLORS.neutral,
-  "In Progress": COLORS.primary
+  "In Progress": COLORS.info
 }
 
 const formatRelativeTime = (isoString) => {
@@ -99,12 +109,12 @@ const formatRelativeTime = (isoString) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 rounded-lg border shadow-xl text-sm font-medium bg-surface border-border-subtle text-text-main">
-        <p className="mb-2 text-xs text-text-secondary">{label}</p>
+      <div className="p-3 rounded-[var(--radius-md)] border text-sm font-medium bg-surface border-border-strong text-text-main">
+        <p className="mb-2 font-mono text-xs text-text-muted">{label}</p>
         {payload.map((p, i) => (
           <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.payload?.fill }} />
-            <span className="text-text-secondary capitalize">{p.name}:</span>
+            <span className="text-text-sub capitalize">{p.name}:</span>
             <span className="font-bold">{p.value}</span>
           </div>
         ))}
@@ -114,23 +124,15 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-function StatCard({ title, value, icon: Icon, color, bg }) {
+function StatCard({ title, value, icon: Icon }) {
   return (
-    <Card isInteractive className="panel-shadow">
-      <div className="flex items-center gap-4">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${bg}`}>
-          <Icon size={20} className={color} />
-        </div>
-        <div>
-          <h3 className="text-3xl font-black tracking-tight text-text-main">
-            {value}
-          </h3>
-          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-text-muted">
-            {title}
-          </p>
-        </div>
+    <div className="flex items-center gap-3 border-b border-border p-4">
+      <Icon size={16} className="text-text-muted shrink-0" />
+      <div>
+        <span className="font-mono text-2xl font-bold text-text-main">{value}</span>
+        <p className="eyebrow mt-0.5">{title}</p>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -195,14 +197,14 @@ export default function AnalyticsPage() {
 
   if (!isLoaded) {
     return (
-      <div className="h-full flex-1 p-4 md:p-8 transition-colors bg-page text-text-main">
+      <div className="h-full flex-1 p-4 md:p-8 bg-page text-text-main">
         <div className="mb-8 animate-pulse">
-          <div className="h-10 w-64 rounded-lg mb-2 bg-bg-active"></div>
-          <div className="h-5 w-96 rounded-lg bg-bg-active"></div>
+          <div className="h-10 w-64 rounded-[var(--radius-md)] mb-2 bg-surface"></div>
+          <div className="h-5 w-96 rounded-[var(--radius-md)] bg-surface"></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-pulse">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-32 rounded-xl bg-bg-active"></div>
+            <div key={i} className="h-20 bg-surface"></div>
           ))}
         </div>
       </div>
@@ -210,41 +212,36 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="workspace-canvas h-full flex-1 overflow-y-auto p-4 text-text-main md:p-8">
+    <div className="h-full flex-1 overflow-y-auto bg-page text-text-main">
 
-      {/* ======================================================== */}
       {/* SECTION 1: WORKSPACE ANALYTICS */}
-      {/* ======================================================== */}
-      <div className="mb-12">
-        <div className="mb-8 rounded-2xl border border-border-subtle bg-surface/95 p-6 panel-shadow">
-          <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-border-subtle bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-primary">
-            <Layout size={14} />
-            Workspace Analytics
-          </p>
-          <h1 className="text-3xl font-black tracking-tight md:text-5xl">
-            Workspace performance
+      <div className="mb-12 p-4 md:p-8">
+        <div className="mb-8">
+          <span className="text-text-muted font-mono mb-3 block">~/analytics/workspace</span>
+          <h1 className="flex items-center gap-3 text-3xl font-mono font-bold tracking-tight md:text-4xl">
+            <span className="text-accent">~/</span>Workspace Performance
           </h1>
-          <p className="mt-2 text-sm leading-6 text-text-secondary md:text-base">
-            Track project health, task progress, execution history, and activity trends in one place.
+          <p className="mt-2 text-sm text-text-sub">
+            Track project health, task progress, execution history, and activity trends.
           </p>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Active Projects" value={workspace.activeProjects} icon={FolderKanban} color="text-info-text" bg="bg-info-bg" />
-          <StatCard title="Active Tasks" value={workspace.activeTasks} icon={ListTodo} color="text-primary" bg="bg-primary/10" />
-          <StatCard title="Completed Tasks" value={workspace.completedTasks} icon={CheckCircle2} color="text-success" bg="bg-success-bg" />
-          <StatCard title="Completion Rate" value={`${workspace.completionRate}%`} icon={Activity} color="text-success" bg="bg-success-bg" />
-
-          <StatCard title="Active Files" value={workspace.activeFiles} icon={FileCode} color="text-warning" bg="bg-warning-bg" />
-          <StatCard title="Active Resources" value={workspace.activeResources} icon={Link2} color="text-primary" bg="bg-primary/10" />
-          <StatCard title="Avg Exec Time" value={`${workspace.averageExecutionTime}ms`} icon={Clock} color="text-danger" bg="bg-danger-bg" />
-          <StatCard title="Pending Tasks" value={workspace.pendingTasks} icon={Circle} color="text-neutral-text" bg="bg-neutral-bg" />
+        {/* METRICS STRIP */}
+        <div className="mb-8 grid grid-cols-2 xl:grid-cols-4 border-t border-l border-border">
+          <StatCard title="Active Projects" value={workspace.activeProjects} icon={FolderKanban} />
+          <StatCard title="Active Tasks" value={workspace.activeTasks} icon={ListTodo} />
+          <StatCard title="Completed" value={workspace.completedTasks} icon={CheckCircle2} />
+          <StatCard title="Rate" value={`${workspace.completionRate}%`} icon={Activity} />
+          <StatCard title="Files" value={workspace.activeFiles} icon={FileCode} />
+          <StatCard title="Resources" value={workspace.activeResources} icon={Link2} />
+          <StatCard title="Avg Exec" value={`${workspace.averageExecutionTime}ms`} icon={Clock} />
+          <StatCard title="Pending" value={workspace.pendingTasks} icon={Circle} />
         </div>
 
         {/* WORKSPACE CHARTS GRID */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* TASK STATUS DOUGHNUT */}
-          <Card className="relative md:col-span-6 xl:col-span-3 panel-shadow">
+          <Card className="relative md:col-span-6 xl:col-span-3 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Task Status</h2>
             <div className="h-[220px]">
               {statusData.length > 0 ? (
@@ -266,7 +263,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* PRIORITY DOUGHNUT */}
-          <Card className="relative md:col-span-6 xl:col-span-3 panel-shadow">
+          <Card className="relative md:col-span-6 xl:col-span-3 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Priority Distribution</h2>
             <div className="h-[220px]">
               {priorityData.length > 0 ? (
@@ -288,13 +285,13 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* WEEKLY ACTIVITY LINE CHART */}
-          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
+          <Card className="relative md:col-span-12 xl:col-span-6 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Activity (Last 7 Days)</h2>
             <div className="h-[220px]">
               <SafeChartContainer>
                 {(w, h) => (
                   <LineChart width={w} height={h} data={weeklyActivityData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                     <XAxis dataKey="dateStr" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
                     <Tooltip content={<CustomTooltip />} />
@@ -309,13 +306,13 @@ export default function AnalyticsPage() {
         </div>
 
         {/* PROJECT HEALTH TABLE */}
-        <Card className="!p-0 relative flex flex-col panel-shadow">
-          <div className="p-6 border-b border-border-subtle">
+        <Card className="!p-0 relative flex flex-col ">
+          <div className="p-6 border-b border-border">
             <h2 className="text-lg font-bold flex items-center gap-2">Current Project Health</h2>
           </div>
           <div className="overflow-x-auto flex-1" tabIndex={0}>
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-bg-hover text-text-muted text-xs uppercase tracking-wider">
+              <thead className="bg-surface-hover text-text-muted text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Project Name</th>
                   <th className="px-6 py-4 font-semibold text-center">Tasks</th>
@@ -324,25 +321,25 @@ export default function AnalyticsPage() {
                   <th className="px-6 py-4 font-semibold">Last Activity</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border-subtle">
+              <tbody className="divide-y divide-border">
                 {(workspace.projectPerformance || []).length > 0 ? (
                   workspace.projectPerformance.map((proj) => (
-                    <tr key={proj.id} className="transition-colors hover:bg-bg-hover">
+                    <tr key={proj.id} className="transition-colors hover:bg-surface-hover">
                       <td className="px-6 py-4 font-medium flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
+                        <div className="w-2 h-2 rounded-full bg-accent" />
                         {proj.name}
                       </td>
                       <td className="px-6 py-4 text-center">{proj.tasks}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-full max-w-[100px] h-2 bg-bg-active rounded-full overflow-hidden">
+                          <div className="w-full max-w-[100px] h-2 bg-surface rounded-full overflow-hidden">
                             <div className="h-full bg-success rounded-full" style={{ width: `${proj.completion}%` }} />
                           </div>
                           <span className="text-xs font-semibold">{proj.completion}%</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="px-2 py-1 rounded-md text-xs font-semibold bg-bg-active text-text-secondary">
+                        <span className="px-2 py-1 rounded-md text-xs font-semibold bg-surface text-text-sub">
                           {proj.runs}
                         </span>
                       </td>
@@ -364,67 +361,67 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <hr className="mb-12 border-border-subtle" />
+      <hr className="mb-12 border-border" />
 
       {/* ======================================================== */}
       {/* SECTION 2: DEVELOPER INSIGHTS */}
       {/* ======================================================== */}
-      <div>
+      <div className="mb-12 p-4 md:p-8">
         <div className="mb-8">
-          <h1 className="flex items-center gap-3 text-3xl font-black tracking-tight md:text-4xl">
-            <Trophy className="text-warning" size={32} />
+          <h1 className="flex items-center gap-3 text-3xl font-mono font-bold tracking-tight md:text-4xl">
+            <span className="text-accent">~/</span><Trophy className="text-warning" size={32} />
             Developer Insights
           </h1>
-          <p className="mt-2 text-sm md:text-base text-text-secondary">
+          <p className="mt-2 text-sm md:text-base text-text-sub">
             Your overall productivity and achievements.
           </p>
         </div>
 
         <div className="mb-8 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Projects Created" value={lifetime.projectsCreated} icon={Folder} color="text-info-text" bg="bg-info-bg" />
-          <StatCard title="Tasks Created" value={lifetime.tasksCreated} icon={ListTodo} color="text-primary" bg="bg-primary/10" />
+          <StatCard title="Projects Created" value={lifetime.projectsCreated} icon={Folder} color="text-info" bg="bg-info-bg" />
+          <StatCard title="Tasks Created" value={lifetime.tasksCreated} icon={ListTodo} color="text-accent" bg="bg-accent-dim" />
           <StatCard title="Tasks Completed" value={lifetime.tasksCompleted} icon={CheckCircle2} color="text-success" bg="bg-success-bg" />
           <StatCard title="Total Executions" value={lifetime.totalExecutions} icon={Play} color="text-danger" bg="bg-danger-bg" />
 
           <StatCard title="Files Ever Created" value={lifetime.filesCreated} icon={FileCode} color="text-warning" bg="bg-warning-bg" />
-          <StatCard title="Resources Added" value={lifetime.resourcesAdded} icon={Link2} color="text-primary" bg="bg-primary/10" />
-          <StatCard title="Snippets Saved" value={lifetime.snippetsSaved} icon={Code2} color="text-info-text" bg="bg-info-bg" />
-          <StatCard title="Total Activity Events" value={lifetime.totalActivityEvents} icon={Database} color="text-neutral-text" bg="bg-neutral-bg" />
+          <StatCard title="Resources Added" value={lifetime.resourcesAdded} icon={Link2} color="text-accent" bg="bg-accent-dim" />
+          <StatCard title="Snippets Saved" value={lifetime.snippetsSaved} icon={Code2} color="text-info" bg="bg-info-bg" />
+          <StatCard title="Total Activity Events" value={lifetime.totalActivityEvents} icon={Database} color="text-text-muted" bg="bg-surface" />
         </div>
 
         {/* EXTRA INSIGHT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
+          <Card className="flex flex-col justify-center border-border bg-surface ">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <div className="w-12 h-12 rounded-full bg-accent-dim flex items-center justify-center text-accent">
                 <Clock size={24} />
               </div>
               <div>
-                <p className="text-sm text-text-secondary font-semibold uppercase tracking-wider">Avg Task Completion Time</p>
+                <p className="text-sm text-text-sub font-semibold uppercase tracking-wider">Avg Task Completion Time</p>
                 <h3 className="text-2xl font-black">{lifetime.averageTaskCompletionTime > 0 ? `${Math.round(lifetime.averageTaskCompletionTime / (1000 * 60 * 60))} hrs` : "N/A"}</h3>
               </div>
             </div>
           </Card>
 
-          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
+          <Card className="flex flex-col justify-center border-border bg-surface ">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-warning-bg flex items-center justify-center text-warning">
                 <Code2 size={24} />
               </div>
               <div>
-                <p className="text-sm text-text-secondary font-semibold uppercase tracking-wider">Most Used Language</p>
+                <p className="text-sm text-text-sub font-semibold uppercase tracking-wider">Most Used Language</p>
                 <h3 className="text-2xl font-black capitalize">{lifetime.mostUsedLanguage}</h3>
               </div>
             </div>
           </Card>
 
-          <Card className="flex flex-col justify-center border-border-subtle bg-surface panel-shadow">
+          <Card className="flex flex-col justify-center border-border bg-surface ">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-success-bg flex items-center justify-center text-success">
                 <Flame size={24} />
               </div>
               <div>
-                <p className="text-sm text-text-secondary font-semibold uppercase tracking-wider">Most Used Snippet</p>
+                <p className="text-sm text-text-sub font-semibold uppercase tracking-wider">Most Used Snippet</p>
                 <h3 className="text-2xl font-black truncate max-w-[200px]">{lifetime.mostUsedSnippet}</h3>
               </div>
             </div>
@@ -434,14 +431,14 @@ export default function AnalyticsPage() {
         {/* LIFETIME CHARTS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
           {/* MONTHLY ACTIVITY (PRODUCTIVITY TREND) */}
-          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
+          <Card className="relative md:col-span-12 xl:col-span-6 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Monthly Activity</h2>
             <div className="h-[250px]">
               {lifetime.monthlyActivityData.length > 0 ? (
                 <SafeChartContainer>
                   {(w, h) => (
                     <BarChart width={w} height={h} data={lifetime.monthlyActivityData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
                       <Tooltip content={<CustomTooltip />} />
@@ -456,14 +453,14 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* EXECUTION HISTORY */}
-          <Card className="relative md:col-span-12 xl:col-span-6 panel-shadow">
+          <Card className="relative md:col-span-12 xl:col-span-6 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Execution History</h2>
             <div className="h-[250px]">
               {lifetime.executionHistoryData.length > 0 ? (
                 <SafeChartContainer>
                   {(w, h) => (
                     <LineChart width={w} height={h} data={lifetime.executionHistoryData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-subtle)" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} dy={10} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
                       <Tooltip content={<CustomTooltip />} />
@@ -478,7 +475,7 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* LANGUAGE DISTRIBUTION */}
-          <Card className="relative md:col-span-6 xl:col-span-6 panel-shadow">
+          <Card className="relative md:col-span-6 xl:col-span-6 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Language Distribution (Snippets)</h2>
             <div className="h-[220px]">
               {lifetime.languageDistribution.length > 0 ? (
@@ -486,7 +483,7 @@ export default function AnalyticsPage() {
                   {(w, h) => (
                     <PieChart width={w} height={h}>
                       <Pie data={lifetime.languageDistribution} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
-                        {lifetime.languageDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={Object.values(COLORS)[index % Object.values(COLORS).length]} />)}
+                        {lifetime.languageDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />)}
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
                       <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
@@ -500,14 +497,14 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* SNIPPET USAGE */}
-          <Card className="relative md:col-span-6 xl:col-span-6 panel-shadow">
+          <Card className="relative md:col-span-6 xl:col-span-6 ">
             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">Top Snippets Usage</h2>
             <div className="h-[220px]">
               {lifetime.snippetUsageData.length > 0 ? (
                 <SafeChartContainer>
                   {(w, h) => (
                     <BarChart width={w} height={h} data={lifetime.snippetUsageData} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-subtle)" />
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
                       <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-muted)' }} />
                       <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-main)' }} width={120} />
                       <Tooltip content={<CustomTooltip />} />
