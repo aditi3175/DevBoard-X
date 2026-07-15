@@ -162,8 +162,7 @@ export default function LandingPage() {
             DevBoard<span className="text-text-main">_X</span>
           </div>
           <div className="flex items-center gap-8 text-sm">
-            <button className="hover:text-text-main transition-[color] duration-[120ms]">Features</button>
-            <button className="hover:text-text-main transition-[color] duration-[120ms]">Documentation</button>
+
             <SignInButton mode="modal">
               <button className="hover:text-text-main transition-[color] duration-[120ms]">Sign In</button>
             </SignInButton>
@@ -291,9 +290,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-bold text-text-main mb-3 tracking-tight">{feat.title}</h3>
               <p className="text-text-sub mb-8 leading-relaxed max-w-sm">{feat.desc}</p>
-              <button className="mt-auto text-accent text-sm hover:text-text-main transition-[color] duration-[120ms] flex items-center gap-2 font-mono">
-                View Details <span className="font-bold">→</span>
-              </button>
+
             </div>
           ))}
         </div>

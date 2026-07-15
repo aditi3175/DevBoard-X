@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   /* Layout */
   --color-page: var(--page);
   --color-page-raised: var(--page-raised);
