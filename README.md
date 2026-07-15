@@ -78,6 +78,11 @@ The easiest way to deploy DevBoard X is to use [Vercel](https://vercel.com).
 4. Add your Clerk environment variables to Vercel's settings.
 5. Hit **Deploy**!
 
+## 🗺️ Roadmap
+- [x] Basic HTML/CSS/JS execution engine
+- [x] Secure GitHub OAuth Integration
+- [ ] WebContainer integration to support browser-based Node.js execution (React, Express templates)
+
 ## 🛡️ Danger Zone
 DevBoard X includes a built-in *Danger Zone* in the settings page to wipe all projects, tasks, and code from the application if you ever need a clean slate. Use it carefully!
 
