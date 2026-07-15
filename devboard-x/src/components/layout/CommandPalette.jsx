@@ -32,7 +32,7 @@ const CATEGORIES = {
     label: "Projects",
     icon: FolderKanban,
     color: "text-primary",
-    bg: "bg-primary/10"
+    bg: "bg-accent/10"
   },
   task: {
     label: "Tasks",

@@ -73,7 +73,7 @@ const getFileIcon = (filename, isSelected) => {
       return (
         <span className={`w-4.5 h-4.5 rounded flex items-center justify-center text-xs font-black shrink-0 ${isSelected
           ? "bg-white text-primary"
-          : "bg-primary text-white"
+          : "bg-accent text-accent-fg"
           }`}>
           CSS
         </span>
@@ -1152,7 +1152,7 @@ export default function TaskWorkspacePage() {
           <div
             key={currentPath}
             className={`group flex items-center justify-between px-3 py-1.5 rounded-lg transition-all duration-200 w-full text-left ${isSelected
-              ? "bg-primary text-white shadow-sm"
+              ? "bg-accent text-accent-fg shadow-sm"
               : "hover:bg-bg-hover text-text-secondary hover:text-text-main"
               }`}
           >
@@ -1324,7 +1324,7 @@ export default function TaskWorkspacePage() {
                 </div>
 
                 {/* Mark as finished toggle */}
-                <label htmlFor="mark-finished" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-xs font-semibold text-primary cursor-pointer hover:bg-primary/20 transition-all select-none focus-within:ring-2 focus-within:ring-primary">
+                <label htmlFor="mark-finished" className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-accent/10 border border-accent/20 text-xs font-semibold text-accent cursor-pointer hover:bg-accent/20 transition-all select-none focus-within:ring-2 focus-within:ring-accent">
                   <input
                     id="mark-finished"
                     type="checkbox"
@@ -1693,7 +1693,7 @@ export default function TaskWorkspacePage() {
                         <button
                           title="Restore in editor"
                           onClick={() => handleLoadCommand(cmd.command)}
-                          className="px-2 py-1 rounded bg-primary hover:bg-primary-hover text-xs font-semibold text-white shrink-0 transition"
+                          className="px-2 py-1 rounded bg-accent hover:bg-accent-hover text-xs font-semibold text-accent-fg shrink-0 transition"
                         >
                           Restore
                         </button>

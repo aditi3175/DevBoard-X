@@ -125,7 +125,7 @@ export default function ProjectCard({
                 ? "bg-success"
                 : progress >= 50
                 ? "bg-warning"
-                : "bg-primary"
+                : "bg-accent"
             }`}
             style={{
               width: `${progress}%`

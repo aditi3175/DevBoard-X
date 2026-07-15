@@ -261,7 +261,7 @@ export default function ProjectResourcesPage() {
           {totalResources > 0 && !showForm && !editResourceId && (
             <button
               onClick={() => setShowForm(true)}
-              className="px-5 py-3 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition focus-visible:ring-2 focus-visible:ring-primary outline-none"
+              className="px-5 py-3 rounded-xl bg-accent text-accent-fg font-medium hover:bg-accent-hover transition focus-visible:ring-2 focus-visible:ring-accent outline-none"
             >
               Add Resource
             </button>

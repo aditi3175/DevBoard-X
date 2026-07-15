@@ -12,7 +12,7 @@ export const RESOURCE_CATEGORIES = [
 
 export const CATEGORY_BADGE_STYLES = {
   GitHub: "bg-bg-active text-text-main border-border-strong",
-  Figma: "bg-primary/20 text-primary border-primary/30",
+  Figma: "bg-accent/20 text-accent border-accent/30",
   "API Docs": "bg-info-bg text-info border-info/30",
   Deployment: "bg-success-bg text-success border-success/30",
   Database: "bg-warning-bg text-warning border-warning/30",

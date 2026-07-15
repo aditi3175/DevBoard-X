@@ -72,7 +72,7 @@ export default function ResourceCard({
           size="sm"
           leftIcon={ExternalLink}
           onClick={() => onOpen(resource.url)}
-          className="text-primary bg-primary/10 hover:bg-primary/20"
+          className="text-accent bg-accent/10 hover:bg-accent/20"
         >
           Open
         </Button>
@@ -92,7 +92,7 @@ export default function ResourceCard({
           size="sm"
           leftIcon={Pencil}
           onClick={() => onEdit(resource)}
-          className="text-primary hover:bg-primary/10"
+          className="text-accent hover:bg-accent/10"
         >
           Edit
         </Button>

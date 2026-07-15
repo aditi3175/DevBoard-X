@@ -118,7 +118,7 @@ export default function ProjectOverviewPage() {
           Icon={Code2}
           title="Total Snippets"
           value={metrics.totalSnippets}
-          color="bg-primary/10 text-primary"
+          color="bg-accent/10 text-accent"
         />
         <WidgetCard
           Icon={Link2}

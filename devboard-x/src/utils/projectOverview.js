@@ -35,7 +35,7 @@ export function getProjectPhase(progressPercent) {
     return {
       label: "Finalizing",
       color: "text-primary",
-      barColor: "bg-primary"
+      barColor: "bg-accent"
     }
   }
   if (progressPercent >= 51) {

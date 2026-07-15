@@ -98,7 +98,7 @@ export default function ProjectWorkspaceHubPage() {
                       `/projects/${project._id}/tasks/${task._id}`
                     )
                   }
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-hover transition"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-accent-fg text-sm font-medium hover:bg-accent-hover transition"
                 >
                   <ExternalLink size={16} />
                   Open Workspace
