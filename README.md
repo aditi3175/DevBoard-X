@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# DevBoard X 🚀
 
-## Getting Started
+DevBoard X is a centralized, terminal-native dashboard designed for builders. It provides an isolated environment to execute code, manage complex project workflows, and orchestrate deployments seamlessly in a fully integrated workspace.
 
-First, run the development server:
+## ✨ Features
 
+- **Project Management**: Organize tasks, resources, and project scopes in one dashboard.
+- **Task Editor & Workspace**: An integrated code editor (Monaco) and workspace interface for handling project files and sandbox execution.
+- **Isolated Snippets**: Save, manage, and duplicate code snippets to be used securely across your workflows.
+- **Terminal-Native Theme**: A sleek, dark-mode first design crafted with a custom Tailwind CSS v4 setup.
+- **Real-time Synchronization**: Powered by Convex to ensure your tasks and project analytics update instantaneously across all sessions.
+- **Robust Authentication**: Secured entirely by Clerk with GitHub OAuth integration.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router & Turbopack)
+- **Backend & Database**: [Convex](https://www.convex.dev/)
+- **Authentication**: [Clerk](https://clerk.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Components**: Framer Motion, Lucide React, Recharts
+
+## 🚀 Getting Started
+
+Follow these steps to set up DevBoard X locally on your machine.
+
+### Prerequisites
+Make sure you have Node.js installed.
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/devboard-x.git
+cd "DevBoard X/devboard-x"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### 3. Set up Environment Variables
+Create a `.env.local` file in the `devboard-x` directory and add the following keys:
+```env
+# Convex URL (Run `npx convex dev` to generate this automatically)
+NEXT_PUBLIC_CONVEX_URL=your_convex_url
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Clerk Authentication Keys
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+CLERK_ISSUER_URL=your_clerk_issuer_url
 
-## Learn More
+# GitHub OAuth Integration (Optional)
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_TOKEN_ENCRYPTION_KEY=a_32_character_encryption_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Start the Development Server
+You need to run both Next.js and Convex concurrently.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Terminal 1 (Convex Backend):
+```bash
+npx convex dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Terminal 2 (Next.js Frontend):
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
-## Deploy on Vercel
+## 🚢 Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy DevBoard X is to use [Vercel](https://vercel.com).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push your code to a GitHub repository.
+2. Import the project into Vercel.
+3. Install the **Convex Vercel Integration** from the Vercel marketplace to automatically link your production database.
+4. Add your Clerk environment variables to Vercel's settings.
+5. Hit **Deploy**!
+
+## 🛡️ Danger Zone
+DevBoard X includes a built-in *Danger Zone* in the settings page to wipe all projects, tasks, and code from the application if you ever need a clean slate. Use it carefully!
+
+---
+
+*Designed & built with 💚 for the modern developer.*
