@@ -71,10 +71,11 @@ export default function SettingsPage() {
   useEffect(() => {
     if (githubStatus && !hasCleaned.current) {
       hasCleaned.current = true
-      const url = new URL(window.location.href)
-      url.searchParams.delete("github")
-      url.searchParams.delete("reason")
-      window.history.replaceState({}, "", url.pathname)
+      // TEMPORARILY DISABLED FOR DEBUGGING
+      // const url = new URL(window.location.href)
+      // url.searchParams.delete("github")
+      // url.searchParams.delete("reason")
+      // window.history.replaceState({}, "", url.pathname)
     }
     if (githubStatus) {
       const timer = setTimeout(() => setGithubStatus(null), 5000)

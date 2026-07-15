@@ -57,9 +57,9 @@ export async function GET(request) {
     const tokenData = await tokenResponse.json();
 
     if (tokenData.error) {
-      console.error("GitHub token exchange error:", tokenData.error);
+      console.error("GitHub token exchange error:", tokenData.error, tokenData.error_description);
       return NextResponse.redirect(
-        new URL("/settings?github=error&reason=token_exchange", request.url)
+        new URL(`/settings?github=error&reason=token_exchange:${tokenData.error}`, request.url)
       );
     }
 
